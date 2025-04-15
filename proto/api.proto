@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/api";
+
+import "google/protobuf/timestamp.proto";
+
+service SensorService {
+    rpc CreateSensorType(CreateSensorTypeRequest) returns (CreateSensorTypeResponse) {}
+    rpc GetSensorType(GetSensorTypeRequest) returns (GetSensorTypeResponse) {}
+    rpc ListSensorTypes(ListSensorTypesRequest) returns (ListSensorTypesResponse) {}
+    
+    rpc CreateSensor(CreateSensorRequest) returns (CreateSensorResponse) {}
+    rpc GetSensor(GetSensorRequest) returns (GetSensorResponse) {}
+    rpc ListSensors(ListSensorsRequest) returns (ListSensorsResponse) {}
+    rpc UpdateSensor(UpdateSensorRequest) returns (UpdateSensorResponse) {}
+    rpc DeleteSensor(DeleteSensorRequest) returns (DeleteSensorResponse) {}
+}
+
+message SensorType {
+  int32 id = 1;
+  string name = 2;
+  string model = 3;
+  string manufacturer = 4;   
+  string description = 5;      
+  string unit = 6;             
+  float min_value = 7;         
+  float max_value = 8;         
+  google.protobuf.Timestamp created_at = 9;
+}
+
+message Sensor{
+    int32 id = 1;
+    string name = 2;
+    string location = 3;
+    string description = 4;
+    bool active = 5;
+    google.protobuf.Timestamp last_updated = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+    int32 sensor_type_id = 9;   
+}
+
+message CreateSensorTypeRequest {
+    string name = 1;
+    string model = 2;
+    string manufacturer = 3;
+    string description = 4;
+    string unit = 5;
+    float min_value = 6;
+    float max_value = 7;
+}
+
+message CreateSensorTypeResponse{
+    SensorType sensor_type = 1;
+}
+
+message GetSensorTypeRequest{
+    int32 id = 1;
+}
+
+message GetSensorTypeResponse{
+    SensorType sensor_type = 1;
+}
+
+message ListSensorTypesRequest {}
+
+message ListSensorTypesResponse {
+    repeated SensorType sensor_types = 1;
+}
+
+message CreateSensorRequest {
+    string name = 1;
+    string location = 2;
+    string description = 3;
+    bool active = 4;
+    int32 sensor_type_id = 5;
+}
+
+message CreateSensorResponse {
+    Sensor sensor = 1;
+}
+
+message GetSensorRequest {
+    int32 id = 1;
+}
+
+message GetSensorResponse {
+    Sensor sensor = 1;
+}
+
+message ListSensorsRequest {}
+
+message ListSensorsResponse {
+    repeated Sensor sensors = 1;
+}
+
+message UpdateSensorRequest {
+    int32 id = 1;
+    string name = 2;
+    string location = 3;
+    string description = 4;
+    bool active = 5;
+    int32 sensor_type_id = 6;
+}
+
+message UpdateSensorResponse {
+    Sensor sensor = 1;
+}
+
+message DeleteSensorRequest {
+    int32 id = 1;
+}
+
+message DeleteSensorResponse {}
