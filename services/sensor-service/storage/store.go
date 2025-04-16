@@ -1,9 +1,10 @@
-package main
+package storage
 
 import (
 	"context"
 
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
 )
 
 type ISensorStorage interface {
@@ -34,7 +35,7 @@ func (s *SensorStorage) Delete(ctx context.Context, id int) error {
 
 // Get implements ISensorStorage.
 func (s *SensorStorage) Get(ctx context.Context, id int) (*ent.Sensor, error) {
-	panic("unimplemented")
+	return s.client.Sensor.Query().Where(sensor.ID(id)).WithType().Only(ctx)
 }
 
 // List implements ISensorStorage.
