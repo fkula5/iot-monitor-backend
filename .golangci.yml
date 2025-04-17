@@ -6,10 +6,8 @@ linters:
     errcheck:
       check-type-assertions: false
       check-blank: false
-      disable-default-exclusions: true
       exclude-functions:
-        - (net/http.ResponseWriter).Write
-        - (net/http).ListenAndServe
+        - (*net/http.ResponseWriter).Write
         - (ent.Client).Close
 
 formatters:
