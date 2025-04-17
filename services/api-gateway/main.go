@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -17,5 +18,8 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	http.ListenAndServe(":3000", r)
+	err := http.ListenAndServe(":3000", r)
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
