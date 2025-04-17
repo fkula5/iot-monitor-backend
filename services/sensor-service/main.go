@@ -21,7 +21,7 @@ const (
 	host     = "localhost"
 	port     = 5432
 	user     = "fk"
-	password = "2w3e4r5tK$"
+	password = ""
 	dbname   = "sensors"
 	grpcPort = 50051
 )
