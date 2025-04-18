@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 
-	_ "github.com/joho/godotenv/autoload"
+	"github.com/joho/godotenv"
 
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/handlers"
@@ -16,16 +16,26 @@ import (
 	"google.golang.org/grpc"
 )
 
-var (
-	host     = os.Getenv("SENSOR_SERVICE_DB_HOST")
-	port     = os.Getenv("SENSOR_SERVICE_DB_PORT")
-	user     = os.Getenv("SENSOR_SERVICE_DB_USERNAME")
-	password = os.Getenv("SENSOR_SERVICE_DB_PASSWORD")
-	dbname   = os.Getenv("SENSOR_SERVICE_DB_DATABASE")
-	grpcPort = os.Getenv("SENSOR_SERVICE_GRPC_PORT")
-)
+func getEnvOrFail(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("Environment variable %s is not set", key)
+	}
+	return value
+}
 
 func main() {
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
+	host := getEnvOrFail("SENSOR_SERVICE_DB_HOST")
+	port := getEnvOrFail("SENSOR_SERVICE_DB_PORT")
+	user := getEnvOrFail("SENSOR_SERVICE_DB_USERNAME")
+	password := getEnvOrFail("SENSOR_SERVICE_DB_PASSWORD")
+	dbname := getEnvOrFail("SENSOR_SERVICE_DB_DATABASE")
+	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
+
 	db := database.New(host, port, user, password, dbname)
 
 	defer db.Client.Close()
