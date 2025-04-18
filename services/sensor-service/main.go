@@ -2,66 +2,52 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
+	"os"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
-	_ "github.com/lib/pq"
-	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
+	_ "github.com/joho/godotenv/autoload"
+
+	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/services"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/storage"
 	"google.golang.org/grpc"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "fk"
-	password = ""
-	dbname   = "sensors"
-	grpcPort = 50051
+var (
+	host     = os.Getenv("SENSOR_SERVICE_DB_HOST")
+	port     = os.Getenv("SENSOR_SERVICE_DB_PORT")
+	user     = os.Getenv("SENSOR_SERVICE_DB_USERNAME")
+	password = os.Getenv("SENSOR_SERVICE_DB_PASSWORD")
+	dbname   = os.Getenv("SENSOR_SERVICE_DB_DATABASE")
+	grpcPort = os.Getenv("SENSOR_SERVICE_GRPC_PORT")
 )
 
-func Open(databaseUrl string) *ent.Client {
-	db, err := sql.Open("postgres", databaseUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	drv := entsql.OpenDB(dialect.Postgres, db)
-	return ent.NewClient(ent.Driver(drv))
-}
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	db := database.New(host, port, user, password, dbname)
 
-	client := Open(psqlInfo)
-	defer client.Close()
+	defer db.Client.Close()
 
 	ctx := context.Background()
 
-	if err := client.Schema.Create(ctx); err != nil {
+	if err := db.Client.Schema.Create(ctx); err != nil {
 		log.Fatalf("Failed to create schema: %v", err)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
 
-	sensorsStore := storage.NewSensorStorage(client)
+	sensorsStore := storage.NewSensorStorage(db.Client)
 	sensorsService := services.NewSensorService(sensorsStore)
 	handlers.NewGrpcHandler(grpcServer, sensorsService)
 
-	log.Printf("Starting gRPC server on port %d...", grpcPort)
+	log.Printf("Starting gRPC server on port %s...", grpcPort)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
 	}
