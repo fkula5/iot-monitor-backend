@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -37,7 +42,6 @@ func main() {
 	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
 
 	db := database.New(host, port, user, password, dbname)
-
 	defer db.Client.Close()
 
 	ctx := context.Background()
@@ -57,8 +61,77 @@ func main() {
 	sensorsService := services.NewSensorService(sensorsStore)
 	handlers.NewGrpcHandler(grpcServer, sensorsService)
 
-	log.Printf("Starting gRPC server on port %s...", grpcPort)
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+	sensor, err := sensorsStore.Get(ctx, 1)
+	if err != nil {
+		log.Printf("error getting sensor: %v", err)
 	}
+
+	lastValue := sensor.Edges.Type.MinValue + rand.Float64()*(sensor.Edges.Type.MaxValue-sensor.Edges.Type.MinValue)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		log.Printf("Starting gRPC server on port %s...", grpcPort)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+		wg.Done()
+	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+
+				minValue := sensor.Edges.Type.MinValue
+				maxValue := sensor.Edges.Type.MaxValue
+
+				if minValue == maxValue {
+					minValue = 0.0
+					maxValue = 100.0
+				}
+
+				variation := rand.NormFloat64() * 0.02
+
+				newValue := lastValue * (1 + variation)
+
+				midPoint := (minValue + maxValue) / 2
+				drift := (midPoint - newValue) * 0.01 * rand.Float64()
+				newValue += drift
+
+				if newValue < minValue {
+					newValue = minValue
+				}
+				if newValue > maxValue {
+					newValue = maxValue
+				}
+
+				lastValue = newValue
+
+				log.Printf("Mock sensor data: %f", lastValue)
+			case <-ctx.Done():
+				log.Println("Data generator shutting down")
+				return
+			}
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	sig := <-sigChan
+	log.Printf("Received signal: %v, initiating shutdown", sig)
+
+	cancel()
+	grpcServer.Stop()
+
+	wg.Wait()
+	log.Println("Service shutdown complete")
 }
