@@ -37,20 +37,6 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	r.Patch("/active/{id}", func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
-		defer cancel()
-
-		idStr := chi.URLParam(r, "id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
-			return
-		}
-
-		res, err := h.client.GetSensor(ctx, &api.GetSensorRequest{Id: int32(id)})
-	}
-
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Use(middleware.RequestID)
