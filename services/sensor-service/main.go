@@ -61,12 +61,7 @@ func main() {
 	sensorsService := services.NewSensorService(sensorsStore)
 	handlers.NewGrpcHandler(grpcServer, sensorsService)
 
-	sensor, err := sensorsStore.Get(ctx, 1)
-	if err != nil {
-		log.Printf("error getting sensor: %v", err)
-	}
-
-	lastValue := sensor.Edges.Type.MinValue + rand.Float64()*(sensor.Edges.Type.MaxValue-sensor.Edges.Type.MinValue)
+	lastValues := make(map[int]float64)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -89,33 +84,52 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-
-				minValue := sensor.Edges.Type.MinValue
-				maxValue := sensor.Edges.Type.MaxValue
-
-				if minValue == maxValue {
-					minValue = 0.0
-					maxValue = 100.0
+				ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), 5*time.Second)
+				sensors, err := sensorsService.ListActiveSensors(ctxTimeout)
+				if err != nil {
+					log.Printf("Error fetching active sensors: %v", err)
+					cancelTimeout()
+					continue
 				}
 
-				variation := rand.NormFloat64() * 0.02
+				log.Printf("Found %d active sensors", len(sensors))
+				for _, sensor := range sensors {
 
-				newValue := lastValue * (1 + variation)
+					minValue := sensor.Edges.Type.MinValue
+					maxValue := sensor.Edges.Type.MaxValue
 
-				midPoint := (minValue + maxValue) / 2
-				drift := (midPoint - newValue) * 0.01 * rand.Float64()
-				newValue += drift
+					if minValue == maxValue {
+						minValue = 0.0
+						maxValue = 100.0
+					}
 
-				if newValue < minValue {
-					newValue = minValue
+					var lastValue float64
+					var ok bool
+					if lastValue, ok = lastValues[sensor.ID]; !ok {
+						lastValue = minValue + rand.Float64()*(maxValue-minValue)
+					}
+
+					variation := rand.NormFloat64() * 0.02
+					newValue := lastValue * (1 + variation)
+
+					midPoint := (minValue + maxValue) / 2
+					drift := (midPoint - newValue) * 0.01 * rand.Float64()
+					newValue += drift
+
+					if newValue < minValue {
+						newValue = minValue
+					}
+					if newValue > maxValue {
+						newValue = maxValue
+					}
+
+					lastValues[sensor.ID] = newValue
+
+					log.Printf("Generated data for sensor %d (%s): %.2f",
+						sensor.ID, sensor.Name, newValue)
 				}
-				if newValue > maxValue {
-					newValue = maxValue
-				}
+				cancelTimeout()
 
-				lastValue = newValue
-
-				log.Printf("Mock sensor data: %f", lastValue)
 			case <-ctx.Done():
 				log.Println("Data generator shutting down")
 				return

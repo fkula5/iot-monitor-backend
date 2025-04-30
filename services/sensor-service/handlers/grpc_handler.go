@@ -108,3 +108,14 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 
 	return sensorProto
 }
+
+func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
+	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id), req.Active)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.SetSensorActiveResponse{
+		Sensor: convertSensorToProto(sensor),
+	}, nil
+}

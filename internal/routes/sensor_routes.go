@@ -20,6 +20,7 @@ func SetupSensorRoutes(r chi.Router, client api.SensorServiceClient) {
 	r.Route("/sensors", func(r chi.Router) {
 		r.Get("/", handler.ListSensors)
 		r.Get("/{id}", handler.GetSensor)
+		r.Put("/{id}/active", handler.SetSensorActive)
 	})
 }
 
@@ -65,6 +66,43 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	err = json.NewEncoder(w).Encode(res.Sensor)
+	if err != nil {
+		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
+		return
+	}
+
+	var request struct {
+		Active bool `json:"active"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	res, err := h.client.SetSensorActive(ctx, &api.SetSensorActiveRequest{
+		Id:     int32(id),
+		Active: request.Active,
+	})
+	if err != nil {
+		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(res.Sensor)
 	if err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)

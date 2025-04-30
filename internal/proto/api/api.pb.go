@@ -1038,6 +1038,102 @@ func (*DeleteSensorResponse) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{17}
 }
 
+type SetSensorActiveRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Active        bool                   `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSensorActiveRequest) Reset() {
+	*x = SetSensorActiveRequest{}
+	mi := &file_api_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSensorActiveRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSensorActiveRequest) ProtoMessage() {}
+
+func (x *SetSensorActiveRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSensorActiveRequest.ProtoReflect.Descriptor instead.
+func (*SetSensorActiveRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *SetSensorActiveRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SetSensorActiveRequest) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+type SetSensorActiveResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sensor        *Sensor                `protobuf:"bytes,1,opt,name=sensor,proto3" json:"sensor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSensorActiveResponse) Reset() {
+	*x = SetSensorActiveResponse{}
+	mi := &file_api_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSensorActiveResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSensorActiveResponse) ProtoMessage() {}
+
+func (x *SetSensorActiveResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSensorActiveResponse.ProtoReflect.Descriptor instead.
+func (*SetSensorActiveResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *SetSensorActiveResponse) GetSensor() *Sensor {
+	if x != nil {
+		return x.Sensor
+	}
+	return nil
+}
+
 var File_api_proto protoreflect.FileDescriptor
 
 const file_api_proto_rawDesc = "" +
@@ -1112,7 +1208,12 @@ const file_api_proto_rawDesc = "" +
 	"\x06sensor\x18\x01 \x01(\v2\v.api.SensorR\x06sensor\"%\n" +
 	"\x13DeleteSensorRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"\x16\n" +
-	"\x14DeleteSensorResponse2\xd3\x04\n" +
+	"\x14DeleteSensorResponse\"@\n" +
+	"\x16SetSensorActiveRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
+	"\x06active\x18\x02 \x01(\bR\x06active\">\n" +
+	"\x17SetSensorActiveResponse\x12#\n" +
+	"\x06sensor\x18\x01 \x01(\v2\v.api.SensorR\x06sensor2\xa3\x05\n" +
 	"\rSensorService\x12Q\n" +
 	"\x10CreateSensorType\x12\x1c.api.CreateSensorTypeRequest\x1a\x1d.api.CreateSensorTypeResponse\"\x00\x12H\n" +
 	"\rGetSensorType\x12\x19.api.GetSensorTypeRequest\x1a\x1a.api.GetSensorTypeResponse\"\x00\x12N\n" +
@@ -1121,7 +1222,8 @@ const file_api_proto_rawDesc = "" +
 	"\tGetSensor\x12\x15.api.GetSensorRequest\x1a\x16.api.GetSensorResponse\"\x00\x12B\n" +
 	"\vListSensors\x12\x17.api.ListSensorsRequest\x1a\x18.api.ListSensorsResponse\"\x00\x12E\n" +
 	"\fUpdateSensor\x12\x18.api.UpdateSensorRequest\x1a\x19.api.UpdateSensorResponse\"\x00\x12E\n" +
-	"\fDeleteSensor\x12\x18.api.DeleteSensorRequest\x1a\x19.api.DeleteSensorResponse\"\x00B<Z:github.com/skni-kod/iot-monitor-backend/internal/proto/apib\x06proto3"
+	"\fDeleteSensor\x12\x18.api.DeleteSensorRequest\x1a\x19.api.DeleteSensorResponse\"\x00\x12N\n" +
+	"\x0fSetSensorActive\x12\x1b.api.SetSensorActiveRequest\x1a\x1c.api.SetSensorActiveResponse\"\x00B<Z:github.com/skni-kod/iot-monitor-backend/internal/proto/apib\x06proto3"
 
 var (
 	file_api_proto_rawDescOnce sync.Once
@@ -1135,7 +1237,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_api_proto_goTypes = []any{
 	(*SensorType)(nil),               // 0: api.SensorType
 	(*Sensor)(nil),                   // 1: api.Sensor
@@ -1155,13 +1257,15 @@ var file_api_proto_goTypes = []any{
 	(*UpdateSensorResponse)(nil),     // 15: api.UpdateSensorResponse
 	(*DeleteSensorRequest)(nil),      // 16: api.DeleteSensorRequest
 	(*DeleteSensorResponse)(nil),     // 17: api.DeleteSensorResponse
-	(*timestamp.Timestamp)(nil),      // 18: google.protobuf.Timestamp
+	(*SetSensorActiveRequest)(nil),   // 18: api.SetSensorActiveRequest
+	(*SetSensorActiveResponse)(nil),  // 19: api.SetSensorActiveResponse
+	(*timestamp.Timestamp)(nil),      // 20: google.protobuf.Timestamp
 }
 var file_api_proto_depIdxs = []int32{
-	18, // 0: api.SensorType.created_at:type_name -> google.protobuf.Timestamp
-	18, // 1: api.Sensor.last_updated:type_name -> google.protobuf.Timestamp
-	18, // 2: api.Sensor.created_at:type_name -> google.protobuf.Timestamp
-	18, // 3: api.Sensor.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 0: api.SensorType.created_at:type_name -> google.protobuf.Timestamp
+	20, // 1: api.Sensor.last_updated:type_name -> google.protobuf.Timestamp
+	20, // 2: api.Sensor.created_at:type_name -> google.protobuf.Timestamp
+	20, // 3: api.Sensor.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: api.CreateSensorTypeResponse.sensor_type:type_name -> api.SensorType
 	0,  // 5: api.GetSensorTypeResponse.sensor_type:type_name -> api.SensorType
 	0,  // 6: api.ListSensorTypesResponse.sensor_types:type_name -> api.SensorType
@@ -1169,27 +1273,30 @@ var file_api_proto_depIdxs = []int32{
 	1,  // 8: api.GetSensorResponse.sensor:type_name -> api.Sensor
 	1,  // 9: api.ListSensorsResponse.sensors:type_name -> api.Sensor
 	1,  // 10: api.UpdateSensorResponse.sensor:type_name -> api.Sensor
-	2,  // 11: api.SensorService.CreateSensorType:input_type -> api.CreateSensorTypeRequest
-	4,  // 12: api.SensorService.GetSensorType:input_type -> api.GetSensorTypeRequest
-	6,  // 13: api.SensorService.ListSensorTypes:input_type -> api.ListSensorTypesRequest
-	8,  // 14: api.SensorService.CreateSensor:input_type -> api.CreateSensorRequest
-	10, // 15: api.SensorService.GetSensor:input_type -> api.GetSensorRequest
-	12, // 16: api.SensorService.ListSensors:input_type -> api.ListSensorsRequest
-	14, // 17: api.SensorService.UpdateSensor:input_type -> api.UpdateSensorRequest
-	16, // 18: api.SensorService.DeleteSensor:input_type -> api.DeleteSensorRequest
-	3,  // 19: api.SensorService.CreateSensorType:output_type -> api.CreateSensorTypeResponse
-	5,  // 20: api.SensorService.GetSensorType:output_type -> api.GetSensorTypeResponse
-	7,  // 21: api.SensorService.ListSensorTypes:output_type -> api.ListSensorTypesResponse
-	9,  // 22: api.SensorService.CreateSensor:output_type -> api.CreateSensorResponse
-	11, // 23: api.SensorService.GetSensor:output_type -> api.GetSensorResponse
-	13, // 24: api.SensorService.ListSensors:output_type -> api.ListSensorsResponse
-	15, // 25: api.SensorService.UpdateSensor:output_type -> api.UpdateSensorResponse
-	17, // 26: api.SensorService.DeleteSensor:output_type -> api.DeleteSensorResponse
-	19, // [19:27] is the sub-list for method output_type
-	11, // [11:19] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	1,  // 11: api.SetSensorActiveResponse.sensor:type_name -> api.Sensor
+	2,  // 12: api.SensorService.CreateSensorType:input_type -> api.CreateSensorTypeRequest
+	4,  // 13: api.SensorService.GetSensorType:input_type -> api.GetSensorTypeRequest
+	6,  // 14: api.SensorService.ListSensorTypes:input_type -> api.ListSensorTypesRequest
+	8,  // 15: api.SensorService.CreateSensor:input_type -> api.CreateSensorRequest
+	10, // 16: api.SensorService.GetSensor:input_type -> api.GetSensorRequest
+	12, // 17: api.SensorService.ListSensors:input_type -> api.ListSensorsRequest
+	14, // 18: api.SensorService.UpdateSensor:input_type -> api.UpdateSensorRequest
+	16, // 19: api.SensorService.DeleteSensor:input_type -> api.DeleteSensorRequest
+	18, // 20: api.SensorService.SetSensorActive:input_type -> api.SetSensorActiveRequest
+	3,  // 21: api.SensorService.CreateSensorType:output_type -> api.CreateSensorTypeResponse
+	5,  // 22: api.SensorService.GetSensorType:output_type -> api.GetSensorTypeResponse
+	7,  // 23: api.SensorService.ListSensorTypes:output_type -> api.ListSensorTypesResponse
+	9,  // 24: api.SensorService.CreateSensor:output_type -> api.CreateSensorResponse
+	11, // 25: api.SensorService.GetSensor:output_type -> api.GetSensorResponse
+	13, // 26: api.SensorService.ListSensors:output_type -> api.ListSensorsResponse
+	15, // 27: api.SensorService.UpdateSensor:output_type -> api.UpdateSensorResponse
+	17, // 28: api.SensorService.DeleteSensor:output_type -> api.DeleteSensorResponse
+	19, // 29: api.SensorService.SetSensorActive:output_type -> api.SetSensorActiveResponse
+	21, // [21:30] is the sub-list for method output_type
+	12, // [12:21] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -1203,7 +1310,7 @@ func file_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
