@@ -53,8 +53,10 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	sensorsStore := storage.NewSensorStorage(db.Client)
+	sensorsTypeStore := storage.NewSensorTypeStorage(db.Client)
 	sensorsService := services.NewSensorService(sensorsStore)
-	handlers.NewGrpcHandler(grpcServer, sensorsService)
+	sensorsTypeService := services.NewSensorTypeService(sensorsTypeStore)
+	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService)
 
 	log.Printf("Starting gRPC server on port %s...", grpcPort)
 	if err := grpcServer.Serve(lis); err != nil {

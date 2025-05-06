@@ -12,11 +12,12 @@ import (
 
 type SensorsGrpcHandler struct {
 	pb.UnimplementedSensorServiceServer
-	sensorsService services.ISensorService
+	sensorsService     services.ISensorService
+	sensorsTypeService services.ISensorTypeService
 }
 
-func NewGrpcHandler(s *grpc.Server, sensorsService services.ISensorService) {
-	handler := &SensorsGrpcHandler{sensorsService: sensorsService}
+func NewGrpcHandler(s *grpc.Server, sensorsService services.ISensorService, sensorsTypeService services.ISensorTypeService) {
+	handler := &SensorsGrpcHandler{sensorsService: sensorsService, sensorsTypeService: sensorsTypeService}
 
 	pb.RegisterSensorServiceServer(s, handler)
 }
@@ -51,8 +52,15 @@ func (h *SensorsGrpcHandler) GetSensor(ctx context.Context, req *pb.GetSensorReq
 
 // GetSensorType implements api.SensorServiceServer.
 // Subtle: this method shadows the method (UnimplementedSensorServiceServer).GetSensorType of SensorsGrpcHandler.UnimplementedSensorServiceServer.
-func (h *SensorsGrpcHandler) GetSensorType(context.Context, *pb.GetSensorTypeRequest) (*pb.GetSensorTypeResponse, error) {
-	panic("unimplemented")
+func (h *SensorsGrpcHandler) GetSensorType(ctx context.Context, req *pb.GetSensorTypeRequest) (*pb.GetSensorTypeResponse, error) {
+	sensorType, err := h.sensorsTypeService.GetSensorType(ctx, int(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetSensorTypeResponse{
+		SensorType: convertSensorTypeToProto(sensorType),
+	}, nil
 }
 
 // ListSensorTypes implements api.SensorServiceServer.
@@ -107,6 +115,26 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 	}
 
 	return sensorProto
+}
+
+func convertSensorTypeToProto(st *ent.SensorType) *pb.SensorType {
+	if st == nil {
+		return nil
+	}
+
+	sensorTypeProto := &pb.SensorType{
+		Id:           int32(st.ID),
+		Name:         st.Name,
+		Model:        st.Model,
+		Manufacturer: st.Manufacturer,
+		Description:  st.Description,
+		Unit:         st.Unit,
+		MinValue:     float32(st.MinValue),
+		MaxValue:     float32(st.MaxValue),
+		CreatedAt:    timestamppb.New(st.CreatedAt),
+	}
+
+	return sensorTypeProto
 }
 
 func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
