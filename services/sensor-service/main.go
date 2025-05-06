@@ -4,13 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand/v2"
 	"net"
 	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
 
 	"github.com/joho/godotenv"
 
@@ -61,91 +56,8 @@ func main() {
 	sensorsService := services.NewSensorService(sensorsStore)
 	handlers.NewGrpcHandler(grpcServer, sensorsService)
 
-	lastValues := make(map[int]float64)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() {
-		log.Printf("Starting gRPC server on port %s...", grpcPort)
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
-		}
-		wg.Done()
-	}()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), 5*time.Second)
-				sensors, err := sensorsService.ListActiveSensors(ctxTimeout)
-				if err != nil {
-					log.Printf("Error fetching active sensors: %v", err)
-					cancelTimeout()
-					continue
-				}
-
-				log.Printf("Found %d active sensors", len(sensors))
-				for _, sensor := range sensors {
-
-					minValue := sensor.Edges.Type.MinValue
-					maxValue := sensor.Edges.Type.MaxValue
-
-					if minValue == maxValue {
-						minValue = 0.0
-						maxValue = 100.0
-					}
-
-					var lastValue float64
-					var ok bool
-					if lastValue, ok = lastValues[sensor.ID]; !ok {
-						lastValue = minValue + rand.Float64()*(maxValue-minValue)
-					}
-
-					variation := rand.NormFloat64() * 0.02
-					newValue := lastValue * (1 + variation)
-
-					midPoint := (minValue + maxValue) / 2
-					drift := (midPoint - newValue) * 0.01 * rand.Float64()
-					newValue += drift
-
-					if newValue < minValue {
-						newValue = minValue
-					}
-					if newValue > maxValue {
-						newValue = maxValue
-					}
-
-					lastValues[sensor.ID] = newValue
-
-					log.Printf("Generated data for sensor %d (%s): %.2f",
-						sensor.ID, sensor.Name, newValue)
-				}
-				cancelTimeout()
-
-			case <-ctx.Done():
-				log.Println("Data generator shutting down")
-				return
-			}
-		}
-	}()
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	sig := <-sigChan
-	log.Printf("Received signal: %v, initiating shutdown", sig)
-
-	cancel()
-	grpcServer.Stop()
-
-	wg.Wait()
-	log.Println("Service shutdown complete")
+	log.Printf("Starting gRPC server on port %s...", grpcPort)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
 }
