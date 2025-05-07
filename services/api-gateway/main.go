@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/routes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -41,7 +41,7 @@ func main() {
 
 	defer conn.Close()
 
-	sensorClient := api.NewSensorServiceClient(conn)
+	sensorClient := sensor_service.NewSensorServiceClient(conn)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

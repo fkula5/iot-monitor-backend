@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/services/data-generation-service/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -44,7 +44,7 @@ func main() {
 
 	defer conn.Close()
 
-	sensorClient := api.NewSensorServiceClient(conn)
+	sensorClient := sensor_service.NewSensorServiceClient(conn)
 
 	generatorService := services.NewGeneratorService(sensorClient)
 	err = generatorService.Start(ctx)

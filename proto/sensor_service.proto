@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package api;
+package sensor_service;
 
-option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/api";
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service";
 
 import "google/protobuf/timestamp.proto";
 

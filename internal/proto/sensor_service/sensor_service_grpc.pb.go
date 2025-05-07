@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.12.4
-// source: api.proto
+// source: sensor_service.proto
 
-package api
+package sensor_service
 
 import (
 	context "context"
@@ -19,15 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SensorService_CreateSensorType_FullMethodName = "/api.SensorService/CreateSensorType"
-	SensorService_GetSensorType_FullMethodName    = "/api.SensorService/GetSensorType"
-	SensorService_ListSensorTypes_FullMethodName  = "/api.SensorService/ListSensorTypes"
-	SensorService_CreateSensor_FullMethodName     = "/api.SensorService/CreateSensor"
-	SensorService_GetSensor_FullMethodName        = "/api.SensorService/GetSensor"
-	SensorService_ListSensors_FullMethodName      = "/api.SensorService/ListSensors"
-	SensorService_UpdateSensor_FullMethodName     = "/api.SensorService/UpdateSensor"
-	SensorService_DeleteSensor_FullMethodName     = "/api.SensorService/DeleteSensor"
-	SensorService_SetSensorActive_FullMethodName  = "/api.SensorService/SetSensorActive"
+	SensorService_CreateSensorType_FullMethodName = "/sensor_service.SensorService/CreateSensorType"
+	SensorService_GetSensorType_FullMethodName    = "/sensor_service.SensorService/GetSensorType"
+	SensorService_ListSensorTypes_FullMethodName  = "/sensor_service.SensorService/ListSensorTypes"
+	SensorService_CreateSensor_FullMethodName     = "/sensor_service.SensorService/CreateSensor"
+	SensorService_GetSensor_FullMethodName        = "/sensor_service.SensorService/GetSensor"
+	SensorService_ListSensors_FullMethodName      = "/sensor_service.SensorService/ListSensors"
+	SensorService_UpdateSensor_FullMethodName     = "/sensor_service.SensorService/UpdateSensor"
+	SensorService_DeleteSensor_FullMethodName     = "/sensor_service.SensorService/DeleteSensor"
+	SensorService_SetSensorActive_FullMethodName  = "/sensor_service.SensorService/SetSensorActive"
 )
 
 // SensorServiceClient is the client API for SensorService service.
@@ -380,7 +380,7 @@ func _SensorService_SetSensorActive_Handler(srv interface{}, ctx context.Context
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SensorService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.SensorService",
+	ServiceName: "sensor_service.SensorService",
 	HandlerType: (*SensorServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -421,5 +421,5 @@ var SensorService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
+	Metadata: "sensor_service.proto",
 }

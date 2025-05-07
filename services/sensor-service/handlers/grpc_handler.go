@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/services"
 	"google.golang.org/grpc"

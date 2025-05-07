@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 )
 
 type SensorHandler struct {
-	client api.SensorServiceClient
+	client sensor_service.SensorServiceClient
 }
 
-func SetupSensorRoutes(r chi.Router, client api.SensorServiceClient) {
+func SetupSensorRoutes(r chi.Router, client sensor_service.SensorServiceClient) {
 	handler := &SensorHandler{client: client}
 	r.Route("/sensors", func(r chi.Router) {
 		r.Get("/", handler.ListSensors)
@@ -28,7 +28,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.client.ListSensors(ctx, &api.ListSensorsRequest{})
+	res, err := h.client.ListSensors(ctx, &sensor_service.ListSensorsRequest{})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensors: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -53,7 +53,7 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.GetSensor(ctx, &api.GetSensorRequest{Id: int32(id)})
+	res, err := h.client.GetSensor(ctx, &sensor_service.GetSensorRequest{Id: int32(id)})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensor: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -93,7 +93,7 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	res, err := h.client.SetSensorActive(ctx, &api.SetSensorActiveRequest{
+	res, err := h.client.SetSensorActive(ctx, &sensor_service.SetSensorActiveRequest{
 		Id:     int32(id),
 		Active: request.Active,
 	})

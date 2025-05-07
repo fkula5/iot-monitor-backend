@@ -6,7 +6,7 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 )
 
 type IGeneratorService interface {
@@ -15,14 +15,14 @@ type IGeneratorService interface {
 }
 
 type GeneratorService struct {
-	sensorClient        api.SensorServiceClient
+	sensorClient        sensor_service.SensorServiceClient
 	generationInterval  time.Duration
 	lastValues          map[int32]float64
 	stopChan            chan struct{}
 	generationInProcess bool
 }
 
-func NewGeneratorService(sensorClient api.SensorServiceClient) IGeneratorService {
+func NewGeneratorService(sensorClient sensor_service.SensorServiceClient) IGeneratorService {
 	return &GeneratorService{
 		sensorClient:        sensorClient,
 		generationInterval:  5 * time.Second,
@@ -80,7 +80,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	sensors, err := g.sensorClient.ListSensors(ctxTimeout, &api.ListSensorsRequest{})
+	sensors, err := g.sensorClient.ListSensors(ctxTimeout, &sensor_service.ListSensorsRequest{})
 	if err != nil {
 		log.Printf("Error fetching sensors: %v", err)
 		return
@@ -93,7 +93,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 		}
 		activeSensors++
 
-		sensorDetails, err := g.sensorClient.GetSensor(ctxTimeout, &api.GetSensorRequest{Id: int32(sensor.Id)})
+		sensorDetails, err := g.sensorClient.GetSensor(ctxTimeout, &sensor_service.GetSensorRequest{Id: int32(sensor.Id)})
 		if err != nil {
 			log.Printf("Error fetching sensor details for sensor %d: %v", sensor.Id, err)
 			continue
@@ -105,7 +105,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 		}
 
 		sensorTypeId := sensorDetails.Sensor.SensorTypeId
-		sensorType, err := g.sensorClient.GetSensorType(ctxTimeout, &api.GetSensorTypeRequest{Id: int32(sensorTypeId)})
+		sensorType, err := g.sensorClient.GetSensorType(ctxTimeout, &sensor_service.GetSensorTypeRequest{Id: int32(sensorTypeId)})
 		if err != nil {
 			log.Printf("Error fetching sensor type for sensor %d: %v", sensor.Id, err)
 			continue
