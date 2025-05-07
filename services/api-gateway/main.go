@@ -13,17 +13,21 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewGrpcClient(addr string) *grpc.ClientConn {
+func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 
-	return conn
+	return conn, err
 }
 
 func main() {
-	conn := NewGrpcClient(":50051")
+	conn, err := NewGrpcClient(":50051")
+	if err != nil {
+		log.Fatalf("Failed to connect to sensor service: %v", err)
+	}
+
 	defer conn.Close()
 
 	sensorClient := api.NewSensorServiceClient(conn)
@@ -48,7 +52,7 @@ func main() {
 
 	log.Println("Starting API gateway server on :3000")
 
-	err := http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":3000", r)
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

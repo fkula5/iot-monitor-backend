@@ -14,11 +14,20 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	return conn, err
+}
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := grpc.NewClient(":50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := NewGrpcClient(":50051")
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
@@ -26,6 +35,7 @@ func main() {
 	defer conn.Close()
 
 	sensorClient := api.NewSensorServiceClient(conn)
+
 	generatorService := services.NewGeneratorService(sensorClient)
 	err = generatorService.Start(ctx)
 	if err != nil {
@@ -40,6 +50,10 @@ func main() {
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
+
+	if err := generatorService.Stop(); err != nil {
+		log.Printf("Error stopping generator service: %v", err)
+	}
 
 	select {
 	case <-shutdownCtx.Done():
