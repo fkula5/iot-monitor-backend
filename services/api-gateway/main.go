@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/joho/godotenv"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/routes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -23,14 +25,23 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 }
 
 func main() {
-	conn, err := NewGrpcClient(":50051")
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
+	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
+	if grpcAddr == "" {
+		grpcAddr = ":50051" // Default if not specified
+	}
+
+	conn, err := NewGrpcClient(grpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
 
 	defer conn.Close()
 
-	sensorClient := api.NewSensorServiceClient(conn)
+	sensorClient := sensor_service.NewSensorServiceClient(conn)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

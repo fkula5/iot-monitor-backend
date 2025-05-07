@@ -8,7 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skni-kod/iot-monitor-backend/internal/proto/api"
+	"github.com/joho/godotenv"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/services/data-generation-service/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -27,14 +28,23 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := NewGrpcClient(":50051")
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
+	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
+	if grpcAddr == "" {
+		grpcAddr = ":50051" // Default if not specified
+	}
+
+	conn, err := NewGrpcClient(grpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
 
 	defer conn.Close()
 
-	sensorClient := api.NewSensorServiceClient(conn)
+	sensorClient := sensor_service.NewSensorServiceClient(conn)
 
 	generatorService := services.NewGeneratorService(sensorClient)
 	err = generatorService.Start(ctx)
