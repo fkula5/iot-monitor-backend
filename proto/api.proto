@@ -16,6 +16,7 @@ service SensorService {
     rpc ListSensors(ListSensorsRequest) returns (ListSensorsResponse) {}
     rpc UpdateSensor(UpdateSensorRequest) returns (UpdateSensorResponse) {}
     rpc DeleteSensor(DeleteSensorRequest) returns (DeleteSensorResponse) {}
+    rpc SetSensorActive(SetSensorActiveRequest) returns (SetSensorActiveResponse) {}
 }
 
 message SensorType {
@@ -114,3 +115,12 @@ message DeleteSensorRequest {
 }
 
 message DeleteSensorResponse {}
+
+message SetSensorActiveRequest {
+    int32 id = 1;
+    bool active = 2;
+}
+
+message SetSensorActiveResponse {
+    Sensor sensor = 1;
+}
