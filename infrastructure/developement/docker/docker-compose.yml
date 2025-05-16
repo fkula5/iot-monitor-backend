@@ -1,0 +1,73 @@
+name: iot-platform
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: iot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SENSOR_SERVICE_DB_DATABASE}
+      POSTGRES_USER: ${SENSOR_SERVICE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
+    ports:
+      - "${SENSOR_SERVICE_DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${SENSOR_SERVICE_DB_USERNAME} -d ${SENSOR_SERVICE_DB_DATABASE}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sensor-service:
+    build:
+      context: ../../..
+      dockerfile: infrastructure/developement/docker/sensor-service.Dockerfile
+    container_name: iot-sensor-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SENSOR_SERVICE_DB_HOST: postgres
+      SENSOR_SERVICE_DB_PORT: 5432
+      SENSOR_SERVICE_DB_DATABASE: ${SENSOR_SERVICE_DB_DATABASE}
+      SENSOR_SERVICE_DB_USERNAME: ${SENSOR_SERVICE_DB_USERNAME}
+      SENSOR_SERVICE_DB_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
+      SENSOR_SERVICE_GRPC_PORT: ${SENSOR_SERVICE_GRPC_PORT}
+    ports:
+      - "${SENSOR_SERVICE_GRPC_PORT}:${SENSOR_SERVICE_GRPC_PORT}"
+
+  api-gateway:
+    build:
+      context: ../../..
+      dockerfile: infrastructure/developement/docker/api-gateway.Dockerfile
+    container_name: iot-api-gateway
+    restart: unless-stopped
+    depends_on:
+      - sensor-service
+    environment:
+      SENSOR_SERVICE_GRPC_ADDR: sensor-service:${SENSOR_SERVICE_GRPC_PORT}
+    ports:
+      - "${API_GATEWAY_PORT:-3000}:3000"
+
+  data-generator:
+    build:
+      context: ../../..
+      dockerfile: infrastructure/developement/docker/data-generation-service.Dockerfile
+    container_name: iot-data-generator
+    restart: unless-stopped
+    depends_on:
+      - sensor-service
+    environment:
+      SENSOR_SERVICE_GRPC_ADDR: sensor-service:${SENSOR_SERVICE_GRPC_PORT}
+
+volumes:
+  postgres_data:
+    name: iot-postgres-data
