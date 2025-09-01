@@ -16,10 +16,7 @@ type AuthHandler struct {
 
 func SetupAuthRoutes(r chi.Router, client auth.AuthServiceClient) {
 	handler := &AuthHandler{client: client}
-
-	r.Route("/auth", func(r chi.Router) {
-		r.Post("/register", handler.Register)
-	})
+	r.Post("/register", handler.Register)
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
