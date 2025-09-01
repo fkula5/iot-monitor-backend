@@ -67,12 +67,61 @@ func (s *AuthService) GetUserByID(ctx context.Context, userID int) (*ent.User, e
 
 // Login implements IAuthService.
 func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*AuthResponse, error) {
-	panic("unimplemented")
+	user, err := s.userStorage.GetByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	if err := s.passwordService.ValidatePassword(req.Password, user.PasswordHash); err != nil {
+		return nil, fmt.Errorf("invalid email or password")
+	}
+
+	if !user.Active {
+		return nil, fmt.Errorf("account is inactive")
+	}
+
+	token, err := s.jwtService.GenerateToken(user.ID, user.Username, user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	expirationHours := 24
+	if envHours := os.Getenv("JWT_EXPIRATION_HOURS"); envHours != "" {
+		if hours, err := strconv.Atoi(envHours); err == nil {
+			expirationHours = hours
+		}
+	}
+
+	return &AuthResponse{
+		Token:     token,
+		ExpiresAt: time.Now().Add(time.Duration(expirationHours) * time.Hour),
+		User: UserInfo{
+			ID:        user.ID,
+			Email:     user.Email,
+			Username:  user.Username,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		},
+	}, nil
 }
 
 // ValidateToken implements IAuthService.
 func (s *AuthService) ValidateToken(ctx context.Context, token string) (*ent.User, error) {
-	panic("unimplemented")
+	claims, err := s.jwtService.ValidateToken(token)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token: %w", err)
+	}
+
+	user, err := s.userStorage.Get(ctx, claims.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	if !user.Active {
+		return nil, fmt.Errorf("account is inactive")
+	}
+
+	return user, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, req *RegisterRequest) (*AuthResponse, error) {

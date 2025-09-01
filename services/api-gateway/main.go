@@ -1,3 +1,4 @@
+// services/api-gateway/main.go
 package main
 
 import (
@@ -30,27 +31,28 @@ func main() {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
-	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
-	if grpcAddr == "" {
-		grpcAddr = ":50051"
+	sensorGrpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
+	if sensorGrpcAddr == "" {
+		sensorGrpcAddr = ":50051"
 	}
 
-	sensorService, err := NewGrpcClient(grpcAddr)
+	authGrpcAddr := os.Getenv("AUTH_SERVICE_GRPC_ADDR")
+	if authGrpcAddr == "" {
+		authGrpcAddr = ":50052"
+	}
+
+	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
-
 	defer sensorService.Close()
-
 	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
-	authService, err := NewGrpcClient("50052")
+	authService, err := NewGrpcClient(authGrpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to auth service: %v", err)
 	}
-
 	defer authService.Close()
-
 	authClient := auth.NewAuthServiceClient(authService)
 
 	r := chi.NewRouter()
@@ -63,17 +65,13 @@ func main() {
 	})
 
 	apiRouter := chi.NewRouter()
-
 	apiRouter.Use(middleware.RequestID)
 	apiRouter.Use(middleware.RealIP)
-
 	routes.SetupSensorRoutes(apiRouter, sensorClient)
-
 	r.Mount("/api", apiRouter)
 
 	authRouter := chi.NewRouter()
 	routes.SetupAuthRoutes(authRouter, authClient)
-
 	r.Mount("/auth", authRouter)
 
 	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {

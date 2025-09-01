@@ -25,6 +25,33 @@ func NewGrpcHandler(s *grpc.Server, authService services.IAuthService) {
 	pb.RegisterAuthServiceServer(s, handler)
 }
 
+func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	if req.Email == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is required")
+	}
+
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "password is required")
+	}
+
+	authReq := &services.LoginRequest{
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	authRes, err := h.authService.Login(ctx, authReq)
+	if err != nil {
+		log.Printf("Failed to login user: %v", err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.LoginResponse{
+		Token:     authRes.Token,
+		ExpiresAt: timestamppb.New(authRes.ExpiresAt),
+		User:      convertUserToProto(&authRes.User),
+	}, nil
+}
+
 func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if req.Email == "" {
 		return nil, status.Error(codes.InvalidArgument, "email is required")

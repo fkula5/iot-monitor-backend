@@ -18,6 +18,7 @@ type IUserStorage interface {
 	List(ctx context.Context) ([]*ent.User, error)
 	SetRefreshToken(ctx context.Context, userID int, token string, expires time.Time) error
 	ClearRefreshToken(ctx context.Context, userID int) error
+	GetByEmail(ctx context.Context, email string) (*ent.User, error)
 }
 
 type UserStorage struct {
@@ -82,4 +83,8 @@ func (s *UserStorage) ClearRefreshToken(ctx context.Context, userID int) error {
 
 func (s *UserStorage) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	return s.client.User.Query().Where(user.Username(username)).Exist(ctx)
+}
+
+func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*ent.User, error) {
+	return s.client.User.Query().Where(user.Email(email)).Only(ctx)
 }
