@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/routes"
 	"google.golang.org/grpc"
@@ -31,17 +32,26 @@ func main() {
 
 	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
 	if grpcAddr == "" {
-		grpcAddr = ":50051" // Default if not specified
+		grpcAddr = ":50051"
 	}
 
-	conn, err := NewGrpcClient(grpcAddr)
+	sensorService, err := NewGrpcClient(grpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
 
-	defer conn.Close()
+	defer sensorService.Close()
 
-	sensorClient := sensor_service.NewSensorServiceClient(conn)
+	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
+
+	authService, err := NewGrpcClient("50052")
+	if err != nil {
+		log.Fatalf("Failed to connect to auth service: %v", err)
+	}
+
+	defer authService.Close()
+
+	authClient := auth.NewAuthServiceClient(authService)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -60,6 +70,16 @@ func main() {
 	routes.SetupSensorRoutes(apiRouter, sensorClient)
 
 	r.Mount("/api", apiRouter)
+
+	authRouter := chi.NewRouter()
+	routes.SetupAuthRoutes(authRouter, authClient)
+
+	r.Mount("/auth", authRouter)
+
+	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+		log.Printf("Registered route: %s %s", method, route)
+		return nil
+	})
 
 	log.Println("Starting API gateway server on :3000")
 
