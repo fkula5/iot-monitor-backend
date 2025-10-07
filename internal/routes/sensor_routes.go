@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/internal/middleware"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 )
 
@@ -17,8 +18,9 @@ type SensorHandler struct {
 
 func SetupSensorRoutes(r chi.Router, client sensor_service.SensorServiceClient) {
 	handler := &SensorHandler{client: client}
+	authMw := authMiddleware.NewAuthMiddleware()
 	r.Route("/sensors", func(r chi.Router) {
-		r.Get("/", handler.ListSensors)
+		r.With(authMw.Authenticate).Get("/", handler.ListSensors)
 		r.Get("/{id}", handler.GetSensor)
 		r.Put("/{id}/active", handler.SetSensorActive)
 	})

@@ -26,8 +26,30 @@ flowchart TD
     subgraph "API Gateway Service"
         ChiRouter["Chi Router"]
         ApiRoutes["API Routes"]
-        Middleware["Middleware </br>- Logger</br>- RequestID</br>- Timeout</br>- Recoverer"]
+        Middleware["Middleware </br>- Logger</br>- RequestID</br>- Timeout</br>- Recoverer</br>- JWT Auth"]
         SensorRoutes["Sensor Routes</br>- List Sensors</br>- Get Sensor</br>- Set Sensor Active"]
+        AuthRoutes["Auth Routes</br>- Register</br>- Login</br>- Refresh Token"]
+    end
+
+    %% Auth Service
+    subgraph "Auth Service"
+        AuthGrpcServer["gRPC Server"]
+        AuthServiceImpl["Auth Service Implementation"]
+
+        subgraph "Auth Service Layer"
+            AuthService["Auth Service"]
+            JWTService["JWT Service"]
+            PasswordService["Password Service"]
+        end
+
+        subgraph "Auth Storage Layer"
+            UserStorage["User Storage"]
+        end
+
+        subgraph "Auth Database"
+            AuthEntClient["Ent ORM Client"]
+            AuthPostgresDB[(PostgreSQL DB)]
+        end
     end
 
     %% Sensor Service
@@ -67,9 +89,20 @@ flowchart TD
     ChiRouter --> Middleware
     Middleware --> ApiRoutes
     ApiRoutes --> SensorRoutes
+    ApiRoutes --> AuthRoutes
 
-    %% API Gateway to Sensor Service
+    %% API Gateway to Services
+    AuthRoutes -- "gRPC Client" --> AuthGrpcServer
     SensorRoutes -- "gRPC Client" --> GrpcServer
+
+    %% Auth Service internal connections
+    AuthGrpcServer --> AuthServiceImpl
+    AuthServiceImpl --> AuthService
+    AuthService --> JWTService
+    AuthService --> PasswordService
+    AuthService --> UserStorage
+    UserStorage --> AuthEntClient
+    AuthEntClient --> AuthPostgresDB
 
     %% Sensor Service internal connections
     GrpcServer --> SensorServiceImpl
@@ -89,16 +122,18 @@ flowchart TD
     %% Style definitions
     classDef client fill:#e1f5fe,stroke:#01579b,color:#01579b
     classDef apiGateway fill:#e8f5e9,stroke:#2e7d32,color:#2e7d32
+    classDef authService fill:#f1f8e9,stroke:#33691e,color:#33691e
     classDef sensorService fill:#fff3e0,stroke:#ff6f00,color:#ff6f00
     classDef dataGeneration fill:#f3e5f5,stroke:#7b1fa2,color:#7b1fa2
     classDef database fill:#ffebee,stroke:#c62828,color:#c62828
 
     %% Apply styles
     class WebClient,MobileClient client
-    class ChiRouter,ApiRoutes,Middleware,SensorRoutes apiGateway
+    class ChiRouter,ApiRoutes,Middleware,SensorRoutes,AuthRoutes apiGateway
+    class AuthGrpcServer,AuthServiceImpl,AuthService,JWTService,PasswordService,UserStorage authService
     class GrpcServer,SensorServiceImpl,SensorTypeServiceImpl,SensorService,SensorTypeService,SensorStorage,SensorTypeStorage sensorService
     class Generator,ValueGenerator dataGeneration
-    class EntClient,PostgresDB database
+    class EntClient,PostgresDB,AuthEntClient,AuthPostgresDB database
 ```
 
 ## Features
@@ -107,7 +142,8 @@ flowchart TD
 - **Sensor Type Management**: Define different types of sensors with specific properties
 - **Active Sensor Monitoring**: Enable/disable sensors for monitoring
 - **Data Simulation**: Generate realistic sensor data for testing
-- **API Gateway**: Unified REST API for all frontend clients
+- **API Gateway**: Unified REST API for all frontend clients with authentication middleware
+- **User Authentication**: JWT-based user registration and login
 
 ## Technology Stack
 
@@ -117,6 +153,7 @@ flowchart TD
 - **Ent ORM**: Database schema management and queries
 - **Chi Router**: HTTP routing
 - **GitHub Actions**: CI/CD pipeline
+- **JWT**: JSON Web Token for user authentication
 
 ## Project Structure
 
@@ -125,12 +162,18 @@ flowchart TD
 ├── .github/workflows  # CI/CD configuration
 ├── .env.example       # Environment variables template
 ├── internal           # Shared internal packages
+│   ├── auth           # JWT and password utilities
 │   ├── database       # Database connection utilities
 │   ├── proto          # Protocol buffer definitions
 │   └── routes         # HTTP route definitions
 ├── proto              # Protocol buffer definition files
 ├── services           # Microservices
 │   ├── api-gateway    # REST API gateway service
+│   ├── auth           # Authentication service
+│   │   ├── ent        # User entity framework definitions
+│   │   ├── handlers   # gRPC request handlers
+│   │   ├── services   # Authentication business logic
+│   │   └── storage    # User data persistence
 │   ├── data-generation-service  # Sensor data simulation
 │   └── sensor-service  # Core sensor management service
 │       ├── ent        # Entity framework definitions
