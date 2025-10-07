@@ -20,9 +20,9 @@ func SetupSensorRoutes(r chi.Router, client sensor_service.SensorServiceClient) 
 	handler := &SensorHandler{client: client}
 	authMw := authMiddleware.NewAuthMiddleware()
 	r.Route("/sensors", func(r chi.Router) {
-		r.Get("/", handler.ListSensors)
+		r.With(authMw.Authenticate).Get("/", handler.ListSensors)
 		r.Get("/{id}", handler.GetSensor)
-		r.With(authMw.Authenticate).Put("/{id}/active", handler.SetSensorActive)
+		r.Put("/{id}/active", handler.SetSensorActive)
 	})
 }
 
