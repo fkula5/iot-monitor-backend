@@ -121,9 +121,15 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"token":      res.Token,
+		"expires_at": res.ExpiresAt.AsTime(),
+		"user":       res.User,
+	}
 
-	err = json.NewEncoder(w).Encode(res.User)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 		return
