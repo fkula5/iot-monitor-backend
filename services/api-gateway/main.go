@@ -31,12 +31,12 @@ func main() {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
-	sensorGrpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
+	sensorGrpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_PORT")
 	if sensorGrpcAddr == "" {
 		sensorGrpcAddr = ":50051"
 	}
 
-	authGrpcAddr := os.Getenv("AUTH_SERVICE_GRPC_ADDR")
+	authGrpcAddr := os.Getenv("AUTH_SERVICE_GRPC_PORT")
 	if authGrpcAddr == "" {
 		authGrpcAddr = ":50052"
 	}
