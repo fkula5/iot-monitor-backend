@@ -12,6 +12,8 @@ type ISensorTypeService interface {
 	GetSensorType(ctx context.Context, id int) (*ent.SensorType, error)
 	CreateSensorType(ctx context.Context, sensorType *ent.SensorType) (*ent.SensorType, error)
 	ListSensorTypes(ctx context.Context) ([]*ent.SensorType, error)
+	UpdateSensorType(ctx context.Context, id int, sensorType *ent.SensorType) (*ent.SensorType, error)
+	DeleteSensorType(ctx context.Context, id int) error
 }
 
 type SensorTypeService struct {
@@ -20,6 +22,16 @@ type SensorTypeService struct {
 
 func NewSensorTypeService(store storage.ISensorTypeStorage) ISensorTypeService {
 	return &SensorTypeService{store: store}
+}
+
+// DeleteSensorType implements ISensorTypeService.
+func (s *SensorTypeService) DeleteSensorType(ctx context.Context, id int) error {
+	return s.store.Delete(ctx, id)
+}
+
+// UpdateSensorType implements ISensorTypeService.
+func (s *SensorTypeService) UpdateSensorType(ctx context.Context, id int, sensorType *ent.SensorType) (*ent.SensorType, error) {
+	return s.store.Update(ctx, id, sensorType)
 }
 
 // CreateSensorType implements ISensorTypeService.

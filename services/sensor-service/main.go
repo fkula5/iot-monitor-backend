@@ -33,7 +33,7 @@ func main() {
 	port := getEnvOrFail("DB_PORT")
 	user := getEnvOrFail("DB_USER")
 	password := getEnvOrFail("DB_PASSWORD")
-	dbname := getEnvOrFail("SENSOR_SERVICE_DB_DATABASE")
+	dbname := getEnvOrFail("SENSOR_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
 
 	db := database.NewSensorDB(host, port, user, password, dbname)

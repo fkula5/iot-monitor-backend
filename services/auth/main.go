@@ -32,7 +32,8 @@ func main() {
 	port := getEnvOrFail("DB_PORT")
 	user := getEnvOrFail("DB_USER")
 	password := getEnvOrFail("DB_PASSWORD")
-	dbname := "users"
+	dbname := getEnvOrFail("AUTH_SERVICE_DB_NAME")
+	grpcPort := getEnvOrFail("AUTH_SERVICE_GRPC_PORT")
 
 	db := database.NewAuthDB(host, port, user, password, dbname)
 	defer db.Close()
@@ -43,7 +44,7 @@ func main() {
 		log.Fatalf("Failed to create schema: %v", err)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", "50052"))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}

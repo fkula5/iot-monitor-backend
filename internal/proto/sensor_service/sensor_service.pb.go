@@ -1134,6 +1134,230 @@ func (x *SetSensorActiveResponse) GetSensor() *Sensor {
 	return nil
 }
 
+type UpdateSensorTypeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Model         string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
+	Manufacturer  string                 `protobuf:"bytes,4,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
+	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Unit          string                 `protobuf:"bytes,6,opt,name=unit,proto3" json:"unit,omitempty"`
+	MinValue      float32                `protobuf:"fixed32,7,opt,name=min_value,json=minValue,proto3" json:"min_value,omitempty"`
+	MaxValue      float32                `protobuf:"fixed32,8,opt,name=max_value,json=maxValue,proto3" json:"max_value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSensorTypeRequest) Reset() {
+	*x = UpdateSensorTypeRequest{}
+	mi := &file_sensor_service_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSensorTypeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSensorTypeRequest) ProtoMessage() {}
+
+func (x *UpdateSensorTypeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSensorTypeRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSensorTypeRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *UpdateSensorTypeRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdateSensorTypeRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateSensorTypeRequest) GetModel() string {
+	if x != nil {
+		return x.Model
+	}
+	return ""
+}
+
+func (x *UpdateSensorTypeRequest) GetManufacturer() string {
+	if x != nil {
+		return x.Manufacturer
+	}
+	return ""
+}
+
+func (x *UpdateSensorTypeRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateSensorTypeRequest) GetUnit() string {
+	if x != nil {
+		return x.Unit
+	}
+	return ""
+}
+
+func (x *UpdateSensorTypeRequest) GetMinValue() float32 {
+	if x != nil {
+		return x.MinValue
+	}
+	return 0
+}
+
+func (x *UpdateSensorTypeRequest) GetMaxValue() float32 {
+	if x != nil {
+		return x.MaxValue
+	}
+	return 0
+}
+
+type UpdateSensorTypeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SensorType    *SensorType            `protobuf:"bytes,1,opt,name=sensor_type,json=sensorType,proto3" json:"sensor_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSensorTypeResponse) Reset() {
+	*x = UpdateSensorTypeResponse{}
+	mi := &file_sensor_service_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSensorTypeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSensorTypeResponse) ProtoMessage() {}
+
+func (x *UpdateSensorTypeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSensorTypeResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSensorTypeResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpdateSensorTypeResponse) GetSensorType() *SensorType {
+	if x != nil {
+		return x.SensorType
+	}
+	return nil
+}
+
+type DeleteSensorTypeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSensorTypeRequest) Reset() {
+	*x = DeleteSensorTypeRequest{}
+	mi := &file_sensor_service_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSensorTypeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSensorTypeRequest) ProtoMessage() {}
+
+func (x *DeleteSensorTypeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSensorTypeRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSensorTypeRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DeleteSensorTypeRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DeleteSensorTypeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSensorTypeResponse) Reset() {
+	*x = DeleteSensorTypeResponse{}
+	mi := &file_sensor_service_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSensorTypeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSensorTypeResponse) ProtoMessage() {}
+
+func (x *DeleteSensorTypeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSensorTypeResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSensorTypeResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{23}
+}
+
 var File_sensor_service_proto protoreflect.FileDescriptor
 
 const file_sensor_service_proto_rawDesc = "" +
@@ -1213,11 +1437,28 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
 	"\x06active\x18\x02 \x01(\bR\x06active\"I\n" +
 	"\x17SetSensorActiveResponse\x12.\n" +
-	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor2\xe9\x06\n" +
+	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\xe7\x01\n" +
+	"\x17UpdateSensorTypeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05model\x18\x03 \x01(\tR\x05model\x12\"\n" +
+	"\fmanufacturer\x18\x04 \x01(\tR\fmanufacturer\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04unit\x18\x06 \x01(\tR\x04unit\x12\x1b\n" +
+	"\tmin_value\x18\a \x01(\x02R\bminValue\x12\x1b\n" +
+	"\tmax_value\x18\b \x01(\x02R\bmaxValue\"W\n" +
+	"\x18UpdateSensorTypeResponse\x12;\n" +
+	"\vsensor_type\x18\x01 \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
+	"sensorType\")\n" +
+	"\x17DeleteSensorTypeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"\x1a\n" +
+	"\x18DeleteSensorTypeResponse2\xbb\b\n" +
 	"\rSensorService\x12g\n" +
 	"\x10CreateSensorType\x12'.sensor_service.CreateSensorTypeRequest\x1a(.sensor_service.CreateSensorTypeResponse\"\x00\x12^\n" +
 	"\rGetSensorType\x12$.sensor_service.GetSensorTypeRequest\x1a%.sensor_service.GetSensorTypeResponse\"\x00\x12d\n" +
-	"\x0fListSensorTypes\x12&.sensor_service.ListSensorTypesRequest\x1a'.sensor_service.ListSensorTypesResponse\"\x00\x12[\n" +
+	"\x0fListSensorTypes\x12&.sensor_service.ListSensorTypesRequest\x1a'.sensor_service.ListSensorTypesResponse\"\x00\x12g\n" +
+	"\x10UpdateSensorType\x12'.sensor_service.UpdateSensorTypeRequest\x1a(.sensor_service.UpdateSensorTypeResponse\"\x00\x12g\n" +
+	"\x10DeleteSensorType\x12'.sensor_service.DeleteSensorTypeRequest\x1a(.sensor_service.DeleteSensorTypeResponse\"\x00\x12[\n" +
 	"\fCreateSensor\x12#.sensor_service.CreateSensorRequest\x1a$.sensor_service.CreateSensorResponse\"\x00\x12R\n" +
 	"\tGetSensor\x12 .sensor_service.GetSensorRequest\x1a!.sensor_service.GetSensorResponse\"\x00\x12X\n" +
 	"\vListSensors\x12\".sensor_service.ListSensorsRequest\x1a#.sensor_service.ListSensorsResponse\"\x00\x12[\n" +
@@ -1237,7 +1478,7 @@ func file_sensor_service_proto_rawDescGZIP() []byte {
 	return file_sensor_service_proto_rawDescData
 }
 
-var file_sensor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_sensor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_sensor_service_proto_goTypes = []any{
 	(*SensorType)(nil),               // 0: sensor_service.SensorType
 	(*Sensor)(nil),                   // 1: sensor_service.Sensor
@@ -1259,13 +1500,17 @@ var file_sensor_service_proto_goTypes = []any{
 	(*DeleteSensorResponse)(nil),     // 17: sensor_service.DeleteSensorResponse
 	(*SetSensorActiveRequest)(nil),   // 18: sensor_service.SetSensorActiveRequest
 	(*SetSensorActiveResponse)(nil),  // 19: sensor_service.SetSensorActiveResponse
-	(*timestamp.Timestamp)(nil),      // 20: google.protobuf.Timestamp
+	(*UpdateSensorTypeRequest)(nil),  // 20: sensor_service.UpdateSensorTypeRequest
+	(*UpdateSensorTypeResponse)(nil), // 21: sensor_service.UpdateSensorTypeResponse
+	(*DeleteSensorTypeRequest)(nil),  // 22: sensor_service.DeleteSensorTypeRequest
+	(*DeleteSensorTypeResponse)(nil), // 23: sensor_service.DeleteSensorTypeResponse
+	(*timestamp.Timestamp)(nil),      // 24: google.protobuf.Timestamp
 }
 var file_sensor_service_proto_depIdxs = []int32{
-	20, // 0: sensor_service.SensorType.created_at:type_name -> google.protobuf.Timestamp
-	20, // 1: sensor_service.Sensor.last_updated:type_name -> google.protobuf.Timestamp
-	20, // 2: sensor_service.Sensor.created_at:type_name -> google.protobuf.Timestamp
-	20, // 3: sensor_service.Sensor.updated_at:type_name -> google.protobuf.Timestamp
+	24, // 0: sensor_service.SensorType.created_at:type_name -> google.protobuf.Timestamp
+	24, // 1: sensor_service.Sensor.last_updated:type_name -> google.protobuf.Timestamp
+	24, // 2: sensor_service.Sensor.created_at:type_name -> google.protobuf.Timestamp
+	24, // 3: sensor_service.Sensor.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: sensor_service.CreateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
 	0,  // 5: sensor_service.GetSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
 	0,  // 6: sensor_service.ListSensorTypesResponse.sensor_types:type_name -> sensor_service.SensorType
@@ -1274,29 +1519,34 @@ var file_sensor_service_proto_depIdxs = []int32{
 	1,  // 9: sensor_service.ListSensorsResponse.sensors:type_name -> sensor_service.Sensor
 	1,  // 10: sensor_service.UpdateSensorResponse.sensor:type_name -> sensor_service.Sensor
 	1,  // 11: sensor_service.SetSensorActiveResponse.sensor:type_name -> sensor_service.Sensor
-	2,  // 12: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
-	4,  // 13: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
-	6,  // 14: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
-	8,  // 15: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
-	10, // 16: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
-	12, // 17: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
-	14, // 18: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
-	16, // 19: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
-	18, // 20: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
-	3,  // 21: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
-	5,  // 22: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
-	7,  // 23: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
-	9,  // 24: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
-	11, // 25: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
-	13, // 26: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
-	15, // 27: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
-	17, // 28: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
-	19, // 29: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
-	21, // [21:30] is the sub-list for method output_type
-	12, // [12:21] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	0,  // 12: sensor_service.UpdateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
+	2,  // 13: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
+	4,  // 14: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
+	6,  // 15: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
+	20, // 16: sensor_service.SensorService.UpdateSensorType:input_type -> sensor_service.UpdateSensorTypeRequest
+	22, // 17: sensor_service.SensorService.DeleteSensorType:input_type -> sensor_service.DeleteSensorTypeRequest
+	8,  // 18: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
+	10, // 19: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
+	12, // 20: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
+	14, // 21: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
+	16, // 22: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
+	18, // 23: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
+	3,  // 24: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
+	5,  // 25: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
+	7,  // 26: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
+	21, // 27: sensor_service.SensorService.UpdateSensorType:output_type -> sensor_service.UpdateSensorTypeResponse
+	23, // 28: sensor_service.SensorService.DeleteSensorType:output_type -> sensor_service.DeleteSensorTypeResponse
+	9,  // 29: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
+	11, // 30: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
+	13, // 31: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
+	15, // 32: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
+	17, // 33: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
+	19, // 34: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
+	24, // [24:35] is the sub-list for method output_type
+	13, // [13:24] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_sensor_service_proto_init() }
@@ -1310,7 +1560,7 @@ func file_sensor_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sensor_service_proto_rawDesc), len(file_sensor_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

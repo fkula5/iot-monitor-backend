@@ -10,6 +10,8 @@ service SensorService {
     rpc CreateSensorType(CreateSensorTypeRequest) returns (CreateSensorTypeResponse) {}
     rpc GetSensorType(GetSensorTypeRequest) returns (GetSensorTypeResponse) {}
     rpc ListSensorTypes(ListSensorTypesRequest) returns (ListSensorTypesResponse) {}
+    rpc UpdateSensorType(UpdateSensorTypeRequest) returns (UpdateSensorTypeResponse) {}
+    rpc DeleteSensorType(DeleteSensorTypeRequest) returns (DeleteSensorTypeResponse) {}
     
     rpc CreateSensor(CreateSensorRequest) returns (CreateSensorResponse) {}
     rpc GetSensor(GetSensorRequest) returns (GetSensorResponse) {}
@@ -124,3 +126,24 @@ message SetSensorActiveRequest {
 message SetSensorActiveResponse {
     Sensor sensor = 1;
 }
+
+message UpdateSensorTypeRequest {
+    int32 id = 1;
+    string name = 2;
+    string model = 3;
+    string manufacturer = 4;   
+    string description = 5;      
+    string unit = 6;             
+    float min_value = 7;         
+    float max_value = 8;         
+}
+
+message UpdateSensorTypeResponse {
+    SensorType sensor_type = 1;
+}
+
+message DeleteSensorTypeRequest {
+    int32 id = 1;
+}
+
+message DeleteSensorTypeResponse {}

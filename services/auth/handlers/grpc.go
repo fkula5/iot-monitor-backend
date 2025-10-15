@@ -102,8 +102,8 @@ func convertUserToProto(userInfo *services.UserInfo) *pb.User {
 		FirstName: userInfo.FirstName,
 		LastName:  userInfo.LastName,
 		Active:    true,
-		CreatedAt: timestamppb.Now(), // Placeholder
-		UpdatedAt: timestamppb.Now(), // Placeholder
+		CreatedAt: timestamppb.Now(),
+		UpdatedAt: timestamppb.Now(),
 	}
 }
 
