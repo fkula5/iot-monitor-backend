@@ -19,10 +19,28 @@ type SensorHandler struct {
 func SetupSensorRoutes(r chi.Router, client sensor_service.SensorServiceClient) {
 	handler := &SensorHandler{client: client}
 	authMw := authMiddleware.NewAuthMiddleware()
+
 	r.Route("/sensors", func(r chi.Router) {
-		r.With(authMw.Authenticate).Get("/", handler.ListSensors)
-		r.Get("/{id}", handler.GetSensor)
-		r.Put("/{id}/active", handler.SetSensorActive)
+		r.Use(authMw.Authenticate)
+		r.Get("/", handler.ListSensors)
+		r.Post("/", handler.CreateSensor)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", handler.GetSensor)
+			r.Put("/", handler.UpdateSensor)
+			r.Delete("/", handler.DeleteSensor)
+			r.Put("/active", handler.SetSensorActive)
+		})
+	})
+
+	r.Route("/sensor-types", func(r chi.Router) {
+		r.Use(authMw.Authenticate)
+		r.Get("/", handler.ListSensorTypes)
+		r.Post("/", handler.CreateSensorType)
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", handler.GetSensorType)
+			r.Put("/", handler.UpdateSensorType)
+			r.Delete("/", handler.DeleteSensorType)
+		})
 	})
 }
 
@@ -110,4 +128,36 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) GetSensorType(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) UpdateSensorType(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
+}
+
+func (h *SensorHandler) DeleteSensorType(w http.ResponseWriter, r *http.Request) {
+	panic("unimplemented")
 }

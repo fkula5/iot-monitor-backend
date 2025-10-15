@@ -55,8 +55,8 @@ func main() {
 	authService := services.NewAuthService(userStorage)
 	handlers.NewGrpcHandler(grpcServer, authService)
 
-	log.Printf("Starting gRPC server on :50052")
+	log.Printf("Starting gRPC server on port %s...", grpcPort)
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to start gRPC server: %v", err)
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }
