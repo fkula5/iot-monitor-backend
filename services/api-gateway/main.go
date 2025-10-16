@@ -1,4 +1,3 @@
-// services/api-gateway/main.go
 package main
 
 import (
@@ -15,7 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	"github.com/skni-kod/iot-monitor-backend/internal/routes"
+	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
