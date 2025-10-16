@@ -14,6 +14,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -75,14 +76,21 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	sensorHandler := handlers.NewSensorHandler(sensorClient)
+	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
+	authHandler := handlers.NewAuthHandler(authClient)
+
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
 	apiRouter.Use(middleware.RealIP)
-	routes.SetupSensorRoutes(apiRouter, sensorClient)
+
+	routes.SetupSensorRoutes(apiRouter, sensorHandler)
+	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
+
 	r.Mount("/api", apiRouter)
 
 	authRouter := chi.NewRouter()
-	routes.SetupAuthRoutes(authRouter, authClient)
+	routes.SetupAuthRoutes(authRouter, authHandler)
 	r.Mount("/auth", authRouter)
 
 	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {

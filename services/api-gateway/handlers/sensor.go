@@ -1,4 +1,4 @@
-package routes
+package handlers
 
 import (
 	"context"
@@ -9,39 +9,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type SensorHandler struct {
 	client sensor_service.SensorServiceClient
 }
 
-func SetupSensorRoutes(r chi.Router, client sensor_service.SensorServiceClient) {
-	handler := &SensorHandler{client: client}
-	authMw := authMiddleware.NewAuthMiddleware()
-
-	r.Route("/sensors", func(r chi.Router) {
-		r.Use(authMw.Authenticate)
-		r.Get("/", handler.ListSensors)
-		r.Post("/", handler.CreateSensor)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/", handler.GetSensor)
-			r.Put("/", handler.UpdateSensor)
-			r.Delete("/", handler.DeleteSensor)
-			r.Put("/active", handler.SetSensorActive)
-		})
-	})
-
-	r.Route("/sensor-types", func(r chi.Router) {
-		r.Use(authMw.Authenticate)
-		r.Get("/", handler.ListSensorTypes)
-		r.Post("/", handler.CreateSensorType)
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/", handler.GetSensorType)
-			r.Put("/", handler.UpdateSensorType)
-			r.Delete("/", handler.DeleteSensorType)
-		})
-	})
+func NewSensorHandler(client sensor_service.SensorServiceClient) *SensorHandler {
+	return &SensorHandler{client: client}
 }
 
 func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
@@ -139,25 +114,5 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-func (h *SensorHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-func (h *SensorHandler) GetSensorType(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-func (h *SensorHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-func (h *SensorHandler) UpdateSensorType(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-func (h *SensorHandler) DeleteSensorType(w http.ResponseWriter, r *http.Request) {
 	panic("unimplemented")
 }
