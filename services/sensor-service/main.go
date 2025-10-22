@@ -29,11 +29,11 @@ func main() {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
-	host := getEnvOrFail("SENSOR_SERVICE_DB_HOST")
-	port := getEnvOrFail("SENSOR_SERVICE_DB_PORT")
-	user := getEnvOrFail("SENSOR_SERVICE_DB_USERNAME")
-	password := getEnvOrFail("SENSOR_SERVICE_DB_PASSWORD")
-	dbname := getEnvOrFail("SENSOR_SERVICE_DB_DATABASE")
+	host := getEnvOrFail("DB_HOST")
+	port := getEnvOrFail("DB_PORT")
+	user := getEnvOrFail("DB_USER")
+	password := getEnvOrFail("DB_PASSWORD")
+	dbname := getEnvOrFail("SENSOR_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
 
 	db := database.NewSensorDB(host, port, user, password, dbname)

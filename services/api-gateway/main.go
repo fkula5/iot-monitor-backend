@@ -1,18 +1,21 @@
-// services/api-gateway/main.go
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	"github.com/skni-kod/iot-monitor-backend/internal/routes"
+	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
+	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -31,15 +34,17 @@ func main() {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
-	sensorGrpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
-	if sensorGrpcAddr == "" {
-		sensorGrpcAddr = ":50051"
+	sensorGrpcPort := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_PORT"))
+	if sensorGrpcPort == "" {
+		sensorGrpcPort = "50052"
 	}
+	sensorGrpcAddr := fmt.Sprintf(":%s", sensorGrpcPort)
 
-	authGrpcAddr := os.Getenv("AUTH_SERVICE_GRPC_ADDR")
-	if authGrpcAddr == "" {
-		authGrpcAddr = ":50052"
+	authGrpcPort := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_PORT"))
+	if authGrpcPort == "" {
+		authGrpcPort = "50051"
 	}
+	authGrpcAddr := fmt.Sprintf(":%s", authGrpcPort)
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
@@ -59,19 +64,33 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3001"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
+	sensorHandler := handlers.NewSensorHandler(sensorClient)
+	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
+	authHandler := handlers.NewAuthHandler(authClient)
+
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
 	apiRouter.Use(middleware.RealIP)
-	routes.SetupSensorRoutes(apiRouter, sensorClient)
+
+	routes.SetupSensorRoutes(apiRouter, sensorHandler)
+	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
+
 	r.Mount("/api", apiRouter)
 
 	authRouter := chi.NewRouter()
-	routes.SetupAuthRoutes(authRouter, authClient)
+	routes.SetupAuthRoutes(authRouter, authHandler)
 	r.Mount("/auth", authRouter)
 
 	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {

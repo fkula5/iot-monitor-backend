@@ -28,11 +28,12 @@ func main() {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
 
-	host := getEnvOrFail("SENSOR_SERVICE_DB_HOST")
-	port := getEnvOrFail("SENSOR_SERVICE_DB_PORT")
-	user := getEnvOrFail("SENSOR_SERVICE_DB_USERNAME")
-	password := getEnvOrFail("SENSOR_SERVICE_DB_PASSWORD")
-	dbname := "users"
+	host := getEnvOrFail("DB_HOST")
+	port := getEnvOrFail("DB_PORT")
+	user := getEnvOrFail("DB_USER")
+	password := getEnvOrFail("DB_PASSWORD")
+	dbname := getEnvOrFail("AUTH_SERVICE_DB_NAME")
+	grpcPort := getEnvOrFail("AUTH_SERVICE_GRPC_PORT")
 
 	db := database.NewAuthDB(host, port, user, password, dbname)
 	defer db.Close()
@@ -43,7 +44,7 @@ func main() {
 		log.Fatalf("Failed to create schema: %v", err)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", "50052"))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
@@ -54,8 +55,8 @@ func main() {
 	authService := services.NewAuthService(userStorage)
 	handlers.NewGrpcHandler(grpcServer, authService)
 
-	log.Printf("Starting gRPC server on :50052")
+	log.Printf("Starting gRPC server on port %s...", grpcPort)
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to start gRPC server: %v", err)
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }

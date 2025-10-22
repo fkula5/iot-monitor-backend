@@ -13,11 +13,10 @@ import (
 )
 
 func NewSensorDB(host, port, user, password, dbname string) *sensorEnt.Client {
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("Failed to establish database connectio: %v", err)
+		log.Fatalf("Failed to establish database connection: %v", err)
 	}
 
 	drv := entsql.OpenDB(dialect.Postgres, db)

@@ -1,4 +1,4 @@
-package routes
+package handlers
 
 import (
 	"context"
@@ -6,18 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 )
 
 type AuthHandler struct {
-	client auth.AuthServiceClient
+	Client auth.AuthServiceClient
 }
 
-func SetupAuthRoutes(r chi.Router, client auth.AuthServiceClient) {
-	handler := &AuthHandler{client: client}
-	r.Post("/register", handler.Register)
-	r.Post("/login", handler.Login)
+func NewAuthHandler(client auth.AuthServiceClient) *AuthHandler {
+	return &AuthHandler{Client: client}
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +41,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.Login(ctx, &auth.LoginRequest{
+	res, err := h.Client.Login(ctx, &auth.LoginRequest{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -104,7 +101,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.Register(ctx, &auth.RegisterRequest{
+	res, err := h.Client.Register(ctx, &auth.RegisterRequest{
 		Email:     req.Email,
 		Username:  req.Username,
 		Password:  req.Password,
@@ -121,9 +118,15 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"token":      res.Token,
+		"expires_at": res.ExpiresAt.AsTime(),
+		"user":       res.User,
+	}
 
-	err = json.NewEncoder(w).Encode(res.User)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 		return

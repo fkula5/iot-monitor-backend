@@ -12,6 +12,8 @@ type ISensorTypeStorage interface {
 	Get(ctx context.Context, id int) (*ent.SensorType, error)
 	List(ctx context.Context) ([]*ent.SensorType, error)
 	Create(ctx context.Context, sensorType *ent.SensorType) (*ent.SensorType, error)
+	Update(ctx context.Context, id int, sensorType *ent.SensorType) (*ent.SensorType, error)
+	Delete(ctx context.Context, id int) error
 }
 
 type SensorTypeStorage struct {
@@ -20,6 +22,37 @@ type SensorTypeStorage struct {
 
 func NewSensorTypeStorage(client *ent.Client) ISensorTypeStorage {
 	return &SensorTypeStorage{client: client}
+}
+
+// Delete implements ISensorTypeStorage.
+func (s *SensorTypeStorage) Delete(ctx context.Context, id int) error {
+	exists, err := s.client.SensorType.Query().
+		Where(sensortype.ID(id)).
+		Exist(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to check if sensor type exists: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("sensor type with id %d does not exist", id)
+	}
+
+	err = s.client.SensorType.DeleteOneID(id).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete sensor type: %w", err)
+	}
+	return nil
+}
+
+// Update implements ISensorTypeStorage.
+func (s *SensorTypeStorage) Update(ctx context.Context, id int, sensorType *ent.SensorType) (*ent.SensorType, error) {
+	return s.client.SensorType.
+		UpdateOneID(id).
+		SetName(sensorType.Name).
+		SetDescription(sensorType.Description).
+		SetUnit(sensorType.Unit).
+		SetMinValue(sensorType.MinValue).
+		SetMaxValue(sensorType.MaxValue).
+		Save(ctx)
 }
 
 // Create implements ISensorTypeStorage.

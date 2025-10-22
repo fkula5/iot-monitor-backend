@@ -35,11 +35,19 @@ func (h *SensorsGrpcHandler) CreateSensor(ctx context.Context, req *pb.CreateSen
 		return nil, status.Error(codes.InvalidArgument, "sensor_type_id must be a positive integer")
 	}
 
+	_, err := h.sensorsTypeService.GetSensorType(ctx, int(req.SensorTypeId))
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "sensor type not found")
+	}
+
 	sensor, err := h.sensorsService.CreateSensor(ctx, &ent.Sensor{
 		Name:        req.Name,
 		Location:    req.Location,
 		Description: req.Description,
 		Active:      req.Active,
+		Edges: ent.SensorEdges{
+			Type: &ent.SensorType{ID: int(req.SensorTypeId)},
+		},
 	})
 	if err != nil {
 		log.Printf("Failed to create sensor: %v", err)
@@ -174,6 +182,14 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 	existingSensor.Description = req.Description
 	existingSensor.Active = req.Active
 
+	if req.SensorTypeId > 0 {
+		_, err := h.sensorsTypeService.GetSensorType(ctx, int(req.SensorTypeId))
+		if err != nil {
+			return nil, status.Error(codes.NotFound, "sensor type not found")
+		}
+		existingSensor.Edges.Type = &ent.SensorType{ID: int(req.SensorTypeId)}
+	}
+
 	updatedSensor, err := h.sensorsService.UpdateSensor(ctx, existingSensor)
 	if err != nil {
 		log.Printf("Failed to update sensor: %v", err)
@@ -182,6 +198,17 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 
 	return &pb.UpdateSensorResponse{
 		Sensor: convertSensorToProto(updatedSensor),
+	}, nil
+}
+
+func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
+	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id), req.Active)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.SetSensorActiveResponse{
+		Sensor: convertSensorToProto(sensor),
 	}, nil
 }
 
@@ -229,15 +256,4 @@ func convertSensorTypeToProto(st *ent.SensorType) *pb.SensorType {
 	}
 
 	return sensorTypeProto
-}
-
-func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
-	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id), req.Active)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.SetSensorActiveResponse{
-		Sensor: convertSensorToProto(sensor),
-	}, nil
 }
