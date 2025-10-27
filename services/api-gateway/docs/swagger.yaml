@@ -1,0 +1,472 @@
+basePath: /api
+definitions:
+  handlers.CreateSensorRequest:
+    properties:
+      description:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      sensor_type_id:
+        type: integer
+    type: object
+  handlers.UpdateSensorRequest:
+    properties:
+      active:
+        type: boolean
+      description:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      sensor_type_id:
+        type: integer
+    type: object
+host: localhost:3000
+info:
+  contact:
+    name: API Support
+    url: https://github.com/skni-kod/iot-monitor-backend
+  description: API dla systemu monitorowania IoT.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: IoT Monitor API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email and password.
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            properties:
+              expires_at:
+                type: string
+              token:
+                type: string
+              user:
+                type: object
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Login authenticates a user and returns a token.
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with email, username, and password.
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+            first_name:
+              type: string
+            last_name:
+              type: string
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registration successful
+          schema:
+            properties:
+              expires_at:
+                type: string
+              token:
+                type: string
+              user:
+                type: object
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register creates a new user account.
+      tags:
+      - Auth
+  /sensors:
+    get:
+      description: Fetches all sensors from the Sensor Service.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of sensors
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: ListSensors retrieves a list of all sensors.
+      tags:
+      - Sensors
+    post:
+      consumes:
+      - application/json
+      description: Creates a new sensor in the Sensor Service.
+      parameters:
+      - description: Sensor to create
+        in: body
+        name: sensor
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSensorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created sensor details
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: CreateSensor creates a new sensor.
+      tags:
+      - Sensors
+  /sensors/{id}:
+    delete:
+      description: Deletes a sensor from the Sensor Service by its ID.
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: DeleteSensor deletes a sensor by ID.
+      tags:
+      - Sensors
+    get:
+      description: Fetches a sensor from the Sensor Service by its ID.
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sensor details
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: GetSensor retrieves a sensor by ID.
+      tags:
+      - Sensors
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing sensor in the Sensor Service.
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sensor fields to update
+        in: body
+        name: sensor
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateSensorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated sensor details
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: UpdateSensor updates an existing sensor.
+      tags:
+      - Sensors
+  /sensors/{id}/activate:
+    post:
+      description: Marks a sensor as active in the Sensor Service.
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated sensor details
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: SetSensorActive sets a sensor as active.
+      tags:
+      - Sensors
+  /sensortypes:
+    get:
+      description: Get a list of all sensor types
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List Sensor Types
+      tags:
+      - SensorTypes
+    post:
+      consumes:
+      - application/json
+      description: Create a new sensor type
+      parameters:
+      - description: Sensor Type Data
+        in: body
+        name: sensorType
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create Sensor Type
+      tags:
+      - SensorTypes
+  /sensortypes/{id}:
+    delete:
+      description: Delete a sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete Sensor Type
+      tags:
+      - SensorTypes
+    get:
+      description: Get details of a specific sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Sensor Type
+      tags:
+      - SensorTypes
+    put:
+      consumes:
+      - application/json
+      description: Update an existing sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sensor Type Data
+        in: body
+        name: sensorType
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update Sensor Type
+      tags:
+      - SensorTypes
+swagger: "2.0"

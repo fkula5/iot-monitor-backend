@@ -36,6 +36,13 @@ func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
 	return &SensorHandler{client: client}
 }
 
+// @Summary ListSensors retrieves a list of all sensors.
+// @Description Fetches all sensors from the Sensor Service.
+// @Tags Sensors
+// @Produce json
+// @Success 200 {array} string "List of sensors"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors [get]
 func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -54,6 +61,16 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary GetSensor retrieves a sensor by ID.
+// @Description Fetches a sensor from the Sensor Service by its ID.
+// @Tags Sensors
+// @Produce json
+// @Param id path int true "Sensor ID"
+// @Success 200 {object} string "Sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors/{id} [get]
 func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -85,6 +102,15 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary SetSensorActive sets a sensor as active.
+// @Description Marks a sensor as active in the Sensor Service.
+// @Tags Sensors
+// @Produce json
+// @Param id path int true "Sensor ID"
+// @Success 200 {object} string "Updated sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors/{id}/activate [post]
 func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -112,6 +138,16 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// @Summary CreateSensor creates a new sensor.
+// @Description Creates a new sensor in the Sensor Service.
+// @Tags Sensors
+// @Accept json
+// @Produce json
+// @Param sensor body CreateSensorRequest true "Sensor to create"
+// @Success 201 {object} string "Created sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors [post]
 func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -154,6 +190,18 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary UpdateSensor updates an existing sensor.
+// @Description Updates an existing sensor in the Sensor Service.
+// @Tags Sensors
+// @Accept json
+// @Produce json
+// @Param id path int true "Sensor ID"
+// @Param sensor body UpdateSensorRequest true "Sensor fields to update"
+// @Success 200 {object} string "Updated sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors/{id} [put]
 func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -246,6 +294,15 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary DeleteSensor deletes a sensor by ID.
+// @Description Deletes a sensor from the Sensor Service by its ID.
+// @Tags Sensors
+// @Param id path int true "Sensor ID"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /sensors/{id} [delete]
 func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()

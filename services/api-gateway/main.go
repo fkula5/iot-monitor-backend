@@ -14,8 +14,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -29,6 +31,18 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	return conn, err
 }
 
+// @title					IoT Monitor API
+// @version					1.0
+// @description				API dla systemu monitorowania IoT.
+//
+// @contact.name				API Support
+// @contact.url				https://github.com/skni-kod/iot-monitor-backend
+//
+// @license.name				MIT
+// @license.url				https://opensource.org/licenses/MIT
+//
+// @host						localhost:3000
+// @BasePath					/api
 func main() {
 	if err := godotenv.Load("../../.env"); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
@@ -75,6 +89,10 @@ func main() {
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)

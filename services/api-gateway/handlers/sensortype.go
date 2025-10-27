@@ -21,6 +21,13 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 	return &SensorTypeHandler{client: client}
 }
 
+// @Summary List Sensor Types
+// @Description Get a list of all sensor types
+// @Tags SensorTypes
+// @Produce json
+// @Success 200 {array} string
+// @Failure 500 {object} map[string]string
+// @Router /sensortypes [get]
 func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -37,6 +44,16 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// @Summary Get Sensor Type
+// @Description Get details of a specific sensor type by ID
+// @Tags SensorTypes
+// @Produce json
+// @Param id path int true "Sensor Type ID"
+// @Success 200 {object} string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /sensortypes/{id} [get]
 func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -65,6 +82,16 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// @Summary Create Sensor Type
+// @Description Create a new sensor type
+// @Tags SensorTypes
+// @Accept json
+// @Produce json
+// @Param sensorType body string true "Sensor Type Data"
+// @Success 201 {object} string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /sensortypes [post]
 func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -93,6 +120,18 @@ func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// @Summary Update Sensor Type
+// @Description Update an existing sensor type by ID
+// @Tags SensorTypes
+// @Accept json
+// @Produce json
+// @Param id path int true "Sensor Type ID"
+// @Param sensorType body string true "Sensor Type Data"
+// @Success 200 {object} string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /sensortypes/{id} [put]
 func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -134,6 +173,15 @@ func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// @Summary Delete Sensor Type
+// @Description Delete a sensor type by ID
+// @Tags SensorTypes
+// @Param id path int true "Sensor Type ID"
+// @Success 204
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /sensortypes/{id} [delete]
 func (h *SensorTypeHandler) DeleteSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
