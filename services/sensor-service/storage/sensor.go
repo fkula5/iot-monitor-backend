@@ -14,7 +14,7 @@ type ISensorStorage interface {
 	Create(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	Update(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	Delete(ctx context.Context, id int) error
-	SetActive(ctx context.Context, id int, active bool) (*ent.Sensor, error)
+	SetActive(ctx context.Context, id int) (*ent.Sensor, error)
 	ListActive(ctx context.Context) ([]*ent.Sensor, error)
 }
 
@@ -123,9 +123,9 @@ func (s *SensorStorage) Update(ctx context.Context, sensorData *ent.Sensor) (*en
 	return sensorWithType, nil
 }
 
-func (s *SensorStorage) SetActive(ctx context.Context, id int, active bool) (*ent.Sensor, error) {
+func (s *SensorStorage) SetActive(ctx context.Context, id int) (*ent.Sensor, error) {
 	return s.client.Sensor.UpdateOneID(id).
-		SetActive(active).
+		SetActive(true).
 		Save(ctx)
 }
 

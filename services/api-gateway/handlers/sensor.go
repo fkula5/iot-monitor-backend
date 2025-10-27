@@ -96,18 +96,8 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var request struct {
-		Active bool `json:"active"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	res, err := h.client.SetSensorActive(ctx, &pb.SetSensorActiveRequest{
-		Id:     int32(id),
-		Active: request.Active,
+		Id: int32(id),
 	})
 	if err != nil {
 		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
