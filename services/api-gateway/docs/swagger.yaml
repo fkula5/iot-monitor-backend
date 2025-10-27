@@ -1,0 +1,22 @@
+basePath: /api
+host: localhost:8080
+info:
+  contact:
+    email: twoj.email@example.com
+    name: API Support
+    url: https://github.com/skni-kod/iot-monitor-backend
+  description: API Gateway dla systemu monitorowania IoT.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: IoT Monitor API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  BearerAuth:
+    description: '"Wpisz ''Bearer '' (ze spacją), a następnie swój token JWT. Przykład:
+      ''Bearer eyJhbGciOi...''"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
