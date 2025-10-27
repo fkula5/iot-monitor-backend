@@ -45,14 +45,20 @@ func (s *SensorTypeStorage) Delete(ctx context.Context, id int) error {
 
 // Update implements ISensorTypeStorage.
 func (s *SensorTypeStorage) Update(ctx context.Context, id int, sensorType *ent.SensorType) (*ent.SensorType, error) {
-	return s.client.SensorType.
-		UpdateOneID(id).
+	st := s.client.SensorType.UpdateOneID(id).
 		SetName(sensorType.Name).
-		SetDescription(sensorType.Description).
-		SetUnit(sensorType.Unit).
+		SetModel(sensorType.Model).
+		SetNillableManufacturer(&sensorType.Manufacturer).
+		SetNillableDescription(&sensorType.Description).
+		SetNillableUnit(&sensorType.Unit).
 		SetMinValue(sensorType.MinValue).
-		SetMaxValue(sensorType.MaxValue).
-		Save(ctx)
+		SetMaxValue(sensorType.MaxValue)
+
+	updatedST, err := st.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update sensor type: %w", err)
+	}
+	return updatedST, nil
 }
 
 // Create implements ISensorTypeStorage.
