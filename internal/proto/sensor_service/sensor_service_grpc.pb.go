@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.12.4
-// source: api.proto
+// source: sensor_service.proto
 
-package api
+package sensor_service
 
 import (
 	context "context"
@@ -19,14 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SensorService_CreateSensorType_FullMethodName = "/api.SensorService/CreateSensorType"
-	SensorService_GetSensorType_FullMethodName    = "/api.SensorService/GetSensorType"
-	SensorService_ListSensorTypes_FullMethodName  = "/api.SensorService/ListSensorTypes"
-	SensorService_CreateSensor_FullMethodName     = "/api.SensorService/CreateSensor"
-	SensorService_GetSensor_FullMethodName        = "/api.SensorService/GetSensor"
-	SensorService_ListSensors_FullMethodName      = "/api.SensorService/ListSensors"
-	SensorService_UpdateSensor_FullMethodName     = "/api.SensorService/UpdateSensor"
-	SensorService_DeleteSensor_FullMethodName     = "/api.SensorService/DeleteSensor"
+	SensorService_CreateSensorType_FullMethodName = "/sensor_service.SensorService/CreateSensorType"
+	SensorService_GetSensorType_FullMethodName    = "/sensor_service.SensorService/GetSensorType"
+	SensorService_ListSensorTypes_FullMethodName  = "/sensor_service.SensorService/ListSensorTypes"
+	SensorService_UpdateSensorType_FullMethodName = "/sensor_service.SensorService/UpdateSensorType"
+	SensorService_DeleteSensorType_FullMethodName = "/sensor_service.SensorService/DeleteSensorType"
+	SensorService_CreateSensor_FullMethodName     = "/sensor_service.SensorService/CreateSensor"
+	SensorService_GetSensor_FullMethodName        = "/sensor_service.SensorService/GetSensor"
+	SensorService_ListSensors_FullMethodName      = "/sensor_service.SensorService/ListSensors"
+	SensorService_UpdateSensor_FullMethodName     = "/sensor_service.SensorService/UpdateSensor"
+	SensorService_DeleteSensor_FullMethodName     = "/sensor_service.SensorService/DeleteSensor"
+	SensorService_SetSensorActive_FullMethodName  = "/sensor_service.SensorService/SetSensorActive"
 )
 
 // SensorServiceClient is the client API for SensorService service.
@@ -36,11 +39,14 @@ type SensorServiceClient interface {
 	CreateSensorType(ctx context.Context, in *CreateSensorTypeRequest, opts ...grpc.CallOption) (*CreateSensorTypeResponse, error)
 	GetSensorType(ctx context.Context, in *GetSensorTypeRequest, opts ...grpc.CallOption) (*GetSensorTypeResponse, error)
 	ListSensorTypes(ctx context.Context, in *ListSensorTypesRequest, opts ...grpc.CallOption) (*ListSensorTypesResponse, error)
+	UpdateSensorType(ctx context.Context, in *UpdateSensorTypeRequest, opts ...grpc.CallOption) (*UpdateSensorTypeResponse, error)
+	DeleteSensorType(ctx context.Context, in *DeleteSensorTypeRequest, opts ...grpc.CallOption) (*DeleteSensorTypeResponse, error)
 	CreateSensor(ctx context.Context, in *CreateSensorRequest, opts ...grpc.CallOption) (*CreateSensorResponse, error)
 	GetSensor(ctx context.Context, in *GetSensorRequest, opts ...grpc.CallOption) (*GetSensorResponse, error)
 	ListSensors(ctx context.Context, in *ListSensorsRequest, opts ...grpc.CallOption) (*ListSensorsResponse, error)
 	UpdateSensor(ctx context.Context, in *UpdateSensorRequest, opts ...grpc.CallOption) (*UpdateSensorResponse, error)
 	DeleteSensor(ctx context.Context, in *DeleteSensorRequest, opts ...grpc.CallOption) (*DeleteSensorResponse, error)
+	SetSensorActive(ctx context.Context, in *SetSensorActiveRequest, opts ...grpc.CallOption) (*SetSensorActiveResponse, error)
 }
 
 type sensorServiceClient struct {
@@ -75,6 +81,26 @@ func (c *sensorServiceClient) ListSensorTypes(ctx context.Context, in *ListSenso
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSensorTypesResponse)
 	err := c.cc.Invoke(ctx, SensorService_ListSensorTypes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sensorServiceClient) UpdateSensorType(ctx context.Context, in *UpdateSensorTypeRequest, opts ...grpc.CallOption) (*UpdateSensorTypeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSensorTypeResponse)
+	err := c.cc.Invoke(ctx, SensorService_UpdateSensorType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *sensorServiceClient) DeleteSensorType(ctx context.Context, in *DeleteSensorTypeRequest, opts ...grpc.CallOption) (*DeleteSensorTypeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteSensorTypeResponse)
+	err := c.cc.Invoke(ctx, SensorService_DeleteSensorType_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +157,16 @@ func (c *sensorServiceClient) DeleteSensor(ctx context.Context, in *DeleteSensor
 	return out, nil
 }
 
+func (c *sensorServiceClient) SetSensorActive(ctx context.Context, in *SetSensorActiveRequest, opts ...grpc.CallOption) (*SetSensorActiveResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetSensorActiveResponse)
+	err := c.cc.Invoke(ctx, SensorService_SetSensorActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SensorServiceServer is the server API for SensorService service.
 // All implementations must embed UnimplementedSensorServiceServer
 // for forward compatibility.
@@ -138,11 +174,14 @@ type SensorServiceServer interface {
 	CreateSensorType(context.Context, *CreateSensorTypeRequest) (*CreateSensorTypeResponse, error)
 	GetSensorType(context.Context, *GetSensorTypeRequest) (*GetSensorTypeResponse, error)
 	ListSensorTypes(context.Context, *ListSensorTypesRequest) (*ListSensorTypesResponse, error)
+	UpdateSensorType(context.Context, *UpdateSensorTypeRequest) (*UpdateSensorTypeResponse, error)
+	DeleteSensorType(context.Context, *DeleteSensorTypeRequest) (*DeleteSensorTypeResponse, error)
 	CreateSensor(context.Context, *CreateSensorRequest) (*CreateSensorResponse, error)
 	GetSensor(context.Context, *GetSensorRequest) (*GetSensorResponse, error)
 	ListSensors(context.Context, *ListSensorsRequest) (*ListSensorsResponse, error)
 	UpdateSensor(context.Context, *UpdateSensorRequest) (*UpdateSensorResponse, error)
 	DeleteSensor(context.Context, *DeleteSensorRequest) (*DeleteSensorResponse, error)
+	SetSensorActive(context.Context, *SetSensorActiveRequest) (*SetSensorActiveResponse, error)
 	mustEmbedUnimplementedSensorServiceServer()
 }
 
@@ -162,6 +201,12 @@ func (UnimplementedSensorServiceServer) GetSensorType(context.Context, *GetSenso
 func (UnimplementedSensorServiceServer) ListSensorTypes(context.Context, *ListSensorTypesRequest) (*ListSensorTypesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSensorTypes not implemented")
 }
+func (UnimplementedSensorServiceServer) UpdateSensorType(context.Context, *UpdateSensorTypeRequest) (*UpdateSensorTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSensorType not implemented")
+}
+func (UnimplementedSensorServiceServer) DeleteSensorType(context.Context, *DeleteSensorTypeRequest) (*DeleteSensorTypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSensorType not implemented")
+}
 func (UnimplementedSensorServiceServer) CreateSensor(context.Context, *CreateSensorRequest) (*CreateSensorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSensor not implemented")
 }
@@ -176,6 +221,9 @@ func (UnimplementedSensorServiceServer) UpdateSensor(context.Context, *UpdateSen
 }
 func (UnimplementedSensorServiceServer) DeleteSensor(context.Context, *DeleteSensorRequest) (*DeleteSensorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSensor not implemented")
+}
+func (UnimplementedSensorServiceServer) SetSensorActive(context.Context, *SetSensorActiveRequest) (*SetSensorActiveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSensorActive not implemented")
 }
 func (UnimplementedSensorServiceServer) mustEmbedUnimplementedSensorServiceServer() {}
 func (UnimplementedSensorServiceServer) testEmbeddedByValue()                       {}
@@ -248,6 +296,42 @@ func _SensorService_ListSensorTypes_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SensorServiceServer).ListSensorTypes(ctx, req.(*ListSensorTypesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SensorService_UpdateSensorType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSensorTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SensorServiceServer).UpdateSensorType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SensorService_UpdateSensorType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SensorServiceServer).UpdateSensorType(ctx, req.(*UpdateSensorTypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SensorService_DeleteSensorType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSensorTypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SensorServiceServer).DeleteSensorType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SensorService_DeleteSensorType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SensorServiceServer).DeleteSensorType(ctx, req.(*DeleteSensorTypeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -342,11 +426,29 @@ func _SensorService_DeleteSensor_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SensorService_SetSensorActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSensorActiveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SensorServiceServer).SetSensorActive(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SensorService_SetSensorActive_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SensorServiceServer).SetSensorActive(ctx, req.(*SetSensorActiveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SensorService_ServiceDesc is the grpc.ServiceDesc for SensorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SensorService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.SensorService",
+	ServiceName: "sensor_service.SensorService",
 	HandlerType: (*SensorServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -360,6 +462,14 @@ var SensorService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSensorTypes",
 			Handler:    _SensorService_ListSensorTypes_Handler,
+		},
+		{
+			MethodName: "UpdateSensorType",
+			Handler:    _SensorService_UpdateSensorType_Handler,
+		},
+		{
+			MethodName: "DeleteSensorType",
+			Handler:    _SensorService_DeleteSensorType_Handler,
 		},
 		{
 			MethodName: "CreateSensor",
@@ -381,7 +491,11 @@ var SensorService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteSensor",
 			Handler:    _SensorService_DeleteSensor_Handler,
 		},
+		{
+			MethodName: "SetSensorActive",
+			Handler:    _SensorService_SetSensorActive_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
+	Metadata: "sensor_service.proto",
 }

@@ -1,0 +1,78 @@
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/services/data-generation-service/services"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	return conn, err
+}
+
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
+	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
+	if grpcAddr == "" {
+		grpcAddr = ":50052"
+	}
+
+	conn, err := NewGrpcClient(grpcAddr)
+	if err != nil {
+		log.Fatalf("Failed to connect to sensor service: %v", err)
+	}
+
+	defer conn.Close()
+
+	sensorClient := sensor_service.NewSensorServiceClient(conn)
+
+	generatorService := services.NewGeneratorService(sensorClient)
+	err = generatorService.Start(ctx)
+	if err != nil {
+		log.Fatalf("Failed to start generator service: %v", err)
+	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	sig := <-sigChan
+	log.Printf("Received signal: %v, initiating shutdown", sig)
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := generatorService.Stop(); err != nil {
+		log.Printf("Error stopping generator service: %v", err)
+	}
+
+	select {
+	case <-shutdownCtx.Done():
+		if shutdownCtx.Err() == context.DeadlineExceeded {
+			log.Println("Shutdown timed out, forcing exit")
+		}
+	case <-time.After(100 * time.Millisecond):
+		log.Println("Shutdown completed successfully")
+	}
+
+	log.Println("Data generator service shutdown complete")
+}

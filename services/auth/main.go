@@ -8,11 +8,10 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
-	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/handlers"
-	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/services"
-	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/storage"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/handlers"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/storage"
 	"google.golang.org/grpc"
 )
 
@@ -33,10 +32,10 @@ func main() {
 	port := getEnvOrFail("DB_PORT")
 	user := getEnvOrFail("DB_USER")
 	password := getEnvOrFail("DB_PASSWORD")
-	dbname := getEnvOrFail("SENSOR_SERVICE_DB_NAME")
-	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
+	dbname := getEnvOrFail("AUTH_SERVICE_DB_NAME")
+	grpcPort := getEnvOrFail("AUTH_SERVICE_GRPC_PORT")
 
-	db := database.NewSensorDB(host, port, user, password, dbname)
+	db := database.NewAuthDB(host, port, user, password, dbname)
 	defer db.Close()
 
 	ctx := context.Background()
@@ -52,11 +51,9 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	sensorsStore := storage.NewSensorStorage(db)
-	sensorsTypeStore := storage.NewSensorTypeStorage(db)
-	sensorsService := services.NewSensorService(sensorsStore)
-	sensorsTypeService := services.NewSensorTypeService(sensorsTypeStore)
-	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService)
+	userStorage := storage.NewUserStorage(db)
+	authService := services.NewAuthService(userStorage)
+	handlers.NewGrpcHandler(grpcServer, authService)
 
 	log.Printf("Starting gRPC server on port %s...", grpcPort)
 	if err := grpcServer.Serve(lis); err != nil {

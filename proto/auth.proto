@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/auth";
+
+import "google/protobuf/timestamp.proto";
+
+service AuthService{
+    rpc Register(RegisterRequest) returns (RegisterResponse) {}
+    rpc Login(LoginRequest) returns (LoginResponse) {}
+
+}
+
+message User{
+    int32 id = 1;
+    string email = 2;
+    string username = 3;
+    string first_name = 4;
+    string last_name = 5;
+    bool active = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+}
+
+message RegisterRequest{
+    string email = 1;
+    string username = 2;
+    string password = 3;
+    string first_name = 4;
+    string last_name = 5;
+}
+
+message RegisterResponse {
+    string token = 1;
+    google.protobuf.Timestamp expires_at = 2;
+    User user = 3;
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    string token = 1;
+    google.protobuf.Timestamp expires_at = 2;
+    User user = 3;
+}

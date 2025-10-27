@@ -10,3 +10,4 @@ generate-proto:
 		--go_out=$(GO_OUT) --go_opt=module=$(MODULE_NAME) \
 		--go-grpc_out=$(GO_OUT) --go-grpc_opt=module=$(MODULE_NAME) \
 		$(PROTO_SRC)
+
