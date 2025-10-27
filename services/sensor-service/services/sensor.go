@@ -13,7 +13,7 @@ type ISensorService interface {
 	CreateSensor(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	UpdateSensor(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	DeleteSensor(ctx context.Context, id int) error
-	SetSensorActive(ctx context.Context, id int, active bool) (*ent.Sensor, error)
+	SetSensorActive(ctx context.Context, id int) (*ent.Sensor, error)
 	ListActiveSensors(ctx context.Context) ([]*ent.Sensor, error)
 }
 
@@ -45,8 +45,8 @@ func (s *SensorService) UpdateSensor(ctx context.Context, sensor *ent.Sensor) (*
 	return s.store.Update(ctx, sensor)
 }
 
-func (s *SensorService) SetSensorActive(ctx context.Context, id int, active bool) (*ent.Sensor, error) {
-	return s.store.SetActive(ctx, id, active)
+func (s *SensorService) SetSensorActive(ctx context.Context, id int) (*ent.Sensor, error) {
+	return s.store.SetActive(ctx, id)
 }
 
 func (s *SensorService) ListActiveSensors(ctx context.Context) ([]*ent.Sensor, error) {

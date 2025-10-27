@@ -1041,7 +1041,6 @@ func (*DeleteSensorResponse) Descriptor() ([]byte, []int) {
 type SetSensorActiveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Active        bool                   `protobuf:"varint,2,opt,name=active,proto3" json:"active,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1081,13 +1080,6 @@ func (x *SetSensorActiveRequest) GetId() int32 {
 		return x.Id
 	}
 	return 0
-}
-
-func (x *SetSensorActiveRequest) GetActive() bool {
-	if x != nil {
-		return x.Active
-	}
-	return false
 }
 
 type SetSensorActiveResponse struct {
@@ -1432,10 +1424,9 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"%\n" +
 	"\x13DeleteSensorRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"\x16\n" +
-	"\x14DeleteSensorResponse\"@\n" +
+	"\x14DeleteSensorResponse\"(\n" +
 	"\x16SetSensorActiveRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
-	"\x06active\x18\x02 \x01(\bR\x06active\"I\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\"I\n" +
 	"\x17SetSensorActiveResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\xe7\x01\n" +
 	"\x17UpdateSensorTypeRequest\x12\x0e\n" +

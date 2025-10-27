@@ -34,7 +34,7 @@ func main() {
 
 	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
 	if grpcAddr == "" {
-		grpcAddr = ":50051" // Default if not specified
+		grpcAddr = ":50052"
 	}
 
 	conn, err := NewGrpcClient(grpcAddr)

@@ -202,7 +202,7 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 }
 
 func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
-	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id), req.Active)
+	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id))
 	if err != nil {
 		return nil, err
 	}

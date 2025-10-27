@@ -120,7 +120,6 @@ message DeleteSensorResponse {}
 
 message SetSensorActiveRequest {
     int32 id = 1;
-    bool active = 2;
 }
 
 message SetSensorActiveResponse {
