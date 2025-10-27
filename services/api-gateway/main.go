@@ -31,24 +31,18 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	return conn, err
 }
 
-// @title           IoT Monitor API
-// @version         1.0
-// @description     API Gateway dla systemu monitorowania IoT.
+// @title					IoT Monitor API
+// @version					1.0
+// @description				API dla systemu monitorowania IoT.
 //
-// @contact.name   API Support
-// @contact.url    https://github.com/skni-kod/iot-monitor-backend
-// @contact.email  twoj.email@example.com
+// @contact.name				API Support
+// @contact.url				https://github.com/skni-kod/iot-monitor-backend
 //
-// @license.name  MIT
-// @license.url   https://opensource.org/licenses/MIT
+// @license.name				MIT
+// @license.url				https://opensource.org/licenses/MIT
 //
-// @host            localhost:8080
-// @BasePath        /api
-//
-// @securityDefinitions.apikey  BearerAuth
-// @in                          header
-// @name                        Authorization
-// @description                 "Wpisz 'Bearer ' (ze spacją), a następnie swój token JWT. Przykład: 'Bearer eyJhbGciOi...'"
+// @host						localhost:3000
+// @BasePath					/api
 func main() {
 	if err := godotenv.Load("../../.env"); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
@@ -97,7 +91,7 @@ func main() {
 	})
 
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(""), // The url pointing to API definition
+		httpSwagger.URL("/swagger/doc.json"),
 	))
 
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
