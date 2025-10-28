@@ -74,12 +74,17 @@ func main() {
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
 
+	corsAllowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	if len(corsAllowedOrigins) == 0 || (len(corsAllowedOrigins) == 1 && corsAllowedOrigins[0] == "") {
+		corsAllowedOrigins = []string{"http://localhost:5173"}
+	}
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3001"},
+		AllowedOrigins:   corsAllowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
