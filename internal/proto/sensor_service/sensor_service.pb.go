@@ -24,7 +24,7 @@ const (
 
 type SensorType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Model         string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 	Manufacturer  string                 `protobuf:"bytes,4,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
@@ -67,7 +67,7 @@ func (*SensorType) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SensorType) GetId() int32 {
+func (x *SensorType) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -132,7 +132,7 @@ func (x *SensorType) GetCreatedAt() *timestamp.Timestamp {
 
 type Sensor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Location      string                 `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
@@ -140,7 +140,7 @@ type Sensor struct {
 	LastUpdated   *timestamp.Timestamp   `protobuf:"bytes,6,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SensorTypeId  int32                  `protobuf:"varint,9,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	SensorTypeId  int64                  `protobuf:"varint,9,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -175,7 +175,7 @@ func (*Sensor) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Sensor) GetId() int32 {
+func (x *Sensor) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -231,7 +231,7 @@ func (x *Sensor) GetUpdatedAt() *timestamp.Timestamp {
 	return nil
 }
 
-func (x *Sensor) GetSensorTypeId() int32 {
+func (x *Sensor) GetSensorTypeId() int64 {
 	if x != nil {
 		return x.SensorTypeId
 	}
@@ -376,7 +376,7 @@ func (x *CreateSensorTypeResponse) GetSensorType() *SensorType {
 
 type GetSensorTypeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -411,7 +411,7 @@ func (*GetSensorTypeRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetSensorTypeRequest) GetId() int32 {
+func (x *GetSensorTypeRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -548,7 +548,8 @@ type CreateSensorRequest struct {
 	Location      string                 `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Active        bool                   `protobuf:"varint,4,opt,name=active,proto3" json:"active,omitempty"`
-	SensorTypeId  int32                  `protobuf:"varint,5,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	SensorTypeId  int64                  `protobuf:"varint,5,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -611,9 +612,16 @@ func (x *CreateSensorRequest) GetActive() bool {
 	return false
 }
 
-func (x *CreateSensorRequest) GetSensorTypeId() int32 {
+func (x *CreateSensorRequest) GetSensorTypeId() int64 {
 	if x != nil {
 		return x.SensorTypeId
+	}
+	return 0
+}
+
+func (x *CreateSensorRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -664,7 +672,7 @@ func (x *CreateSensorResponse) GetSensor() *Sensor {
 
 type GetSensorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -699,7 +707,7 @@ func (*GetSensorRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *GetSensorRequest) GetId() int32 {
+func (x *GetSensorRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -752,6 +760,7 @@ func (x *GetSensorResponse) GetSensor() *Sensor {
 
 type ListSensorsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -784,6 +793,13 @@ func (x *ListSensorsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListSensorsRequest.ProtoReflect.Descriptor instead.
 func (*ListSensorsRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListSensorsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type ListSensorsResponse struct {
@@ -832,12 +848,12 @@ func (x *ListSensorsResponse) GetSensors() []*Sensor {
 
 type UpdateSensorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Location      string                 `protobuf:"bytes,3,opt,name=location,proto3" json:"location,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	Active        bool                   `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
-	SensorTypeId  int32                  `protobuf:"varint,6,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	SensorTypeId  int64                  `protobuf:"varint,6,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -872,7 +888,7 @@ func (*UpdateSensorRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *UpdateSensorRequest) GetId() int32 {
+func (x *UpdateSensorRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -907,7 +923,7 @@ func (x *UpdateSensorRequest) GetActive() bool {
 	return false
 }
 
-func (x *UpdateSensorRequest) GetSensorTypeId() int32 {
+func (x *UpdateSensorRequest) GetSensorTypeId() int64 {
 	if x != nil {
 		return x.SensorTypeId
 	}
@@ -960,7 +976,7 @@ func (x *UpdateSensorResponse) GetSensor() *Sensor {
 
 type DeleteSensorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -995,7 +1011,7 @@ func (*DeleteSensorRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *DeleteSensorRequest) GetId() int32 {
+func (x *DeleteSensorRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -1040,7 +1056,7 @@ func (*DeleteSensorResponse) Descriptor() ([]byte, []int) {
 
 type SetSensorActiveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1075,7 +1091,7 @@ func (*SetSensorActiveRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *SetSensorActiveRequest) GetId() int32 {
+func (x *SetSensorActiveRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -1128,7 +1144,7 @@ func (x *SetSensorActiveResponse) GetSensor() *Sensor {
 
 type UpdateSensorTypeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Model         string                 `protobuf:"bytes,3,opt,name=model,proto3" json:"model,omitempty"`
 	Manufacturer  string                 `protobuf:"bytes,4,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
@@ -1170,7 +1186,7 @@ func (*UpdateSensorTypeRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{20}
 }
 
-func (x *UpdateSensorTypeRequest) GetId() int32 {
+func (x *UpdateSensorTypeRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -1272,7 +1288,7 @@ func (x *UpdateSensorTypeResponse) GetSensorType() *SensorType {
 
 type DeleteSensorTypeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1307,7 +1323,7 @@ func (*DeleteSensorTypeRequest) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{22}
 }
 
-func (x *DeleteSensorTypeRequest) GetId() int32 {
+func (x *DeleteSensorTypeRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
@@ -1357,7 +1373,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x14sensor_service.proto\x12\x0esensor_service\x1a\x1fgoogle/protobuf/timestamp.proto\"\x95\x02\n" +
 	"\n" +
 	"SensorType\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x03 \x01(\tR\x05model\x12\"\n" +
 	"\fmanufacturer\x18\x04 \x01(\tR\fmanufacturer\x12 \n" +
@@ -1368,7 +1384,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xdd\x02\n" +
 	"\x06Sensor\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\blocation\x18\x03 \x01(\tR\blocation\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x16\n" +
@@ -1378,7 +1394,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12$\n" +
-	"\x0esensor_type_id\x18\t \x01(\x05R\fsensorTypeId\"\xd7\x01\n" +
+	"\x0esensor_type_id\x18\t \x01(\x03R\fsensorTypeId\"\xd7\x01\n" +
 	"\x17CreateSensorTypeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\"\n" +
@@ -1391,46 +1407,48 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\vsensor_type\x18\x01 \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
 	"sensorType\"&\n" +
 	"\x14GetSensorTypeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"T\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"T\n" +
 	"\x15GetSensorTypeResponse\x12;\n" +
 	"\vsensor_type\x18\x01 \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
 	"sensorType\"\x18\n" +
 	"\x16ListSensorTypesRequest\"X\n" +
 	"\x17ListSensorTypesResponse\x12=\n" +
-	"\fsensor_types\x18\x01 \x03(\v2\x1a.sensor_service.SensorTypeR\vsensorTypes\"\xa5\x01\n" +
+	"\fsensor_types\x18\x01 \x03(\v2\x1a.sensor_service.SensorTypeR\vsensorTypes\"\xbe\x01\n" +
 	"\x13CreateSensorRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\blocation\x18\x02 \x01(\tR\blocation\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06active\x18\x04 \x01(\bR\x06active\x12$\n" +
-	"\x0esensor_type_id\x18\x05 \x01(\x05R\fsensorTypeId\"F\n" +
+	"\x0esensor_type_id\x18\x05 \x01(\x03R\fsensorTypeId\x12\x17\n" +
+	"\auser_id\x18\x06 \x01(\x03R\x06userId\"F\n" +
 	"\x14CreateSensorResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\"\n" +
 	"\x10GetSensorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"C\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"C\n" +
 	"\x11GetSensorResponse\x12.\n" +
-	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\x14\n" +
-	"\x12ListSensorsRequest\"G\n" +
+	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"-\n" +
+	"\x12ListSensorsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"G\n" +
 	"\x13ListSensorsResponse\x120\n" +
 	"\asensors\x18\x01 \x03(\v2\x16.sensor_service.SensorR\asensors\"\xb5\x01\n" +
 	"\x13UpdateSensorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\blocation\x18\x03 \x01(\tR\blocation\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06active\x18\x05 \x01(\bR\x06active\x12$\n" +
-	"\x0esensor_type_id\x18\x06 \x01(\x05R\fsensorTypeId\"F\n" +
+	"\x0esensor_type_id\x18\x06 \x01(\x03R\fsensorTypeId\"F\n" +
 	"\x14UpdateSensorResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"%\n" +
 	"\x13DeleteSensorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\x16\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x16\n" +
 	"\x14DeleteSensorResponse\"(\n" +
 	"\x16SetSensorActiveRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"I\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"I\n" +
 	"\x17SetSensorActiveResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\xe7\x01\n" +
 	"\x17UpdateSensorTypeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x03 \x01(\tR\x05model\x12\"\n" +
 	"\fmanufacturer\x18\x04 \x01(\tR\fmanufacturer\x12 \n" +
@@ -1442,7 +1460,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\vsensor_type\x18\x01 \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
 	"sensorType\")\n" +
 	"\x17DeleteSensorTypeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\"\x1a\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x1a\n" +
 	"\x18DeleteSensorTypeResponse2\xbb\b\n" +
 	"\rSensorService\x12g\n" +
 	"\x10CreateSensorType\x12'.sensor_service.CreateSensorTypeRequest\x1a(.sensor_service.CreateSensorTypeResponse\"\x00\x12^\n" +

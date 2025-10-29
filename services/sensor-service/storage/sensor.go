@@ -10,7 +10,7 @@ import (
 
 type ISensorStorage interface {
 	Get(ctx context.Context, id int) (*ent.Sensor, error)
-	List(ctx context.Context) ([]*ent.Sensor, error)
+	List(ctx context.Context, userID int64) ([]*ent.Sensor, error)
 	Create(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	Update(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	Delete(ctx context.Context, id int) error
@@ -32,7 +32,8 @@ func (s *SensorStorage) Create(ctx context.Context, sensorData *ent.Sensor) (*en
 		SetName(sensorData.Name).
 		SetNillableLocation(&sensorData.Location).
 		SetNillableDescription(&sensorData.Description).
-		SetActive(sensorData.Active)
+		SetActive(sensorData.Active).
+		SetUserID(sensorData.UserID)
 
 	if sensorData.Edges.Type != nil && sensorData.Edges.Type.ID != 0 {
 		query = query.SetTypeID(sensorData.Edges.Type.ID)
@@ -81,8 +82,8 @@ func (s *SensorStorage) Get(ctx context.Context, id int) (*ent.Sensor, error) {
 }
 
 // List implements ISensorStorage.
-func (s *SensorStorage) List(ctx context.Context) ([]*ent.Sensor, error) {
-	return s.client.Sensor.Query().All(ctx)
+func (s *SensorStorage) List(ctx context.Context, userID int64) ([]*ent.Sensor, error) {
+	return s.client.Sensor.Query().Where(sensor.UserID(userID)).All(ctx)
 }
 
 // Update implements ISensorStorage.

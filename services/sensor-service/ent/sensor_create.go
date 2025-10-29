@@ -83,6 +83,12 @@ func (sc *SensorCreate) SetNillableLastUpdated(t *time.Time) *SensorCreate {
 	return sc
 }
 
+// SetUserID sets the "user_id" field.
+func (sc *SensorCreate) SetUserID(i int64) *SensorCreate {
+	sc.mutation.SetUserID(i)
+	return sc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (sc *SensorCreate) SetCreatedAt(t time.Time) *SensorCreate {
 	sc.mutation.SetCreatedAt(t)
@@ -184,6 +190,9 @@ func (sc *SensorCreate) check() error {
 	if _, ok := sc.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "Sensor.active"`)}
 	}
+	if _, ok := sc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Sensor.user_id"`)}
+	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Sensor.created_at"`)}
 	}
@@ -238,6 +247,10 @@ func (sc *SensorCreate) createSpec() (*Sensor, *sqlgraph.CreateSpec) {
 	if value, ok := sc.mutation.LastUpdated(); ok {
 		_spec.SetField(sensor.FieldLastUpdated, field.TypeTime, value)
 		_node.LastUpdated = value
+	}
+	if value, ok := sc.mutation.UserID(); ok {
+		_spec.SetField(sensor.FieldUserID, field.TypeInt64, value)
+		_node.UserID = value
 	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(sensor.FieldCreatedAt, field.TypeTime, value)

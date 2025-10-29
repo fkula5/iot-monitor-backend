@@ -65,7 +65,7 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	res, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{Id: int32(id)})
+	res, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
@@ -149,7 +149,7 @@ func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	req.Id = int32(id)
+	req.Id = int64(id)
 
 	if req.Name == "" || req.Model == "" {
 		http.Error(w, "Name and Model are required", http.StatusBadRequest)
@@ -193,7 +193,7 @@ func (h *SensorTypeHandler) DeleteSensorType(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	_, err = h.client.DeleteSensorType(ctx, &pb.DeleteSensorTypeRequest{Id: int32(id)})
+	_, err = h.client.DeleteSensorType(ctx, &pb.DeleteSensorTypeRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {

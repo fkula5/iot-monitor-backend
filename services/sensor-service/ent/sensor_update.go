@@ -117,6 +117,27 @@ func (su *SensorUpdate) ClearLastUpdated() *SensorUpdate {
 	return su
 }
 
+// SetUserID sets the "user_id" field.
+func (su *SensorUpdate) SetUserID(i int64) *SensorUpdate {
+	su.mutation.ResetUserID()
+	su.mutation.SetUserID(i)
+	return su
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (su *SensorUpdate) SetNillableUserID(i *int64) *SensorUpdate {
+	if i != nil {
+		su.SetUserID(*i)
+	}
+	return su
+}
+
+// AddUserID adds i to the "user_id" field.
+func (su *SensorUpdate) AddUserID(i int64) *SensorUpdate {
+	su.mutation.AddUserID(i)
+	return su
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (su *SensorUpdate) SetUpdatedAt(t time.Time) *SensorUpdate {
 	su.mutation.SetUpdatedAt(t)
@@ -229,6 +250,12 @@ func (su *SensorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if su.mutation.LastUpdatedCleared() {
 		_spec.ClearField(sensor.FieldLastUpdated, field.TypeTime)
+	}
+	if value, ok := su.mutation.UserID(); ok {
+		_spec.SetField(sensor.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := su.mutation.AddedUserID(); ok {
+		_spec.AddField(sensor.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := su.mutation.UpdatedAt(); ok {
 		_spec.SetField(sensor.FieldUpdatedAt, field.TypeTime, value)
@@ -367,6 +394,27 @@ func (suo *SensorUpdateOne) SetNillableLastUpdated(t *time.Time) *SensorUpdateOn
 // ClearLastUpdated clears the value of the "last_updated" field.
 func (suo *SensorUpdateOne) ClearLastUpdated() *SensorUpdateOne {
 	suo.mutation.ClearLastUpdated()
+	return suo
+}
+
+// SetUserID sets the "user_id" field.
+func (suo *SensorUpdateOne) SetUserID(i int64) *SensorUpdateOne {
+	suo.mutation.ResetUserID()
+	suo.mutation.SetUserID(i)
+	return suo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (suo *SensorUpdateOne) SetNillableUserID(i *int64) *SensorUpdateOne {
+	if i != nil {
+		suo.SetUserID(*i)
+	}
+	return suo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (suo *SensorUpdateOne) AddUserID(i int64) *SensorUpdateOne {
+	suo.mutation.AddUserID(i)
 	return suo
 }
 
@@ -512,6 +560,12 @@ func (suo *SensorUpdateOne) sqlSave(ctx context.Context) (_node *Sensor, err err
 	}
 	if suo.mutation.LastUpdatedCleared() {
 		_spec.ClearField(sensor.FieldLastUpdated, field.TypeTime)
+	}
+	if value, ok := suo.mutation.UserID(); ok {
+		_spec.SetField(sensor.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := suo.mutation.AddedUserID(); ok {
+		_spec.AddField(sensor.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := suo.mutation.UpdatedAt(); ok {
 		_spec.SetField(sensor.FieldUpdatedAt, field.TypeTime, value)

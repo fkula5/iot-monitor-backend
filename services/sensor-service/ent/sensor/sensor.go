@@ -24,6 +24,8 @@ const (
 	FieldActive = "active"
 	// FieldLastUpdated holds the string denoting the last_updated field in the database.
 	FieldLastUpdated = "last_updated"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -49,6 +51,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldActive,
 	FieldLastUpdated,
+	FieldUserID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -119,6 +122,11 @@ func ByActive(opts ...sql.OrderTermOption) OrderOption {
 // ByLastUpdated orders the results by the last_updated field.
 func ByLastUpdated(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastUpdated, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
