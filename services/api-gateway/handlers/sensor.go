@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -22,7 +23,6 @@ type CreateSensorRequest struct {
 	Location     string `json:"location"`
 	Description  string `json:"description"`
 	SensorTypeId int64  `json:"sensor_type_id"`
-	UserId       int64  `json:"user_id"`
 }
 
 type UpdateSensorRequest struct {
@@ -48,7 +48,13 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{})
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		return
+	}
+
+	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{UserId: int64(claims.UserId)})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensors: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -153,6 +159,14 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		return
+	}
+
+	userId := claims.UserId
+
 	var req CreateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
@@ -173,7 +187,7 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 		Location:     req.Location,
 		Description:  req.Description,
 		SensorTypeId: req.SensorTypeId,
-		UserId:       req.UserId,
+		UserId:       int64(userId),
 		Active:       true,
 	}
 
