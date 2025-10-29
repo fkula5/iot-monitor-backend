@@ -45,6 +45,7 @@ func (h *SensorsGrpcHandler) CreateSensor(ctx context.Context, req *pb.CreateSen
 		Location:    req.Location,
 		Description: req.Description,
 		Active:      req.Active,
+		UserID:      req.UserId,
 		Edges: ent.SensorEdges{
 			Type: &ent.SensorType{ID: int(req.SensorTypeId)},
 		},
@@ -151,7 +152,7 @@ func (h *SensorsGrpcHandler) ListSensorTypes(ctx context.Context, req *pb.ListSe
 
 // ListSensors implements api.SensorServiceServer.
 func (h *SensorsGrpcHandler) ListSensors(ctx context.Context, req *pb.ListSensorsRequest) (*pb.ListSensorsResponse, error) {
-	sensors, err := h.sensorsService.ListSensors(ctx)
+	sensors, err := h.sensorsService.ListSensors(ctx, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +219,7 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 	}
 
 	sensorProto := &pb.Sensor{
-		Id:          int32(s.ID),
+		Id:          int64(s.ID),
 		Name:        s.Name,
 		Location:    s.Location,
 		Description: s.Description,
@@ -232,7 +233,7 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 	}
 
 	if s.Edges.Type != nil {
-		sensorProto.SensorTypeId = int32(s.Edges.Type.ID)
+		sensorProto.SensorTypeId = int64(s.Edges.Type.ID)
 	}
 
 	return sensorProto
@@ -244,7 +245,7 @@ func convertSensorTypeToProto(st *ent.SensorType) *pb.SensorType {
 	}
 
 	sensorTypeProto := &pb.SensorType{
-		Id:           int32(st.ID),
+		Id:           int64(st.ID),
 		Name:         st.Name,
 		Model:        st.Model,
 		Manufacturer: st.Manufacturer,

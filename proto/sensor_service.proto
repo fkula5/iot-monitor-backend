@@ -22,7 +22,7 @@ service SensorService {
 }
 
 message SensorType {
-  int32 id = 1;
+  int64 id = 1;
   string name = 2;
   string model = 3;
   string manufacturer = 4;   
@@ -34,7 +34,7 @@ message SensorType {
 }
 
 message Sensor{
-    int32 id = 1;
+    int64 id = 1;
     string name = 2;
     string location = 3;
     string description = 4;
@@ -42,7 +42,7 @@ message Sensor{
     google.protobuf.Timestamp last_updated = 6;
     google.protobuf.Timestamp created_at = 7;
     google.protobuf.Timestamp updated_at = 8;
-    int32 sensor_type_id = 9;   
+    int64 sensor_type_id = 9;   
 }
 
 message CreateSensorTypeRequest {
@@ -60,7 +60,7 @@ message CreateSensorTypeResponse{
 }
 
 message GetSensorTypeRequest{
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message GetSensorTypeResponse{
@@ -78,7 +78,8 @@ message CreateSensorRequest {
     string location = 2;
     string description = 3;
     bool active = 4;
-    int32 sensor_type_id = 5;
+    int64 sensor_type_id = 5;
+    int64 user_id = 6;
 }
 
 message CreateSensorResponse {
@@ -86,26 +87,28 @@ message CreateSensorResponse {
 }
 
 message GetSensorRequest {
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message GetSensorResponse {
     Sensor sensor = 1;
 }
 
-message ListSensorsRequest {}
+message ListSensorsRequest {
+    int64 user_id = 1;
+}
 
 message ListSensorsResponse {
     repeated Sensor sensors = 1;
 }
 
 message UpdateSensorRequest {
-    int32 id = 1;
+    int64 id = 1;
     string name = 2;
     string location = 3;
     string description = 4;
     bool active = 5;
-    int32 sensor_type_id = 6;
+    int64 sensor_type_id = 6;
 }
 
 message UpdateSensorResponse {
@@ -113,13 +116,13 @@ message UpdateSensorResponse {
 }
 
 message DeleteSensorRequest {
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message DeleteSensorResponse {}
 
 message SetSensorActiveRequest {
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message SetSensorActiveResponse {
@@ -127,7 +130,7 @@ message SetSensorActiveResponse {
 }
 
 message UpdateSensorTypeRequest {
-    int32 id = 1;
+    int64 id = 1;
     string name = 2;
     string model = 3;
     string manufacturer = 4;   
@@ -142,7 +145,7 @@ message UpdateSensorTypeResponse {
 }
 
 message DeleteSensorTypeRequest {
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message DeleteSensorTypeResponse {}

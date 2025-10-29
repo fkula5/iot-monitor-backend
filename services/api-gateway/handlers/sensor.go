@@ -21,14 +21,15 @@ type CreateSensorRequest struct {
 	Name         string `json:"name"`
 	Location     string `json:"location"`
 	Description  string `json:"description"`
-	SensorTypeId int32  `json:"sensor_type_id"`
+	SensorTypeId int64  `json:"sensor_type_id"`
+	UserId       int64  `json:"user_id"`
 }
 
 type UpdateSensorRequest struct {
 	Name         *string `json:"name,omitempty"`
 	Location     *string `json:"location,omitempty"`
 	Description  *string `json:"description,omitempty"`
-	SensorTypeId *int32  `json:"sensor_type_id,omitempty"`
+	SensorTypeId *int64  `json:"sensor_type_id,omitempty"`
 	Active       *bool   `json:"active,omitempty"`
 }
 
@@ -82,7 +83,7 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int32(id)})
+	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensor: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -123,7 +124,7 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	}
 
 	res, err := h.client.SetSensorActive(ctx, &pb.SetSensorActiveRequest{
-		Id: int32(id),
+		Id: int64(id),
 	})
 	if err != nil {
 		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
@@ -172,6 +173,7 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 		Location:     req.Location,
 		Description:  req.Description,
 		SensorTypeId: req.SensorTypeId,
+		UserId:       req.UserId,
 		Active:       true,
 	}
 
@@ -219,7 +221,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int32(id)})
+	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
@@ -232,7 +234,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	currentSensor := currentSensorRes.Sensor
 
 	grpcReq := &pb.UpdateSensorRequest{
-		Id:           int32(id),
+		Id:           int64(id),
 		Name:         currentSensor.Name,
 		Location:     currentSensor.Location,
 		Description:  currentSensor.Description,
@@ -314,7 +316,7 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int32(id)})
+	_, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {

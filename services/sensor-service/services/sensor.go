@@ -9,7 +9,7 @@ import (
 
 type ISensorService interface {
 	GetSensor(ctx context.Context, id int) (*ent.Sensor, error)
-	ListSensors(ctx context.Context) ([]*ent.Sensor, error)
+	ListSensors(ctx context.Context, userID int64) ([]*ent.Sensor, error)
 	CreateSensor(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	UpdateSensor(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error)
 	DeleteSensor(ctx context.Context, id int) error
@@ -37,8 +37,8 @@ func (s *SensorService) GetSensor(ctx context.Context, id int) (*ent.Sensor, err
 	return s.store.Get(ctx, id)
 }
 
-func (s *SensorService) ListSensors(ctx context.Context) ([]*ent.Sensor, error) {
-	return s.store.List(ctx)
+func (s *SensorService) ListSensors(ctx context.Context, userID int64) ([]*ent.Sensor, error) {
+	return s.store.List(ctx, userID)
 }
 
 func (s *SensorService) UpdateSensor(ctx context.Context, sensor *ent.Sensor) (*ent.Sensor, error) {

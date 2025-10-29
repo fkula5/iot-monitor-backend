@@ -17,7 +17,7 @@ type IGeneratorService interface {
 type GeneratorService struct {
 	sensorClient        sensor_service.SensorServiceClient
 	generationInterval  time.Duration
-	lastValues          map[int32]float64
+	lastValues          map[int64]float64
 	stopChan            chan struct{}
 	generationInProcess bool
 }
@@ -26,7 +26,7 @@ func NewGeneratorService(sensorClient sensor_service.SensorServiceClient) IGener
 	return &GeneratorService{
 		sensorClient:        sensorClient,
 		generationInterval:  5 * time.Second,
-		lastValues:          make(map[int32]float64),
+		lastValues:          make(map[int64]float64),
 		stopChan:            make(chan struct{}),
 		generationInProcess: false,
 	}
@@ -93,7 +93,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 		}
 		activeSensors++
 
-		sensorDetails, err := g.sensorClient.GetSensor(ctxTimeout, &sensor_service.GetSensorRequest{Id: int32(sensor.Id)})
+		sensorDetails, err := g.sensorClient.GetSensor(ctxTimeout, &sensor_service.GetSensorRequest{Id: int64(sensor.Id)})
 		if err != nil {
 			log.Printf("Error fetching sensor details for sensor %d: %v", sensor.Id, err)
 			continue
@@ -105,7 +105,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 		}
 
 		sensorTypeId := sensorDetails.Sensor.SensorTypeId
-		sensorType, err := g.sensorClient.GetSensorType(ctxTimeout, &sensor_service.GetSensorTypeRequest{Id: int32(sensorTypeId)})
+		sensorType, err := g.sensorClient.GetSensorType(ctxTimeout, &sensor_service.GetSensorTypeRequest{Id: int64(sensorTypeId)})
 		if err != nil {
 			log.Printf("Error fetching sensor type for sensor %d: %v", sensor.Id, err)
 			continue
@@ -136,7 +136,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 	log.Printf("Generated data for %d active sensors", activeSensors)
 }
 
-func (g *GeneratorService) generateRealisticValue(sensorID int32, minValue, maxValue float32) float64 {
+func (g *GeneratorService) generateRealisticValue(sensorID int64, minValue, maxValue float32) float64 {
 	min := float64(minValue)
 	max := float64(maxValue)
 	range_ := max - min

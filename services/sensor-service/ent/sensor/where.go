@@ -80,6 +80,11 @@ func LastUpdated(v time.Time) predicate.Sensor {
 	return predicate.Sensor(sql.FieldEQ(FieldLastUpdated, v))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldEQ(FieldUserID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Sensor {
 	return predicate.Sensor(sql.FieldEQ(FieldCreatedAt, v))
@@ -363,6 +368,46 @@ func LastUpdatedIsNil() predicate.Sensor {
 // LastUpdatedNotNil applies the NotNil predicate on the "last_updated" field.
 func LastUpdatedNotNil() predicate.Sensor {
 	return predicate.Sensor(sql.FieldNotNull(FieldLastUpdated))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int64) predicate.Sensor {
+	return predicate.Sensor(sql.FieldLTE(FieldUserID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
