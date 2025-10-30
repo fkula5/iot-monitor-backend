@@ -83,7 +83,7 @@ func (s *SensorStorage) Get(ctx context.Context, id int) (*ent.Sensor, error) {
 
 // List implements ISensorStorage.
 func (s *SensorStorage) List(ctx context.Context, userID int64) ([]*ent.Sensor, error) {
-	return s.client.Sensor.Query().Where(sensor.UserID(userID)).All(ctx)
+	return s.client.Sensor.Query().Where(sensor.UserID(userID)).WithType().All(ctx)
 }
 
 // Update implements ISensorStorage.
