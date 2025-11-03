@@ -64,7 +64,9 @@ func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
 // @Description Fetches all sensors from the Sensor Service.
 // @Tags Sensors
 // @Produce json
+// @Security ApiKeyAuth
 // @Success 200 {array} string "List of sensors"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors [get]
 func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
@@ -134,8 +136,10 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 // @Tags Sensors
 // @Produce json
 // @Param id path int true "Sensor ID"
+// @Security ApiKeyAuth
 // @Success 200 {object} string "Sensor details"
 // @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {string} string "Not Found"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors/{id} [get]
@@ -174,9 +178,11 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 // @Description Marks a sensor as active in the Sensor Service.
 // @Tags Sensors
 // @Produce json
+// @Security ApiKeyAuth
 // @Param id path int true "Sensor ID"
 // @Success 200 {object} string "Updated sensor details"
 // @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors/{id}/activate [post]
 func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) {
@@ -211,9 +217,11 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 // @Tags Sensors
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param sensor body CreateSensorRequest true "Sensor to create"
 // @Success 201 {object} string "Created sensor details"
 // @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors [post]
 func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
@@ -272,10 +280,12 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 // @Tags Sensors
 // @Accept json
 // @Produce json
+// @Security ApiKeyAuth
 // @Param id path int true "Sensor ID"
 // @Param sensor body UpdateSensorRequest true "Sensor fields to update"
 // @Success 200 {object} string "Updated sensor details"
 // @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {string} string "Not Found"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors/{id} [put]
@@ -375,8 +385,10 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 // @Description Deletes a sensor from the Sensor Service by its ID.
 // @Tags Sensors
 // @Param id path int true "Sensor ID"
+// @Security ApiKeyAuth
 // @Success 204 {string} string "No Content"
 // @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {string} string "Not Found"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors/{id} [delete]

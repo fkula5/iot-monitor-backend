@@ -25,7 +25,9 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Description Get a list of all sensor types
 // @Tags SensorTypes
 // @Produce json
+// @Security ApiKeyAuth
 // @Success 200 {array} string
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /sensortypes [get]
 func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +51,10 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Tags SensorTypes
 // @Produce json
 // @Param id path int true "Sensor Type ID"
+// @Security ApiKeyAuth
 // @Success 200 {object} string
 // @Failure 400 {object} map[string]string
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /sensortypes/{id} [get]
@@ -88,8 +92,10 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 // @Accept json
 // @Produce json
 // @Param sensorType body string true "Sensor Type Data"
+// @Security ApiKeyAuth
 // @Success 201 {object} string
 // @Failure 400 {object} map[string]string
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /sensortypes [post]
 func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
@@ -127,8 +133,10 @@ func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Requ
 // @Produce json
 // @Param id path int true "Sensor Type ID"
 // @Param sensorType body string true "Sensor Type Data"
+// @Security ApiKeyAuth
 // @Success 200 {object} string
 // @Failure 400 {object} map[string]string
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /sensortypes/{id} [put]
@@ -178,7 +186,9 @@ func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Requ
 // @Tags SensorTypes
 // @Param id path int true "Sensor Type ID"
 // @Success 204
+// @Security ApiKeyAuth
 // @Failure 400 {object} map[string]string
+// @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /sensortypes/{id} [delete]

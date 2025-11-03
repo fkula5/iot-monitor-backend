@@ -48,10 +48,16 @@ paths:
             items:
               type: string
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: ListSensors retrieves a list of all sensors.
       tags:
       - Sensors
@@ -77,10 +83,16 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: CreateSensor creates a new sensor.
       tags:
       - Sensors
@@ -102,6 +114,10 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -110,6 +126,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: DeleteSensor deletes a sensor by ID.
       tags:
       - Sensors
@@ -132,6 +150,10 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -140,6 +162,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: GetSensor retrieves a sensor by ID.
       tags:
       - Sensors
@@ -170,6 +194,10 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -178,6 +206,8 @@ paths:
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: UpdateSensor updates an existing sensor.
       tags:
       - Sensors
@@ -201,10 +231,16 @@ paths:
           description: Bad Request
           schema:
             type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - ApiKeyAuth: []
       summary: SetSensorActive sets a sensor as active.
       tags:
       - Sensors
@@ -314,12 +350,18 @@ paths:
             items:
               type: string
             type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: List Sensor Types
       tags:
       - SensorTypes
@@ -347,12 +389,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Create Sensor Type
       tags:
       - SensorTypes
@@ -374,6 +422,10 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -386,6 +438,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Delete Sensor Type
       tags:
       - SensorTypes
@@ -410,6 +464,10 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -422,6 +480,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Get Sensor Type
       tags:
       - SensorTypes
@@ -454,6 +514,10 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
         "404":
           description: Not Found
           schema:
@@ -466,6 +530,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Update Sensor Type
       tags:
       - SensorTypes

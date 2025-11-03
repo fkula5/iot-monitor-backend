@@ -141,6 +141,7 @@ type Sensor struct {
 	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	SensorTypeId  int64                  `protobuf:"varint,9,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	SensorType    *SensorType            `protobuf:"bytes,10,opt,name=sensor_type,json=sensorType,proto3" json:"sensor_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -236,6 +237,13 @@ func (x *Sensor) GetSensorTypeId() int64 {
 		return x.SensorTypeId
 	}
 	return 0
+}
+
+func (x *Sensor) GetSensorType() *SensorType {
+	if x != nil {
+		return x.SensorType
+	}
+	return nil
 }
 
 type CreateSensorTypeRequest struct {
@@ -1382,7 +1390,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\tmin_value\x18\a \x01(\x02R\bminValue\x12\x1b\n" +
 	"\tmax_value\x18\b \x01(\x02R\bmaxValue\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xdd\x02\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x9a\x03\n" +
 	"\x06Sensor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -1394,7 +1402,10 @@ const file_sensor_service_proto_rawDesc = "" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12$\n" +
-	"\x0esensor_type_id\x18\t \x01(\x03R\fsensorTypeId\"\xd7\x01\n" +
+	"\x0esensor_type_id\x18\t \x01(\x03R\fsensorTypeId\x12;\n" +
+	"\vsensor_type\x18\n" +
+	" \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
+	"sensorType\"\xd7\x01\n" +
 	"\x17CreateSensorTypeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\"\n" +
@@ -1520,42 +1531,43 @@ var file_sensor_service_proto_depIdxs = []int32{
 	24, // 1: sensor_service.Sensor.last_updated:type_name -> google.protobuf.Timestamp
 	24, // 2: sensor_service.Sensor.created_at:type_name -> google.protobuf.Timestamp
 	24, // 3: sensor_service.Sensor.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 4: sensor_service.CreateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
-	0,  // 5: sensor_service.GetSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
-	0,  // 6: sensor_service.ListSensorTypesResponse.sensor_types:type_name -> sensor_service.SensorType
-	1,  // 7: sensor_service.CreateSensorResponse.sensor:type_name -> sensor_service.Sensor
-	1,  // 8: sensor_service.GetSensorResponse.sensor:type_name -> sensor_service.Sensor
-	1,  // 9: sensor_service.ListSensorsResponse.sensors:type_name -> sensor_service.Sensor
-	1,  // 10: sensor_service.UpdateSensorResponse.sensor:type_name -> sensor_service.Sensor
-	1,  // 11: sensor_service.SetSensorActiveResponse.sensor:type_name -> sensor_service.Sensor
-	0,  // 12: sensor_service.UpdateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
-	2,  // 13: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
-	4,  // 14: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
-	6,  // 15: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
-	20, // 16: sensor_service.SensorService.UpdateSensorType:input_type -> sensor_service.UpdateSensorTypeRequest
-	22, // 17: sensor_service.SensorService.DeleteSensorType:input_type -> sensor_service.DeleteSensorTypeRequest
-	8,  // 18: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
-	10, // 19: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
-	12, // 20: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
-	14, // 21: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
-	16, // 22: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
-	18, // 23: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
-	3,  // 24: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
-	5,  // 25: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
-	7,  // 26: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
-	21, // 27: sensor_service.SensorService.UpdateSensorType:output_type -> sensor_service.UpdateSensorTypeResponse
-	23, // 28: sensor_service.SensorService.DeleteSensorType:output_type -> sensor_service.DeleteSensorTypeResponse
-	9,  // 29: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
-	11, // 30: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
-	13, // 31: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
-	15, // 32: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
-	17, // 33: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
-	19, // 34: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
-	24, // [24:35] is the sub-list for method output_type
-	13, // [13:24] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	0,  // 4: sensor_service.Sensor.sensor_type:type_name -> sensor_service.SensorType
+	0,  // 5: sensor_service.CreateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
+	0,  // 6: sensor_service.GetSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
+	0,  // 7: sensor_service.ListSensorTypesResponse.sensor_types:type_name -> sensor_service.SensorType
+	1,  // 8: sensor_service.CreateSensorResponse.sensor:type_name -> sensor_service.Sensor
+	1,  // 9: sensor_service.GetSensorResponse.sensor:type_name -> sensor_service.Sensor
+	1,  // 10: sensor_service.ListSensorsResponse.sensors:type_name -> sensor_service.Sensor
+	1,  // 11: sensor_service.UpdateSensorResponse.sensor:type_name -> sensor_service.Sensor
+	1,  // 12: sensor_service.SetSensorActiveResponse.sensor:type_name -> sensor_service.Sensor
+	0,  // 13: sensor_service.UpdateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
+	2,  // 14: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
+	4,  // 15: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
+	6,  // 16: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
+	20, // 17: sensor_service.SensorService.UpdateSensorType:input_type -> sensor_service.UpdateSensorTypeRequest
+	22, // 18: sensor_service.SensorService.DeleteSensorType:input_type -> sensor_service.DeleteSensorTypeRequest
+	8,  // 19: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
+	10, // 20: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
+	12, // 21: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
+	14, // 22: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
+	16, // 23: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
+	18, // 24: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
+	3,  // 25: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
+	5,  // 26: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
+	7,  // 27: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
+	21, // 28: sensor_service.SensorService.UpdateSensorType:output_type -> sensor_service.UpdateSensorTypeResponse
+	23, // 29: sensor_service.SensorService.DeleteSensorType:output_type -> sensor_service.DeleteSensorTypeResponse
+	9,  // 30: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
+	11, // 31: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
+	13, // 32: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
+	15, // 33: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
+	17, // 34: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
+	19, // 35: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
+	25, // [25:36] is the sub-list for method output_type
+	14, // [14:25] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_sensor_service_proto_init() }
