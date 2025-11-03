@@ -234,6 +234,7 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 
 	if s.Edges.Type != nil {
 		sensorProto.SensorTypeId = int64(s.Edges.Type.ID)
+		sensorProto.SensorType = convertSensorTypeToProto(s.Edges.Type)
 	}
 
 	return sensorProto

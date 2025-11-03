@@ -42,7 +42,12 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @license.url				https://opensource.org/licenses/MIT
 //
 // @host						localhost:3000
-// @BasePath					/api
+// @BasePath					/
+
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description				Wprowadź token JWT w formacie 'Bearer {token}'.
 func main() {
 	if err := godotenv.Load("../../.env"); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
