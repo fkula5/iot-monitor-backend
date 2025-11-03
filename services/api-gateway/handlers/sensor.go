@@ -85,9 +85,9 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sensorResponses := make([]SensorResponse, len(res.Sensors))
+	sensorResponses := make([]SensorResponse, 0, len(res.Sensors))
 	for _, sensor := range res.Sensors {
-		enriched := SensorResponse{
+		sensorWithType := SensorResponse{
 			ID:          sensor.Id,
 			Name:        sensor.Name,
 			Location:    sensor.Location,
@@ -99,7 +99,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 
 		if sensor.LastUpdated != nil {
 			t := sensor.LastUpdated.AsTime()
-			enriched.LastUpdated = &t
+			sensorWithType.LastUpdated = &t
 		}
 
 		if sensor.SensorTypeId > 0 {
@@ -107,7 +107,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 				Id: sensor.SensorTypeId,
 			})
 			if err == nil && typeRes.SensorType != nil {
-				enriched.SensorType = &SensorTypeResponse{
+				sensorWithType.SensorType = &SensorTypeResponse{
 					ID:           typeRes.SensorType.Id,
 					Name:         typeRes.SensorType.Name,
 					Model:        typeRes.SensorType.Model,
@@ -120,7 +120,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		sensorResponses = append(sensorResponses, enriched)
+		sensorResponses = append(sensorResponses, sensorWithType)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
