@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -48,17 +47,19 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @name						Authorization
 // @description				Wprowadź token JWT w formacie 'Bearer {token}'.
 func main() {
-	sensorGrpcPort := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_PORT"))
-	if sensorGrpcPort == "" {
-		sensorGrpcPort = "50052"
+	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
+	if authGrpcAddr == "" {
+		log.Printf("⚠️  WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
+		authGrpcAddr = "localhost:50051"
 	}
-	sensorGrpcAddr := fmt.Sprintf(":%s", sensorGrpcPort)
+	log.Printf("✅ Connecting to auth service at: %s", authGrpcAddr)
 
-	authGrpcPort := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_PORT"))
-	if authGrpcPort == "" {
-		authGrpcPort = "50051"
+	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
+	if sensorGrpcAddr == "" {
+		log.Printf("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		sensorGrpcAddr = "localhost:50052"
 	}
-	authGrpcAddr := fmt.Sprintf(":%s", authGrpcPort)
+	log.Printf("✅ Connecting to sensor service at: %s", sensorGrpcAddr)
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {

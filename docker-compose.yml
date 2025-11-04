@@ -38,6 +38,10 @@ services:
       DB_USER: ${AUTH_SERVICE_DB_USER}
       DB_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
       AUTH_SERVICE_DB_NAME: ${AUTH_SERVICE_DB_NAME}
+      AUTH_SERVICE_GRPC_PORT: ${AUTH_SERVICE_GRPC_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS}
+      BCRYPT_COST: ${BCRYPT_COST}
     depends_on:
       db:
         condition: service_healthy
@@ -60,6 +64,7 @@ services:
       DB_USER: ${SENSOR_SERVICE_DB_USER}
       DB_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
       SENSOR_SERVICE_DB_NAME: ${SENSOR_SERVICE_DB_NAME}
+      SENSOR_SERVICE_GRPC_PORT: ${SENSOR_SERVICE_GRPC_PORT}
     depends_on:
       db:
         condition: service_healthy
