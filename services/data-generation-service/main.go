@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/services/data-generation-service/services"
 	"google.golang.org/grpc"
@@ -27,10 +26,6 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
-	}
 
 	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
 	if grpcAddr == "" {

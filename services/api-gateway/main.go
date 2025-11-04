@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
@@ -49,10 +48,6 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @name						Authorization
 // @description				Wprowadź token JWT w formacie 'Bearer {token}'.
 func main() {
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
-	}
-
 	sensorGrpcPort := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_PORT"))
 	if sensorGrpcPort == "" {
 		sensorGrpcPort = "50052"

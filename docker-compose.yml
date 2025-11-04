@@ -1,0 +1,118 @@
+version: "3.8"
+
+networks:
+  iot-net:
+    driver: bridge
+
+services:
+  # === Baza Danych dla AUTH ===
+  db-auth:
+    image: postgres:15-alpine
+    container_name: iot_db_auth
+    environment:
+      POSTGRES_USER: ${AUTH_SERVICE_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_SERVICE_DB_NAME}
+    ports:
+      - "5432:5432" # Udostępniamy bazę auth na porcie hosta 5432
+    networks:
+      - iot-net
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+
+  # === Baza Danych dla SENSOR ===
+  db-sensor:
+    image: postgres:15-alpine
+    container_name: iot_db_sensor
+    environment:
+      POSTGRES_USER: ${SENSOR_SERVICE_DB_USER}
+      POSTGRES_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
+      POSTGRES_DB: ${SENSOR_SERVICE_DB_NAME}
+    ports:
+      - "5433:5432" # Udostępniamy bazę sensor na porcie hosta 5433 (aby uniknąć konfliktu)
+    networks:
+      - iot-net
+    volumes:
+      - postgres-sensor-data:/var/lib/postgresql/data
+
+  # === Serwis Autoryzacji ===
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/auth
+    container_name: auth_service
+    env_file: .env # Ładuje wszystkie zmienne z pliku .env
+    environment:
+      # Nadpisuje zmienne DB na te konkretne dla serwisu auth
+      DB_HOST: db-auth # Nazwa kontenera bazy danych auth
+      DB_PORT: 5432 # Port wewnętrzny kontenera db
+      DB_USER: ${AUTH_SERVICE_DB_USER}
+      DB_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+      DB_NAME: ${AUTH_SERVICE_DB_NAME}
+    depends_on:
+      - db-auth
+    networks:
+      - iot-net
+    ports:
+      - "${AUTH_SERVICE_GRPC_PORT}:${AUTH_SERVICE_GRPC_PORT}"
+
+  # === Serwis Sensorów ===
+  sensor-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/sensor-service
+    container_name: sensor_service
+    env_file: .env # Ładuje wszystkie zmienne z pliku .env
+    environment:
+      # Nadpisuje zmienne DB na te konkretne dla serwisu sensor
+      DB_HOST: db-sensor # Nazwa kontenera bazy danych sensor
+      DB_PORT: 5432 # Port wewnętrzny kontenera db
+      DB_USER: ${SENSOR_SERVICE_DB_USER}
+      DB_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
+      DB_NAME: ${SENSOR_SERVICE_DB_NAME}
+    depends_on:
+      - db-sensor
+    networks:
+      - iot-net
+    ports:
+      - "${SENSOR_SERVICE_GRPC_PORT}:${SENSOR_SERVICE_GRPC_PORT}"
+
+  # === API Gateway (bez zmian w konfiguracji DB) ===
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/api-gateway
+    container_name: api_gateway
+    env_file: .env # Ładuje porty, JWT, CORS itp.
+    depends_on:
+      - auth-service
+      - sensor-service
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    networks:
+      - iot-net
+
+  # === Serwis Generowania Danych (bez zmian w konfiguracji DB) ===
+  data-generation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/data-generation-service
+    container_name: data_gen_service
+    env_file: .env # Ładuje interwał itp.
+    depends_on:
+      - sensor-service
+    networks:
+      - iot-net
+
+# Definicja dwóch osobnych wolumenów do przechowywania danych
+volumes:
+  postgres-auth-data:
+  postgres-sensor-data:
