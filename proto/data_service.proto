@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package data_service;
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service";
+
+import "google/protobuf/timestamp.proto";
+
+service DataService{
+    rpc StoreReading(StoreReadingRequest) returns (StoreReadingResponse) {}
+    rpc QueryReadings(QueryReadingsRequest) returns (QueryReadingsResponse) {}
+}
+
+message StoreReadingRequest{
+    int64 sensor_id = 1;
+    float value = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+message StoreReadingResponse {}
+
+message QueryReadingsRequest {
+    int64 sensor_id = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+    string aggregation_interval = 4;
+}
+
+message DataPoint {
+    google.protobuf.Timestamp time = 1;
+    float value = 2;
+}
+
+message QueryReadingsResponse {
+    repeated DataPoint data_points = 1;
+}

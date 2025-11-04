@@ -1,0 +1,112 @@
+networks:
+  iot-net:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: iot_db
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "${DB_PORT}:5432"
+    networks:
+      - iot-net
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/auth
+    container_name: auth_service
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${AUTH_SERVICE_DB_USER}
+      DB_PASSWORD: ${AUTH_SERVICE_DB_PASSWORD}
+      AUTH_SERVICE_DB_NAME: ${AUTH_SERVICE_DB_NAME}
+      AUTH_SERVICE_GRPC_PORT: ${AUTH_SERVICE_GRPC_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS}
+      BCRYPT_COST: ${BCRYPT_COST}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iot-net
+    ports:
+      - "${AUTH_SERVICE_GRPC_PORT}:${AUTH_SERVICE_GRPC_PORT}"
+
+  sensor-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/sensor-service
+    container_name: sensor_service
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${SENSOR_SERVICE_DB_USER}
+      DB_PASSWORD: ${SENSOR_SERVICE_DB_PASSWORD}
+      SENSOR_SERVICE_DB_NAME: ${SENSOR_SERVICE_DB_NAME}
+      SENSOR_SERVICE_GRPC_PORT: ${SENSOR_SERVICE_GRPC_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iot-net
+    ports:
+      - "${SENSOR_SERVICE_GRPC_PORT}:${SENSOR_SERVICE_GRPC_PORT}"
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/api-gateway
+    container_name: api_gateway
+    env_file: .env
+    environment:
+      AUTH_SERVICE_GRPC_ADDR: ${AUTH_SERVICE_GRPC_ADDR}
+      SENSOR_SERVICE_GRPC_ADDR: ${SENSOR_SERVICE_GRPC_ADDR}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    depends_on:
+      - auth-service
+      - sensor-service
+    ports:
+      - "${API_GATEWAY_PORT}:8080"
+    networks:
+      - iot-net
+
+  data-generation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/data-generation-service
+    container_name: data_gen_service
+    env_file: .env
+    environment:
+      SENSOR_SERVICE_GRPC_ADDR: ${SENSOR_SERVICE_GRPC_PORT}
+    depends_on:
+      - sensor-service
+    networks:
+      - iot-net
+
+volumes:
+  postgres-data:

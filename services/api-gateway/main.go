@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
@@ -41,7 +39,7 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @license.name				MIT
 // @license.url				https://opensource.org/licenses/MIT
 //
-// @host						localhost:3000
+// @host						localhost:8080
 // @BasePath					/
 
 // @securityDefinitions.apikey	ApiKeyAuth
@@ -49,21 +47,19 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @name						Authorization
 // @description				Wprowadź token JWT w formacie 'Bearer {token}'.
 func main() {
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
+	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
+	if authGrpcAddr == "" {
+		log.Printf("⚠️  WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
+		authGrpcAddr = "localhost:50051"
 	}
+	log.Printf("✅ Connecting to auth service at: %s", authGrpcAddr)
 
-	sensorGrpcPort := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_PORT"))
-	if sensorGrpcPort == "" {
-		sensorGrpcPort = "50052"
+	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
+	if sensorGrpcAddr == "" {
+		log.Printf("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		sensorGrpcAddr = "localhost:50052"
 	}
-	sensorGrpcAddr := fmt.Sprintf(":%s", sensorGrpcPort)
-
-	authGrpcPort := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_PORT"))
-	if authGrpcPort == "" {
-		authGrpcPort = "50051"
-	}
-	authGrpcAddr := fmt.Sprintf(":%s", authGrpcPort)
+	log.Printf("✅ Connecting to sensor service at: %s", sensorGrpcAddr)
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
@@ -78,6 +74,11 @@ func main() {
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
+
+	apiGatewayPort := strings.TrimSpace(os.Getenv("API_GATEWAY_PORT"))
+	if apiGatewayPort == "" {
+		apiGatewayPort = "8080"
+	}
 
 	corsAllowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
 	if len(corsAllowedOrigins) == 0 || (len(corsAllowedOrigins) == 1 && corsAllowedOrigins[0] == "") {
@@ -126,9 +127,9 @@ func main() {
 		return nil
 	})
 
-	log.Println("Starting API gateway server on :3000")
+	log.Println("Starting API gateway server on port", apiGatewayPort)
 
-	err = http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":"+apiGatewayPort, r)
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
