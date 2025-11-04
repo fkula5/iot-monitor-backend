@@ -40,7 +40,7 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @license.name				MIT
 // @license.url				https://opensource.org/licenses/MIT
 //
-// @host						localhost:3000
+// @host						localhost:8080
 // @BasePath					/
 
 // @securityDefinitions.apikey	ApiKeyAuth
@@ -73,6 +73,11 @@ func main() {
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
+
+	apiGatewayPort := strings.TrimSpace(os.Getenv("API_GATEWAY_PORT"))
+	if apiGatewayPort == "" {
+		apiGatewayPort = "8080"
+	}
 
 	corsAllowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
 	if len(corsAllowedOrigins) == 0 || (len(corsAllowedOrigins) == 1 && corsAllowedOrigins[0] == "") {
@@ -121,9 +126,9 @@ func main() {
 		return nil
 	})
 
-	log.Println("Starting API gateway server on :3000")
+	log.Println("Starting API gateway server on port", apiGatewayPort)
 
-	err = http.ListenAndServe(":3000", r)
+	err = http.ListenAndServe(":"+apiGatewayPort, r)
 	if err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

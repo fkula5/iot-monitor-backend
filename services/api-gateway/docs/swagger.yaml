@@ -24,7 +24,7 @@ definitions:
       sensor_type_id:
         type: integer
     type: object
-host: localhost:3000
+host: localhost:8080
 info:
   contact:
     name: API Support
