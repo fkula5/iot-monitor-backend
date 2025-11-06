@@ -29,7 +29,7 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Success 200 {array} string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
-// @Router /sensortypes [get]
+// @Router /api/sensor-types [get]
 func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -57,7 +57,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /sensortypes/{id} [get]
+// @Router /api/sensor-types/{id} [get]
 func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -97,7 +97,7 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
-// @Router /sensortypes [post]
+// @Router /api/sensor-types [post]
 func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -139,7 +139,7 @@ func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Requ
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /sensortypes/{id} [put]
+// @Router /api/sensor-types/{id} [put]
 func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -191,7 +191,7 @@ func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Requ
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /sensortypes/{id} [delete]
+// @Router /api/sensor-types/{id} [delete]
 func (h *SensorTypeHandler) DeleteSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
