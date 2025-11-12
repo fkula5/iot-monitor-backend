@@ -11,3 +11,7 @@ generate-proto:
 		--go-grpc_out=$(GO_OUT) --go-grpc_opt=module=$(MODULE_NAME) \
 		$(PROTO_SRC)
 
+REBUILD_SERVICES = auth-service sensor-service api-gateway data-generation-service data-processing-service
+
+up:
+	docker-compose up --build $(REBUILD_SERVICES)
