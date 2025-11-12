@@ -22,6 +22,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/readings/latest": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches the most recent reading for each specified sensor",
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Get latest readings for multiple sensors",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comma-separated sensor IDs",
+                        "name": "sensor_ids",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/sensors": {
             "get": {
                 "security": [
@@ -346,6 +377,75 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/api/sensors/{sensor_id}/readings": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches historical data for a specific sensor",
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Get historical sensor readings",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Sensor ID",
+                        "name": "sensor_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start time (RFC3339)",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End time (RFC3339)",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ws/readings": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Establishes a WebSocket connection for real-time sensor data streaming",
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Stream sensor readings via WebSocket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Comma-separated sensor IDs",
+                        "name": "sensor_ids",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
             }
         },
         "/auth/login": {

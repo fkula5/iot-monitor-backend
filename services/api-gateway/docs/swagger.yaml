@@ -36,6 +36,25 @@ info:
   title: IoT Monitor API
   version: "1.0"
 paths:
+  /api/readings/latest:
+    get:
+      description: Fetches the most recent reading for each specified sensor
+      parameters:
+      - description: Comma-separated sensor IDs
+        in: query
+        name: sensor_ids
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Get latest readings for multiple sensors
+      tags:
+      - Data
   /api/sensors:
     get:
       description: Fetches all sensors from the Sensor Service.
@@ -244,6 +263,49 @@ paths:
       summary: SetSensorActive sets a sensor as active.
       tags:
       - Sensors
+  /api/sensors/{sensor_id}/readings:
+    get:
+      description: Fetches historical data for a specific sensor
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: sensor_id
+        required: true
+        type: integer
+      - description: Start time (RFC3339)
+        in: query
+        name: start_time
+        type: string
+      - description: End time (RFC3339)
+        in: query
+        name: end_time
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Get historical sensor readings
+      tags:
+      - Data
+  /api/ws/readings:
+    get:
+      description: Establishes a WebSocket connection for real-time sensor data streaming
+      parameters:
+      - description: Comma-separated sensor IDs
+        in: query
+        name: sensor_ids
+        type: string
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Stream sensor readings via WebSocket
+      tags:
+      - Data
   /auth/login:
     post:
       consumes:
