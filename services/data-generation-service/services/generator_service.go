@@ -80,14 +80,21 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 	ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	sensors, err := g.sensorClient.ListSensors(ctxTimeout, &sensor_service.ListSensorsRequest{})
-	if err != nil {
-		log.Printf("Error fetching sensors: %v", err)
-		return
+	allSensors := make([]*sensor_service.Sensor, 0)
+
+	for userId := int64(1); userId <= 6; userId++ {
+		sensors, err := g.sensorClient.ListSensors(ctxTimeout, &sensor_service.ListSensorsRequest{
+			UserId: userId,
+		})
+		if err != nil {
+			log.Printf("Error fetching sensors for user %d: %v", userId, err)
+			continue
+		}
+		allSensors = append(allSensors, sensors.Sensors...)
 	}
 
 	activeSensors := 0
-	for _, sensor := range sensors.Sensors {
+	for _, sensor := range allSensors {
 		if !sensor.Active {
 			continue
 		}
@@ -99,7 +106,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 			continue
 		}
 
-		if sensorDetails == nil {
+		if sensorDetails == nil || sensorDetails.Sensor == nil {
 			log.Printf("Sensor %d not found", sensor.Id)
 			continue
 		}
@@ -111,7 +118,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 			continue
 		}
 
-		if sensorType == nil {
+		if sensorType == nil || sensorType.SensorType == nil {
 			log.Printf("Sensor type %d not found for sensor %d", sensorTypeId, sensor.Id)
 			continue
 		}
@@ -142,7 +149,6 @@ func (g *GeneratorService) generateRealisticValue(sensorID int64, minValue, maxV
 	range_ := max - min
 
 	if lastValue, exists := g.lastValues[sensorID]; exists {
-
 		variation := (rand.Float64() * 0.04) - 0.02
 
 		newValue := lastValue * (1 + variation)

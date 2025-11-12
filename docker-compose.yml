@@ -102,11 +102,30 @@ services:
     container_name: data_gen_service
     env_file: .env
     environment:
-      SENSOR_SERVICE_GRPC_ADDR: ${SENSOR_SERVICE_GRPC_PORT}
+      SENSOR_SERVICE_GRPC_ADDR: ${SENSOR_SERVICE_GRPC_ADDR}
     depends_on:
       - sensor-service
     networks:
       - iot-net
+
+  data-processing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/data-processing
+    container_name: data_processing_service
+    env_file: .env
+    environment:
+      DATA_SERVICE_GRPC_ADDR: ${DATA_SERVICE_GRPC_ADDR}
+      DATA_SERVICE_GRPC_PORT: ${DATA_SERVICE_GRPC_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - iot-net
+    ports:
+      - "${DATA_SERVICE_GRPC_PORT}:${DATA_SERVICE_GRPC_PORT}"
 
 volumes:
   postgres-data:
