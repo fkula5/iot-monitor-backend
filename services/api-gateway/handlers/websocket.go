@@ -58,7 +58,7 @@ type SubscribeMessage struct {
 // @Tags Data
 // @Security ApiKeyAuth
 // @Param sensor_ids query string false "Comma-separated sensor IDs"
-// @Router /api/ws/readings [get]
+// @Router /api/data/ws/readings [get]
 func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request) {
 	// Authenticate the user
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
@@ -177,7 +177,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 // @Param start_time query string false "Start time (RFC3339)"
 // @Param end_time query string false "End time (RFC3339)"
 // @Success 200 {object} []string
-// @Router /api/sensors/{sensor_id}/readings [get]
+// @Router /api/data/sensors/{sensor_id}/readings [get]
 func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.Request) {
 	// Extract sensor_id from URL
 	sensorIDStr := r.URL.Query().Get("sensor_id")
@@ -235,7 +235,7 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 // @Security ApiKeyAuth
 // @Param sensor_ids query string true "Comma-separated sensor IDs"
 // @Success 200 {object} string
-// @Router /api/readings/latest [get]
+// @Router /api/data/readings/latest [get]
 func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Request) {
 	sensorIDsParam := r.URL.Query().Get("sensor_ids")
 	if sensorIDsParam == "" {
