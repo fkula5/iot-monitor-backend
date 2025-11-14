@@ -123,7 +123,8 @@ func main() {
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	dataHandler := handlers.NewWebSocketHandler(dataProcClient)
+	// Pass both dataClient and sensorClient to WebSocketHandler
+	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
