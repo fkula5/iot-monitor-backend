@@ -29,12 +29,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	dataGenGrpcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
-	if dataGenGrpcAddr == "" {
-		log.Printf("⚠️  WARNING: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
-		dataGenGrpcAddr = "localhost:50053"
+	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
+	if dataProcAddr == "" {
+		log.Printf("⚠️  WARNING: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
+		dataProcAddr = "localhost:50053"
 	}
-	log.Printf("✅ Connecting to auth service at: %s", dataGenGrpcAddr)
+	log.Printf("✅ Connecting to data processing service at: %s", dataProcAddr)
 
 	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
 	if sensorGrpcAddr == "" {
@@ -50,7 +50,7 @@ func main() {
 	defer sensorService.Close()
 	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
-	dataProcessingService, err := NewGrpcClient(dataGenGrpcAddr)
+	dataProcessingService, err := NewGrpcClient(dataProcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to data processing service: %v", err)
 	}

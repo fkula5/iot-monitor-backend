@@ -24,7 +24,6 @@ func main() {
 		sensorServiceAddr = "localhost:50052"
 	}
 
-	// Connect to sensor service
 	sensorConn, err := grpc.NewClient(sensorServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
@@ -33,16 +32,13 @@ func main() {
 
 	sensorClient := pb_sensor.NewSensorServiceClient(sensorConn)
 
-	// Create in-memory storage
-	dataStore := storage.NewInMemoryStorage()
-
-	// Start gRPC server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
+	dataStore := storage.NewInMemoryStorage()
 	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient)
 
 	log.Printf("Starting Data Service gRPC server on port %s...", grpcPort)
