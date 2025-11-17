@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
@@ -75,6 +76,20 @@ func main() {
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
 
+	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
+	if dataProcAddr == "" {
+		log.Printf("Warning: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
+		dataProcAddr = "localhost:50053"
+	}
+	log.Printf("✅ Connecting to data processing service at: %s", dataProcAddr)
+
+	dataProcService, err := NewGrpcClient(dataProcAddr)
+	if err != nil {
+		log.Fatalf("Failed to connect to data processing service: %v", err)
+	}
+	defer dataProcService.Close()
+	dataProcClient := data_service.NewDataServiceClient(dataProcService)
+
 	apiGatewayPort := strings.TrimSpace(os.Getenv("API_GATEWAY_PORT"))
 	if apiGatewayPort == "" {
 		apiGatewayPort = "8080"
@@ -108,6 +123,8 @@ func main() {
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
+	// Pass both dataClient and sensorClient to WebSocketHandler
+	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
@@ -115,6 +132,8 @@ func main() {
 
 	routes.SetupSensorRoutes(apiRouter, sensorHandler)
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
+
+	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)
 

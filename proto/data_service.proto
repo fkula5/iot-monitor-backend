@@ -8,6 +8,8 @@ import "google/protobuf/timestamp.proto";
 service DataService{
     rpc StoreReading(StoreReadingRequest) returns (StoreReadingResponse) {}
     rpc QueryReadings(QueryReadingsRequest) returns (QueryReadingsResponse) {}
+    rpc StreamReadings(StreamReadingsRequest) returns (stream ReadingUpdate) {}
+    rpc GetLatestReadings(LatestReadingsRequest) returns (LatestReadingsResponse) {}
 }
 
 message StoreReadingRequest{
@@ -32,4 +34,31 @@ message DataPoint {
 
 message QueryReadingsResponse {
     repeated DataPoint data_points = 1;
+}
+
+message StreamReadingsRequest {
+    repeated int64 sensor_ids = 1;
+}
+
+message ReadingUpdate {
+    int64 sensor_id = 1;
+    float value = 2;
+    google.protobuf.Timestamp timestamp = 3;
+    string sensor_name = 4;
+    string location = 5;
+    string unit = 6;
+}
+
+message LatestReadingsRequest {
+    repeated int64 sensor_ids = 1;
+}
+
+message LatestReading {
+    int64 sensor_id = 1;
+    float value = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+message LatestReadingsResponse {
+    repeated LatestReading readings = 1;
 }
