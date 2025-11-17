@@ -21,7 +21,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Configure this properly in production
+		return true
 	},
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -52,7 +52,7 @@ type ReadingMessage struct {
 }
 
 type SubscribeMessage struct {
-	Type      string  `json:"type"` // "subscribe" or "unsubscribe"
+	Type      string  `json:"type"`
 	SensorIDs []int64 `json:"sensor_ids"`
 }
 
@@ -62,7 +62,6 @@ type SubscribeMessage struct {
 // @Param sensor_ids query string false "Comma-separated sensor IDs"
 // @Router /api/data/ws/readings [get]
 func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request) {
-	// Get sensor IDs from query parameter
 	sensorIDsParam := r.URL.Query().Get("sensor_ids")
 	var sensorIDs []int64
 	if sensorIDsParam != "" {
@@ -74,12 +73,10 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	// If no sensor IDs provided, get all active sensors
 	if len(sensorIDs) == 0 {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		// Get all sensors for all users (for testing)
 		for userId := int64(1); userId <= 10; userId++ {
 			sensors, err := h.sensorClient.ListSensors(ctx, &pb_sensor.ListSensorsRequest{UserId: userId})
 			if err == nil && sensors.Sensors != nil {
@@ -94,7 +91,6 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 
 	log.Printf("WebSocket connection request for sensors: %v", sensorIDs)
 
-	// Upgrade to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Failed to upgrade to WebSocket: %v", err)
@@ -115,14 +111,12 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 
 	log.Printf("WebSocket client connected for sensors: %v", sensorIDs)
 
-	// Start streaming
 	if len(sensorIDs) > 0 {
 		go h.streamToClient(conn, sensorIDs)
 	} else {
 		log.Printf("No active sensors found to stream")
 	}
 
-	// Handle incoming messages (for dynamic subscription changes)
 	for {
 		var msg SubscribeMessage
 		err := conn.ReadJSON(&msg)
@@ -207,7 +201,6 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 // @Success 200 {object} []string
 // @Router /api/data/sensors/{sensor_id}/readings [get]
 func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.Request) {
-	// Extract sensor_id from URL
 	sensorIDStr := r.URL.Query().Get("sensor_id")
 	sensorID, err := strconv.ParseInt(sensorIDStr, 10, 64)
 	if err != nil {
@@ -215,7 +208,6 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// Parse time range
 	startTimeStr := r.URL.Query().Get("start_time")
 	endTimeStr := r.URL.Query().Get("end_time")
 
@@ -227,7 +219,7 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 			return
 		}
 	} else {
-		startTime = time.Now().Add(-24 * time.Hour) // Default: last 24 hours
+		startTime = time.Now().Add(-24 * time.Hour)
 	}
 
 	if endTimeStr != "" {
@@ -296,23 +288,19 @@ func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *WebSocketHandler) WsHandler(w http.ResponseWriter, r *http.Request) {
-	// Upgrade the HTTP connection to a WebSocket connection
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading:", err)
 		return
 	}
 	defer conn.Close()
-	// Listen for incoming messages
 	for {
-		// Read message from the client
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
 		}
 		fmt.Printf("Received: %s\n", message)
-		// Echo the message back to the client
 		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			fmt.Println("Error writing message:", err)
 			break
