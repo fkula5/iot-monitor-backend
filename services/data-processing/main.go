@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -24,6 +25,31 @@ func main() {
 		sensorServiceAddr = "localhost:50052"
 	}
 
+	dbName := os.Getenv("DATA_SERVICE_DB_NAME")
+	if dbName == "" {
+		dbName = "sensor_readings_db"
+	}
+
+	dbUser := os.Getenv("DATA_SERVICE_DB_USER")
+	if dbUser == "" {
+		dbUser = "data_user"
+	}
+
+	dbPass := os.Getenv("DATA_SERVICE_DB_PASSWORD")
+	if dbPass == "" {
+		dbPass = "datapassword"
+	}
+
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		"localhost", "5432", dbUser, dbPass, dbName)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	sensorConn, err := grpc.NewClient(sensorServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
@@ -38,7 +64,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	dataStore := storage.NewInMemoryStorage()
+	dataStore := storage.NewTimescaleStorage(db)
 	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient)
 
 	log.Printf("Starting Data Service gRPC server on port %s...", grpcPort)
