@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
@@ -53,4 +54,16 @@ func (s *TimescaleStorage) QueryReadings(ctx context.Context, sensorID int64, st
 		})
 	}
 	return dataPoints, nil
+}
+
+func (s *InMemoryStorage) GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	update, exists := s.latest[sensorID]
+	if !exists {
+		return nil, fmt.Errorf("no readings found for sensor %d", sensorID)
+	}
+
+	return update, nil
 }

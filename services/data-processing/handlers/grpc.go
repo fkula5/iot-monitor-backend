@@ -128,30 +128,30 @@ func (h *DataGrpcHandler) StreamReadings(req *pb_data.StreamReadingsRequest, str
 	}
 }
 
-// func (h *DataGrpcHandler) GetLatestReadings(ctx context.Context, req *pb_data.LatestReadingsRequest) (*pb_data.LatestReadingsResponse, error) {
-// 	if len(req.SensorIds) == 0 {
-// 		return nil, status.Error(codes.InvalidArgument, "at least one sensor_id is required")
-// 	}
+func (h *DataGrpcHandler) GetLatestReadings(ctx context.Context, req *pb_data.LatestReadingsRequest) (*pb_data.LatestReadingsResponse, error) {
+	if len(req.SensorIds) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "at least one sensor_id is required")
+	}
 
-// 	var readings []*pb_data.LatestReading
+	var readings []*pb_data.LatestReading
 
-// 	for _, sensorID := range req.SensorIds {
-// 		update, err := h.store.GetLatestReading(ctx, sensorID)
-// 		if err != nil {
-// 			continue
-// 		}
+	for _, sensorID := range req.SensorIds {
+		update, err := h.store.GetLatestReading(ctx, sensorID)
+		if err != nil {
+			continue
+		}
 
-// 		readings = append(readings, &pb_data.LatestReading{
-// 			SensorId:  update.SensorId,
-// 			Value:     update.Value,
-// 			Timestamp: update.Timestamp,
-// 		})
-// 	}
+		readings = append(readings, &pb_data.LatestReading{
+			SensorId:  update.SensorId,
+			Value:     update.Value,
+			Timestamp: update.Timestamp,
+		})
+	}
 
-// 	return &pb_data.LatestReadingsResponse{
-// 		Readings: readings,
-// 	}, nil
-// }
+	return &pb_data.LatestReadingsResponse{
+		Readings: readings,
+	}, nil
+}
 
 func (h *DataGrpcHandler) broadcastUpdate(update *pb_data.ReadingUpdate) {
 	h.subscribersMu.RLock()
