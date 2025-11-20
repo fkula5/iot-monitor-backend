@@ -17,6 +17,7 @@ type TimescaleStorage struct {
 type ITimeScaleStorage interface {
 	StoreReading(ctx context.Context, sensorID int64, value float32, timestamp time.Time) error
 	QueryReadings(ctx context.Context, sensorID int64, startTime, endTime time.Time) ([]*pb_data.DataPoint, error)
+	GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error)
 }
 
 func NewTimescaleStorage(db *sql.DB) ITimeScaleStorage {
@@ -56,14 +57,26 @@ func (s *TimescaleStorage) QueryReadings(ctx context.Context, sensorID int64, st
 	return dataPoints, nil
 }
 
-func (s *InMemoryStorage) GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *TimescaleStorage) GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error) {
+	var t time.Time
+	var v float32
 
-	update, exists := s.latest[sensorID]
-	if !exists {
-		return nil, fmt.Errorf("no readings found for sensor %d", sensorID)
+	err := s.db.QueryRowContext(ctx,
+		`SELECT time, value FROM sensor_readings 
+         WHERE sensor_id = $1 
+         ORDER BY time DESC 
+         LIMIT 1`,
+		sensorID).Scan(&t, &v)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("no readings found for sensor %d", sensorID)
+		}
+		return nil, fmt.Errorf("query error: %w", err)
 	}
 
-	return update, nil
+	return &pb_data.ReadingUpdate{
+		SensorId:  sensorID,
+		Value:     v,
+		Timestamp: timestamppb.New(t),
+	}, nil
 }
