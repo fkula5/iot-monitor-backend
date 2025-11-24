@@ -50,9 +50,28 @@ paths:
           description: OK
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Get latest readings for multiple sensors
+      tags:
+      - Data
+  /api/data/sensors/{sensor_id}/latest:
+    get:
+      description: Fetches the most recent N readings for a specific sensor
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: sensor_id
+        required: true
+        type: integer
+      - description: Number of readings to fetch (default 10)
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get latest N readings for a single sensor
       tags:
       - Data
   /api/data/sensors/{sensor_id}/readings:
@@ -79,8 +98,6 @@ paths:
             items:
               type: string
             type: array
-      security:
-      - ApiKeyAuth: []
       summary: Get historical sensor readings
       tags:
       - Data
@@ -93,8 +110,6 @@ paths:
         name: sensor_ids
         type: string
       responses: {}
-      security:
-      - ApiKeyAuth: []
       summary: Stream sensor readings via WebSocket
       tags:
       - Data

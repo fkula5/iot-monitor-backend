@@ -35,7 +35,7 @@ func NewGeneratorService(sensorClient pb_sensor.SensorServiceClient, dataClient 
 	return &GeneratorService{
 		sensorClient:        sensorClient,
 		dataClient:          dataClient,
-		generationInterval:  5 * time.Second,
+		generationInterval:  1 * time.Minute,
 		lastValues:          make(map[int64]float64),
 		stopChan:            make(chan struct{}),
 		generationInProcess: false,

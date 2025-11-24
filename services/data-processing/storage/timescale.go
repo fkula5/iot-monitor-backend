@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,7 +18,8 @@ type TimescaleStorage struct {
 type ITimeScaleStorage interface {
 	StoreReading(ctx context.Context, sensorID int64, value float32, timestamp time.Time) error
 	QueryReadings(ctx context.Context, sensorID int64, startTime, endTime time.Time) ([]*pb_data.DataPoint, error)
-	GetLatestReadings(ctx context.Context, sensorID int64, entries int64) ([]*pb_data.ReadingUpdate, error)
+	GetLatestReadingsBatch(ctx context.Context, sensorIDs []int64) ([]*pb_data.ReadingUpdate, error)
+	GetLatestReadingsBySensor(ctx context.Context, sensorID int64, limit int64) ([]*pb_data.ReadingUpdate, error)
 }
 
 func NewTimescaleStorage(db *sql.DB) ITimeScaleStorage {
@@ -57,21 +59,73 @@ func (s *TimescaleStorage) QueryReadings(ctx context.Context, sensorID int64, st
 	return dataPoints, nil
 }
 
-func (s *TimescaleStorage) GetLatestReadings(ctx context.Context, sensorID int64, entries int64) ([]*pb_data.ReadingUpdate, error) {
+func (s *TimescaleStorage) GetLatestReadingsBatch(ctx context.Context, sensorIDs []int64) ([]*pb_data.ReadingUpdate, error) {
+	if len(sensorIDs) == 0 {
+		return []*pb_data.ReadingUpdate{}, nil
+	}
+
+	query := `
+		WITH ranked_readings AS (
+			SELECT 
+				sensor_id, 
+				value, 
+				time,
+				ROW_NUMBER() OVER (PARTITION BY sensor_id ORDER BY time DESC) as rn
+			FROM sensor_readings 
+			WHERE sensor_id = ANY($1)
+		)
+		SELECT sensor_id, value, time
+		FROM ranked_readings
+		WHERE rn = 1
+		ORDER BY sensor_id`
+
+	rows, err := s.db.QueryContext(ctx, query, pq.Array(sensorIDs))
+	if err != nil {
+		return nil, fmt.Errorf("query error: %w", err)
+	}
+	defer rows.Close()
+
+	var readings []*pb_data.ReadingUpdate
+	for rows.Next() {
+		var sensorID int64
+		var v float32
+		var t time.Time
+
+		if err := rows.Scan(&sensorID, &v, &t); err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
+		}
+
+		readings = append(readings, &pb_data.ReadingUpdate{
+			SensorId:  sensorID,
+			Value:     v,
+			Timestamp: timestamppb.New(t),
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return readings, nil
+}
+
+func (s *TimescaleStorage) GetLatestReadingsBySensor(ctx context.Context, sensorID int64, limit int64) ([]*pb_data.ReadingUpdate, error) {
+	if limit <= 0 {
+		limit = 1
+	}
+
 	query := `SELECT time, value FROM sensor_readings 
               WHERE sensor_id = $1 
               ORDER BY time DESC 
               LIMIT $2`
 
-	rows, err := s.db.QueryContext(ctx, query, sensorID, entries)
+	rows, err := s.db.QueryContext(ctx, query, sensorID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
-
 	defer rows.Close()
 
 	var readings []*pb_data.ReadingUpdate
-
 	for rows.Next() {
 		var t time.Time
 		var v float32

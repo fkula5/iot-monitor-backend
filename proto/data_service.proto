@@ -9,7 +9,8 @@ service DataService{
     rpc StoreReading(StoreReadingRequest) returns (StoreReadingResponse) {}
     rpc QueryReadings(QueryReadingsRequest) returns (QueryReadingsResponse) {}
     rpc StreamReadings(StreamReadingsRequest) returns (stream ReadingUpdate) {}
-    rpc GetLatestReadings(LatestReadingsRequest) returns (LatestReadingsResponse) {}
+    rpc GetLatestReadingsBatch(LatestReadingsBatchRequest) returns (LatestReadingsBatchResponse) {}
+    rpc GetLatestReadingsBySensor(LatestReadingsBySensorRequest) returns (LatestReadingsBySensorResponse) {}
 }
 
 message StoreReadingRequest{
@@ -49,17 +50,20 @@ message ReadingUpdate {
     string unit = 6;
 }
 
-message LatestReadingsRequest {
+message LatestReadingsBatchRequest {
     repeated int64 sensor_ids = 1;
-    int64 entries = 2;
 }
 
-message LatestReading {
+message LatestReadingsBatchResponse {
+    repeated ReadingUpdate readings = 1;
+}
+
+// NEW: Single sensor with limit
+message LatestReadingsBySensorRequest {
     int64 sensor_id = 1;
-    float value = 2;
-    google.protobuf.Timestamp timestamp = 3;
+    int64 limit = 2;
 }
 
-message LatestReadingsResponse {
-    repeated LatestReading readings = 1;
+message LatestReadingsBySensorResponse {
+    repeated ReadingUpdate readings = 1;
 }

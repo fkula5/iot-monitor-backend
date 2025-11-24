@@ -410,28 +410,27 @@ func (x *ReadingUpdate) GetUnit() string {
 	return ""
 }
 
-type LatestReadingsRequest struct {
+type LatestReadingsBatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SensorIds     []int64                `protobuf:"varint,1,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
-	Entries       int64                  `protobuf:"varint,2,opt,name=entries,proto3" json:"entries,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LatestReadingsRequest) Reset() {
-	*x = LatestReadingsRequest{}
+func (x *LatestReadingsBatchRequest) Reset() {
+	*x = LatestReadingsBatchRequest{}
 	mi := &file_data_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LatestReadingsRequest) String() string {
+func (x *LatestReadingsBatchRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LatestReadingsRequest) ProtoMessage() {}
+func (*LatestReadingsBatchRequest) ProtoMessage() {}
 
-func (x *LatestReadingsRequest) ProtoReflect() protoreflect.Message {
+func (x *LatestReadingsBatchRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_data_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -443,48 +442,39 @@ func (x *LatestReadingsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LatestReadingsRequest.ProtoReflect.Descriptor instead.
-func (*LatestReadingsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestReadingsBatchRequest.ProtoReflect.Descriptor instead.
+func (*LatestReadingsBatchRequest) Descriptor() ([]byte, []int) {
 	return file_data_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *LatestReadingsRequest) GetSensorIds() []int64 {
+func (x *LatestReadingsBatchRequest) GetSensorIds() []int64 {
 	if x != nil {
 		return x.SensorIds
 	}
 	return nil
 }
 
-func (x *LatestReadingsRequest) GetEntries() int64 {
-	if x != nil {
-		return x.Entries
-	}
-	return 0
-}
-
-type LatestReading struct {
+type LatestReadingsBatchResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SensorId      int64                  `protobuf:"varint,1,opt,name=sensor_id,json=sensorId,proto3" json:"sensor_id,omitempty"`
-	Value         float32                `protobuf:"fixed32,2,opt,name=value,proto3" json:"value,omitempty"`
-	Timestamp     *timestamp.Timestamp   `protobuf:"bytes,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Readings      []*ReadingUpdate       `protobuf:"bytes,1,rep,name=readings,proto3" json:"readings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LatestReading) Reset() {
-	*x = LatestReading{}
+func (x *LatestReadingsBatchResponse) Reset() {
+	*x = LatestReadingsBatchResponse{}
 	mi := &file_data_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LatestReading) String() string {
+func (x *LatestReadingsBatchResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LatestReading) ProtoMessage() {}
+func (*LatestReadingsBatchResponse) ProtoMessage() {}
 
-func (x *LatestReading) ProtoReflect() protoreflect.Message {
+func (x *LatestReadingsBatchResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_data_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -496,54 +486,93 @@ func (x *LatestReading) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LatestReading.ProtoReflect.Descriptor instead.
-func (*LatestReading) Descriptor() ([]byte, []int) {
+// Deprecated: Use LatestReadingsBatchResponse.ProtoReflect.Descriptor instead.
+func (*LatestReadingsBatchResponse) Descriptor() ([]byte, []int) {
 	return file_data_service_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *LatestReading) GetSensorId() int64 {
+func (x *LatestReadingsBatchResponse) GetReadings() []*ReadingUpdate {
+	if x != nil {
+		return x.Readings
+	}
+	return nil
+}
+
+// NEW: Single sensor with limit
+type LatestReadingsBySensorRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SensorId      int64                  `protobuf:"varint,1,opt,name=sensor_id,json=sensorId,proto3" json:"sensor_id,omitempty"`
+	Limit         int64                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LatestReadingsBySensorRequest) Reset() {
+	*x = LatestReadingsBySensorRequest{}
+	mi := &file_data_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LatestReadingsBySensorRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LatestReadingsBySensorRequest) ProtoMessage() {}
+
+func (x *LatestReadingsBySensorRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LatestReadingsBySensorRequest.ProtoReflect.Descriptor instead.
+func (*LatestReadingsBySensorRequest) Descriptor() ([]byte, []int) {
+	return file_data_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *LatestReadingsBySensorRequest) GetSensorId() int64 {
 	if x != nil {
 		return x.SensorId
 	}
 	return 0
 }
 
-func (x *LatestReading) GetValue() float32 {
+func (x *LatestReadingsBySensorRequest) GetLimit() int64 {
 	if x != nil {
-		return x.Value
+		return x.Limit
 	}
 	return 0
 }
 
-func (x *LatestReading) GetTimestamp() *timestamp.Timestamp {
-	if x != nil {
-		return x.Timestamp
-	}
-	return nil
-}
-
-type LatestReadingsResponse struct {
+type LatestReadingsBySensorResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Readings      []*LatestReading       `protobuf:"bytes,1,rep,name=readings,proto3" json:"readings,omitempty"`
+	Readings      []*ReadingUpdate       `protobuf:"bytes,1,rep,name=readings,proto3" json:"readings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LatestReadingsResponse) Reset() {
-	*x = LatestReadingsResponse{}
-	mi := &file_data_service_proto_msgTypes[9]
+func (x *LatestReadingsBySensorResponse) Reset() {
+	*x = LatestReadingsBySensorResponse{}
+	mi := &file_data_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LatestReadingsResponse) String() string {
+func (x *LatestReadingsBySensorResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LatestReadingsResponse) ProtoMessage() {}
+func (*LatestReadingsBySensorResponse) ProtoMessage() {}
 
-func (x *LatestReadingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[9]
+func (x *LatestReadingsBySensorResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -554,12 +583,12 @@ func (x *LatestReadingsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LatestReadingsResponse.ProtoReflect.Descriptor instead.
-func (*LatestReadingsResponse) Descriptor() ([]byte, []int) {
-	return file_data_service_proto_rawDescGZIP(), []int{9}
+// Deprecated: Use LatestReadingsBySensorResponse.ProtoReflect.Descriptor instead.
+func (*LatestReadingsBySensorResponse) Descriptor() ([]byte, []int) {
+	return file_data_service_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *LatestReadingsResponse) GetReadings() []*LatestReading {
+func (x *LatestReadingsBySensorResponse) GetReadings() []*ReadingUpdate {
 	if x != nil {
 		return x.Readings
 	}
@@ -598,22 +627,23 @@ const file_data_service_proto_rawDesc = "" +
 	"\vsensor_name\x18\x04 \x01(\tR\n" +
 	"sensorName\x12\x1a\n" +
 	"\blocation\x18\x05 \x01(\tR\blocation\x12\x12\n" +
-	"\x04unit\x18\x06 \x01(\tR\x04unit\"P\n" +
-	"\x15LatestReadingsRequest\x12\x1d\n" +
+	"\x04unit\x18\x06 \x01(\tR\x04unit\";\n" +
+	"\x1aLatestReadingsBatchRequest\x12\x1d\n" +
 	"\n" +
-	"sensor_ids\x18\x01 \x03(\x03R\tsensorIds\x12\x18\n" +
-	"\aentries\x18\x02 \x01(\x03R\aentries\"|\n" +
-	"\rLatestReading\x12\x1b\n" +
+	"sensor_ids\x18\x01 \x03(\x03R\tsensorIds\"V\n" +
+	"\x1bLatestReadingsBatchResponse\x127\n" +
+	"\breadings\x18\x01 \x03(\v2\x1b.data_service.ReadingUpdateR\breadings\"R\n" +
+	"\x1dLatestReadingsBySensorRequest\x12\x1b\n" +
 	"\tsensor_id\x18\x01 \x01(\x03R\bsensorId\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x02R\x05value\x128\n" +
-	"\ttimestamp\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\"Q\n" +
-	"\x16LatestReadingsResponse\x127\n" +
-	"\breadings\x18\x01 \x03(\v2\x1b.data_service.LatestReadingR\breadings2\xfc\x02\n" +
+	"\x05limit\x18\x02 \x01(\x03R\x05limit\"Y\n" +
+	"\x1eLatestReadingsBySensorResponse\x127\n" +
+	"\breadings\x18\x01 \x03(\v2\x1b.data_service.ReadingUpdateR\breadings2\x85\x04\n" +
 	"\vDataService\x12W\n" +
 	"\fStoreReading\x12!.data_service.StoreReadingRequest\x1a\".data_service.StoreReadingResponse\"\x00\x12Z\n" +
 	"\rQueryReadings\x12\".data_service.QueryReadingsRequest\x1a#.data_service.QueryReadingsResponse\"\x00\x12V\n" +
-	"\x0eStreamReadings\x12#.data_service.StreamReadingsRequest\x1a\x1b.data_service.ReadingUpdate\"\x000\x01\x12`\n" +
-	"\x11GetLatestReadings\x12#.data_service.LatestReadingsRequest\x1a$.data_service.LatestReadingsResponse\"\x00BEZCgithub.com/skni-kod/iot-monitor-backend/internal/proto/data_serviceb\x06proto3"
+	"\x0eStreamReadings\x12#.data_service.StreamReadingsRequest\x1a\x1b.data_service.ReadingUpdate\"\x000\x01\x12o\n" +
+	"\x16GetLatestReadingsBatch\x12(.data_service.LatestReadingsBatchRequest\x1a).data_service.LatestReadingsBatchResponse\"\x00\x12x\n" +
+	"\x19GetLatestReadingsBySensor\x12+.data_service.LatestReadingsBySensorRequest\x1a,.data_service.LatestReadingsBySensorResponse\"\x00BEZCgithub.com/skni-kod/iot-monitor-backend/internal/proto/data_serviceb\x06proto3"
 
 var (
 	file_data_service_proto_rawDescOnce sync.Once
@@ -627,39 +657,42 @@ func file_data_service_proto_rawDescGZIP() []byte {
 	return file_data_service_proto_rawDescData
 }
 
-var file_data_service_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_data_service_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_data_service_proto_goTypes = []any{
-	(*StoreReadingRequest)(nil),    // 0: data_service.StoreReadingRequest
-	(*StoreReadingResponse)(nil),   // 1: data_service.StoreReadingResponse
-	(*QueryReadingsRequest)(nil),   // 2: data_service.QueryReadingsRequest
-	(*DataPoint)(nil),              // 3: data_service.DataPoint
-	(*QueryReadingsResponse)(nil),  // 4: data_service.QueryReadingsResponse
-	(*StreamReadingsRequest)(nil),  // 5: data_service.StreamReadingsRequest
-	(*ReadingUpdate)(nil),          // 6: data_service.ReadingUpdate
-	(*LatestReadingsRequest)(nil),  // 7: data_service.LatestReadingsRequest
-	(*LatestReading)(nil),          // 8: data_service.LatestReading
-	(*LatestReadingsResponse)(nil), // 9: data_service.LatestReadingsResponse
-	(*timestamp.Timestamp)(nil),    // 10: google.protobuf.Timestamp
+	(*StoreReadingRequest)(nil),            // 0: data_service.StoreReadingRequest
+	(*StoreReadingResponse)(nil),           // 1: data_service.StoreReadingResponse
+	(*QueryReadingsRequest)(nil),           // 2: data_service.QueryReadingsRequest
+	(*DataPoint)(nil),                      // 3: data_service.DataPoint
+	(*QueryReadingsResponse)(nil),          // 4: data_service.QueryReadingsResponse
+	(*StreamReadingsRequest)(nil),          // 5: data_service.StreamReadingsRequest
+	(*ReadingUpdate)(nil),                  // 6: data_service.ReadingUpdate
+	(*LatestReadingsBatchRequest)(nil),     // 7: data_service.LatestReadingsBatchRequest
+	(*LatestReadingsBatchResponse)(nil),    // 8: data_service.LatestReadingsBatchResponse
+	(*LatestReadingsBySensorRequest)(nil),  // 9: data_service.LatestReadingsBySensorRequest
+	(*LatestReadingsBySensorResponse)(nil), // 10: data_service.LatestReadingsBySensorResponse
+	(*timestamp.Timestamp)(nil),            // 11: google.protobuf.Timestamp
 }
 var file_data_service_proto_depIdxs = []int32{
-	10, // 0: data_service.StoreReadingRequest.timestamp:type_name -> google.protobuf.Timestamp
-	10, // 1: data_service.QueryReadingsRequest.start_time:type_name -> google.protobuf.Timestamp
-	10, // 2: data_service.QueryReadingsRequest.end_time:type_name -> google.protobuf.Timestamp
-	10, // 3: data_service.DataPoint.time:type_name -> google.protobuf.Timestamp
+	11, // 0: data_service.StoreReadingRequest.timestamp:type_name -> google.protobuf.Timestamp
+	11, // 1: data_service.QueryReadingsRequest.start_time:type_name -> google.protobuf.Timestamp
+	11, // 2: data_service.QueryReadingsRequest.end_time:type_name -> google.protobuf.Timestamp
+	11, // 3: data_service.DataPoint.time:type_name -> google.protobuf.Timestamp
 	3,  // 4: data_service.QueryReadingsResponse.data_points:type_name -> data_service.DataPoint
-	10, // 5: data_service.ReadingUpdate.timestamp:type_name -> google.protobuf.Timestamp
-	10, // 6: data_service.LatestReading.timestamp:type_name -> google.protobuf.Timestamp
-	8,  // 7: data_service.LatestReadingsResponse.readings:type_name -> data_service.LatestReading
+	11, // 5: data_service.ReadingUpdate.timestamp:type_name -> google.protobuf.Timestamp
+	6,  // 6: data_service.LatestReadingsBatchResponse.readings:type_name -> data_service.ReadingUpdate
+	6,  // 7: data_service.LatestReadingsBySensorResponse.readings:type_name -> data_service.ReadingUpdate
 	0,  // 8: data_service.DataService.StoreReading:input_type -> data_service.StoreReadingRequest
 	2,  // 9: data_service.DataService.QueryReadings:input_type -> data_service.QueryReadingsRequest
 	5,  // 10: data_service.DataService.StreamReadings:input_type -> data_service.StreamReadingsRequest
-	7,  // 11: data_service.DataService.GetLatestReadings:input_type -> data_service.LatestReadingsRequest
-	1,  // 12: data_service.DataService.StoreReading:output_type -> data_service.StoreReadingResponse
-	4,  // 13: data_service.DataService.QueryReadings:output_type -> data_service.QueryReadingsResponse
-	6,  // 14: data_service.DataService.StreamReadings:output_type -> data_service.ReadingUpdate
-	9,  // 15: data_service.DataService.GetLatestReadings:output_type -> data_service.LatestReadingsResponse
-	12, // [12:16] is the sub-list for method output_type
-	8,  // [8:12] is the sub-list for method input_type
+	7,  // 11: data_service.DataService.GetLatestReadingsBatch:input_type -> data_service.LatestReadingsBatchRequest
+	9,  // 12: data_service.DataService.GetLatestReadingsBySensor:input_type -> data_service.LatestReadingsBySensorRequest
+	1,  // 13: data_service.DataService.StoreReading:output_type -> data_service.StoreReadingResponse
+	4,  // 14: data_service.DataService.QueryReadings:output_type -> data_service.QueryReadingsResponse
+	6,  // 15: data_service.DataService.StreamReadings:output_type -> data_service.ReadingUpdate
+	8,  // 16: data_service.DataService.GetLatestReadingsBatch:output_type -> data_service.LatestReadingsBatchResponse
+	10, // 17: data_service.DataService.GetLatestReadingsBySensor:output_type -> data_service.LatestReadingsBySensorResponse
+	13, // [13:18] is the sub-list for method output_type
+	8,  // [8:13] is the sub-list for method input_type
 	8,  // [8:8] is the sub-list for extension type_name
 	8,  // [8:8] is the sub-list for extension extendee
 	0,  // [0:8] is the sub-list for field type_name
@@ -676,7 +709,7 @@ func file_data_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_data_service_proto_rawDesc), len(file_data_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
