@@ -4,7 +4,7 @@ networks:
 
 services:
   db:
-    image: postgres:15-alpine
+    image: timescale/timescaledb:latest-pg15
     container_name: iot_db
     env_file: .env
     environment:
@@ -105,6 +105,9 @@ services:
     environment:
       DATA_SERVICE_GRPC_ADDR: ${DATA_SERVICE_GRPC_ADDR}
       DATA_SERVICE_GRPC_PORT: ${DATA_SERVICE_GRPC_PORT}
+      DATA_SERVICE_DB_NAME: ${DATA_SERVICE_DB_NAME}
+      DATA_SERVICE_DB_USER: ${DATA_SERVICE_DB_USER}
+      DATA_SERVICE_DB_PASSWORD: ${DATA_SERVICE_DB_PASSWORD}
     depends_on:
       db:
         condition: service_healthy

@@ -11,4 +11,24 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
     CREATE DATABASE $SENSOR_SERVICE_DB_NAME;
     ALTER DATABASE $SENSOR_SERVICE_DB_NAME OWNER TO $SENSOR_SERVICE_DB_USER;
 
+    CREATE USER $DATA_SERVICE_DB_USER WITH PASSWORD '$DATA_SERVICE_DB_PASSWORD';
+    CREATE DATABASE $DATA_SERVICE_DB_NAME;
+    ALTER DATABASE $DATA_SERVICE_DB_NAME OWNER TO $DATA_SERVICE_DB_USER;
+    
+    \c $DATA_SERVICE_DB_NAME
+
+    CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+    CREATE TABLE IF NOT EXISTS sensor_readings (
+        time        TIMESTAMPTZ       NOT NULL,
+        sensor_id   BIGINT            NOT NULL,
+        value       DOUBLE PRECISION  NOT NULL
+    );
+
+    SELECT create_hypertable('sensor_readings', 'time', if_not_exists => TRUE);
+
+    CREATE INDEX IF NOT EXISTS idx_sensor_readings_sensor_time ON sensor_readings (sensor_id, time DESC);
+    
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DATA_SERVICE_DB_USER;
+
 EOSQL

@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -249,6 +250,7 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(res.DataPoints)
 }
 
+// NEW: Get latest reading for multiple sensors (batch)
 // @Summary Get latest readings for multiple sensors
 // @Description Fetches the most recent reading for each specified sensor
 // @Tags Data
@@ -257,6 +259,7 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 // @Router /api/data/readings/latest [get]
 func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Request) {
 	sensorIDsParam := r.URL.Query().Get("sensor_ids")
+
 	if sensorIDsParam == "" {
 		http.Error(w, "sensor_ids parameter is required", http.StatusBadRequest)
 		return
@@ -275,11 +278,53 @@ func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Requ
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.dataClient.GetLatestReadings(ctx, &pb_data.LatestReadingsRequest{
+	res, err := h.dataClient.GetLatestReadingsBatch(ctx, &pb_data.LatestReadingsBatchRequest{
 		SensorIds: sensorIDs,
 	})
 	if err != nil {
 		http.Error(w, "Failed to get latest readings: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+// REPLACE GetHistoricalReadings with this for getting last N readings of ONE sensor
+// @Summary Get latest N readings for a single sensor
+// @Description Fetches the most recent N readings for a specific sensor
+// @Tags Data
+// @Param sensor_id path int true "Sensor ID"
+// @Param limit query int false "Number of readings to fetch (default 10)"
+// @Success 200 {object} string
+// @Router /api/data/sensors/{sensor_id}/latest [get]
+func (h *WebSocketHandler) GetSensorLatestReadings(w http.ResponseWriter, r *http.Request) {
+	sensorIDStr := chi.URLParam(r, "sensor_id")
+	sensorID, err := strconv.ParseInt(sensorIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid sensor_id", http.StatusBadRequest)
+		return
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	limit := int64(10)
+	if limitStr != "" {
+		limit, err = strconv.ParseInt(limitStr, 10, 64)
+		if err != nil || limit <= 0 {
+			http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
+			return
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.dataClient.GetLatestReadingsBySensor(ctx, &pb_data.LatestReadingsBySensorRequest{
+		SensorId: sensorID,
+		Limit:    limit,
+	})
+	if err != nil {
+		http.Error(w, "Failed to get sensor readings: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 

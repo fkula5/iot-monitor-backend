@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DataService_StoreReading_FullMethodName      = "/data_service.DataService/StoreReading"
-	DataService_QueryReadings_FullMethodName     = "/data_service.DataService/QueryReadings"
-	DataService_StreamReadings_FullMethodName    = "/data_service.DataService/StreamReadings"
-	DataService_GetLatestReadings_FullMethodName = "/data_service.DataService/GetLatestReadings"
+	DataService_StoreReading_FullMethodName              = "/data_service.DataService/StoreReading"
+	DataService_QueryReadings_FullMethodName             = "/data_service.DataService/QueryReadings"
+	DataService_StreamReadings_FullMethodName            = "/data_service.DataService/StreamReadings"
+	DataService_GetLatestReadingsBatch_FullMethodName    = "/data_service.DataService/GetLatestReadingsBatch"
+	DataService_GetLatestReadingsBySensor_FullMethodName = "/data_service.DataService/GetLatestReadingsBySensor"
 )
 
 // DataServiceClient is the client API for DataService service.
@@ -32,7 +33,8 @@ type DataServiceClient interface {
 	StoreReading(ctx context.Context, in *StoreReadingRequest, opts ...grpc.CallOption) (*StoreReadingResponse, error)
 	QueryReadings(ctx context.Context, in *QueryReadingsRequest, opts ...grpc.CallOption) (*QueryReadingsResponse, error)
 	StreamReadings(ctx context.Context, in *StreamReadingsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadingUpdate], error)
-	GetLatestReadings(ctx context.Context, in *LatestReadingsRequest, opts ...grpc.CallOption) (*LatestReadingsResponse, error)
+	GetLatestReadingsBatch(ctx context.Context, in *LatestReadingsBatchRequest, opts ...grpc.CallOption) (*LatestReadingsBatchResponse, error)
+	GetLatestReadingsBySensor(ctx context.Context, in *LatestReadingsBySensorRequest, opts ...grpc.CallOption) (*LatestReadingsBySensorResponse, error)
 }
 
 type dataServiceClient struct {
@@ -82,10 +84,20 @@ func (c *dataServiceClient) StreamReadings(ctx context.Context, in *StreamReadin
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DataService_StreamReadingsClient = grpc.ServerStreamingClient[ReadingUpdate]
 
-func (c *dataServiceClient) GetLatestReadings(ctx context.Context, in *LatestReadingsRequest, opts ...grpc.CallOption) (*LatestReadingsResponse, error) {
+func (c *dataServiceClient) GetLatestReadingsBatch(ctx context.Context, in *LatestReadingsBatchRequest, opts ...grpc.CallOption) (*LatestReadingsBatchResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LatestReadingsResponse)
-	err := c.cc.Invoke(ctx, DataService_GetLatestReadings_FullMethodName, in, out, cOpts...)
+	out := new(LatestReadingsBatchResponse)
+	err := c.cc.Invoke(ctx, DataService_GetLatestReadingsBatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dataServiceClient) GetLatestReadingsBySensor(ctx context.Context, in *LatestReadingsBySensorRequest, opts ...grpc.CallOption) (*LatestReadingsBySensorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LatestReadingsBySensorResponse)
+	err := c.cc.Invoke(ctx, DataService_GetLatestReadingsBySensor_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +111,8 @@ type DataServiceServer interface {
 	StoreReading(context.Context, *StoreReadingRequest) (*StoreReadingResponse, error)
 	QueryReadings(context.Context, *QueryReadingsRequest) (*QueryReadingsResponse, error)
 	StreamReadings(*StreamReadingsRequest, grpc.ServerStreamingServer[ReadingUpdate]) error
-	GetLatestReadings(context.Context, *LatestReadingsRequest) (*LatestReadingsResponse, error)
+	GetLatestReadingsBatch(context.Context, *LatestReadingsBatchRequest) (*LatestReadingsBatchResponse, error)
+	GetLatestReadingsBySensor(context.Context, *LatestReadingsBySensorRequest) (*LatestReadingsBySensorResponse, error)
 	mustEmbedUnimplementedDataServiceServer()
 }
 
@@ -119,8 +132,11 @@ func (UnimplementedDataServiceServer) QueryReadings(context.Context, *QueryReadi
 func (UnimplementedDataServiceServer) StreamReadings(*StreamReadingsRequest, grpc.ServerStreamingServer[ReadingUpdate]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamReadings not implemented")
 }
-func (UnimplementedDataServiceServer) GetLatestReadings(context.Context, *LatestReadingsRequest) (*LatestReadingsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLatestReadings not implemented")
+func (UnimplementedDataServiceServer) GetLatestReadingsBatch(context.Context, *LatestReadingsBatchRequest) (*LatestReadingsBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLatestReadingsBatch not implemented")
+}
+func (UnimplementedDataServiceServer) GetLatestReadingsBySensor(context.Context, *LatestReadingsBySensorRequest) (*LatestReadingsBySensorResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLatestReadingsBySensor not implemented")
 }
 func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
 func (UnimplementedDataServiceServer) testEmbeddedByValue()                     {}
@@ -190,20 +206,38 @@ func _DataService_StreamReadings_Handler(srv interface{}, stream grpc.ServerStre
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type DataService_StreamReadingsServer = grpc.ServerStreamingServer[ReadingUpdate]
 
-func _DataService_GetLatestReadings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LatestReadingsRequest)
+func _DataService_GetLatestReadingsBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LatestReadingsBatchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DataServiceServer).GetLatestReadings(ctx, in)
+		return srv.(DataServiceServer).GetLatestReadingsBatch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: DataService_GetLatestReadings_FullMethodName,
+		FullMethod: DataService_GetLatestReadingsBatch_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServiceServer).GetLatestReadings(ctx, req.(*LatestReadingsRequest))
+		return srv.(DataServiceServer).GetLatestReadingsBatch(ctx, req.(*LatestReadingsBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _DataService_GetLatestReadingsBySensor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LatestReadingsBySensorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServiceServer).GetLatestReadingsBySensor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DataService_GetLatestReadingsBySensor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServiceServer).GetLatestReadingsBySensor(ctx, req.(*LatestReadingsBySensorRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -224,8 +258,12 @@ var DataService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DataService_QueryReadings_Handler,
 		},
 		{
-			MethodName: "GetLatestReadings",
-			Handler:    _DataService_GetLatestReadings_Handler,
+			MethodName: "GetLatestReadingsBatch",
+			Handler:    _DataService_GetLatestReadingsBatch_Handler,
+		},
+		{
+			MethodName: "GetLatestReadingsBySensor",
+			Handler:    _DataService_GetLatestReadingsBySensor_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

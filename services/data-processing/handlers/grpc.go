@@ -16,13 +16,13 @@ import (
 
 type DataGrpcHandler struct {
 	pb_data.UnimplementedDataServiceServer
-	store         storage.IDataStorage
+	store         storage.ITimeScaleStorage
 	sensorClient  pb_sensor.SensorServiceClient
 	subscribers   map[string]chan *pb_data.ReadingUpdate
 	subscribersMu sync.RWMutex
 }
 
-func NewDataGrpcHandler(s *grpc.Server, store storage.IDataStorage, sensorClient pb_sensor.SensorServiceClient) {
+func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorClient pb_sensor.SensorServiceClient) {
 	handler := &DataGrpcHandler{
 		store:        store,
 		sensorClient: sensorClient,
@@ -97,10 +97,18 @@ func (h *DataGrpcHandler) StreamReadings(req *pb_data.StreamReadingsRequest, str
 		h.subscribersMu.Unlock()
 	}()
 
-	for _, sensorID := range req.SensorIds {
-		latest, err := h.store.GetLatestReading(stream.Context(), sensorID)
-		if err == nil && latest != nil {
-			if err := stream.Send(latest); err != nil {
+	initialReadings, err := h.store.GetLatestReadingsBatch(stream.Context(), req.SensorIds)
+	if err == nil {
+		for _, reading := range initialReadings {
+			sensor, err := h.sensorClient.GetSensor(stream.Context(), &pb_sensor.GetSensorRequest{Id: reading.SensorId})
+			if err == nil && sensor.Sensor != nil {
+				reading.SensorName = sensor.Sensor.Name
+				reading.Location = sensor.Sensor.Location
+				if sensor.Sensor.SensorType != nil {
+					reading.Unit = sensor.Sensor.SensorType.Unit
+				}
+			}
+			if err := stream.Send(reading); err != nil {
 				return err
 			}
 		}
@@ -128,27 +136,61 @@ func (h *DataGrpcHandler) StreamReadings(req *pb_data.StreamReadingsRequest, str
 	}
 }
 
-func (h *DataGrpcHandler) GetLatestReadings(ctx context.Context, req *pb_data.LatestReadingsRequest) (*pb_data.LatestReadingsResponse, error) {
+func (h *DataGrpcHandler) GetLatestReadingsBatch(ctx context.Context, req *pb_data.LatestReadingsBatchRequest) (*pb_data.LatestReadingsBatchResponse, error) {
 	if len(req.SensorIds) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "at least one sensor_id is required")
 	}
 
-	var readings []*pb_data.LatestReading
-
-	for _, sensorID := range req.SensorIds {
-		update, err := h.store.GetLatestReading(ctx, sensorID)
-		if err != nil {
-			continue
-		}
-
-		readings = append(readings, &pb_data.LatestReading{
-			SensorId:  update.SensorId,
-			Value:     update.Value,
-			Timestamp: update.Timestamp,
-		})
+	readings, err := h.store.GetLatestReadingsBatch(ctx, req.SensorIds)
+	if err != nil {
+		log.Printf("Failed to get latest readings batch: %v", err)
+		return nil, status.Error(codes.Internal, "failed to get latest readings")
 	}
 
-	return &pb_data.LatestReadingsResponse{
+	for _, reading := range readings {
+		sensor, err := h.sensorClient.GetSensor(ctx, &pb_sensor.GetSensorRequest{Id: reading.SensorId})
+		if err == nil && sensor.Sensor != nil {
+			reading.SensorName = sensor.Sensor.Name
+			reading.Location = sensor.Sensor.Location
+			if sensor.Sensor.SensorType != nil {
+				reading.Unit = sensor.Sensor.SensorType.Unit
+			}
+		}
+	}
+
+	return &pb_data.LatestReadingsBatchResponse{
+		Readings: readings,
+	}, nil
+}
+
+func (h *DataGrpcHandler) GetLatestReadingsBySensor(ctx context.Context, req *pb_data.LatestReadingsBySensorRequest) (*pb_data.LatestReadingsBySensorResponse, error) {
+	if req.SensorId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "sensor_id must be positive")
+	}
+
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 1
+	}
+
+	readings, err := h.store.GetLatestReadingsBySensor(ctx, req.SensorId, limit)
+	if err != nil {
+		log.Printf("Failed to get latest readings by sensor: %v", err)
+		return nil, status.Error(codes.Internal, "failed to get sensor readings")
+	}
+
+	sensor, err := h.sensorClient.GetSensor(ctx, &pb_sensor.GetSensorRequest{Id: req.SensorId})
+	if err == nil && sensor.Sensor != nil {
+		for _, reading := range readings {
+			reading.SensorName = sensor.Sensor.Name
+			reading.Location = sensor.Sensor.Location
+			if sensor.Sensor.SensorType != nil {
+				reading.Unit = sensor.Sensor.SensorType.Unit
+			}
+		}
+	}
+
+	return &pb_data.LatestReadingsBySensorResponse{
 		Readings: readings,
 	}, nil
 }
@@ -161,7 +203,6 @@ func (h *DataGrpcHandler) broadcastUpdate(update *pb_data.ReadingUpdate) {
 		select {
 		case ch <- update:
 		default:
-			// Channel full, skip
 		}
 	}
 }

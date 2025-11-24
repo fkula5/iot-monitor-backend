@@ -24,11 +24,6 @@ const docTemplate = `{
     "paths": {
         "/api/data/readings/latest": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Fetches the most recent reading for each specified sensor",
                 "tags": [
                     "Data"
@@ -53,13 +48,40 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/data/sensors/{sensor_id}/readings": {
+        "/api/data/sensors/{sensor_id}/latest": {
             "get": {
-                "security": [
+                "description": "Fetches the most recent N readings for a specific sensor",
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Get latest N readings for a single sensor",
+                "parameters": [
                     {
-                        "ApiKeyAuth": []
+                        "type": "integer",
+                        "description": "Sensor ID",
+                        "name": "sensor_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of readings to fetch (default 10)",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/data/sensors/{sensor_id}/readings": {
+            "get": {
                 "description": "Fetches historical data for a specific sensor",
                 "tags": [
                     "Data"
@@ -101,11 +123,6 @@ const docTemplate = `{
         },
         "/api/data/ws/readings": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Establishes a WebSocket connection for real-time sensor data streaming",
                 "tags": [
                     "Data"
