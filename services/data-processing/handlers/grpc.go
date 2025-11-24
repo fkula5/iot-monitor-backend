@@ -98,7 +98,7 @@ func (h *DataGrpcHandler) StreamReadings(req *pb_data.StreamReadingsRequest, str
 	}()
 
 	for _, sensorID := range req.SensorIds {
-		latest, err := h.store.GetLatestReading(stream.Context(), sensorID)
+		latest, err := h.store.GetLatestReadings(stream.Context(), sensorID, int64(1))
 		if err == nil && latest != nil {
 			if err := stream.Send(latest); err != nil {
 				return err
@@ -136,7 +136,7 @@ func (h *DataGrpcHandler) GetLatestReadings(ctx context.Context, req *pb_data.La
 	var readings []*pb_data.LatestReading
 
 	for _, sensorID := range req.SensorIds {
-		update, err := h.store.GetLatestReading(ctx, sensorID)
+		update, err := h.store.GetLatestReadings(ctx, sensorID, req.Entries)
 		if err != nil {
 			continue
 		}

@@ -250,16 +250,32 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 }
 
 // @Summary Get latest readings for multiple sensors
-// @Description Fetches the most recent reading for each specified sensor
+// @Description Fetches the most recent readings for each specified sensor
 // @Tags Data
 // @Param sensor_ids query string true "Comma-separated sensor IDs"
 // @Success 200 {object} string
 // @Router /api/data/readings/latest [get]
 func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Request) {
 	sensorIDsParam := r.URL.Query().Get("sensor_ids")
+	entriesAmountParam := r.URL.Query().Get("amount")
+
 	if sensorIDsParam == "" {
 		http.Error(w, "sensor_ids parameter is required", http.StatusBadRequest)
 		return
+	}
+
+	var entries int64
+	var err error
+
+	if entriesAmountParam != "" {
+		entries, err = strconv.ParseInt(entriesAmountParam, 10, 64)
+		if err != nil {
+			http.Error(w, "Invalid entries amount: "+entriesAmountParam, http.StatusBadRequest)
+			return
+		}
+	} else {
+		log.Print("Amount is empty, setting default: 1")
+		entries = 1
 	}
 
 	var sensorIDs []int64
@@ -275,8 +291,11 @@ func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Requ
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	log.Printf("Entries %v \n\n\n\n\n", entries)
+
 	res, err := h.dataClient.GetLatestReadings(ctx, &pb_data.LatestReadingsRequest{
 		SensorIds: sensorIDs,
+		Entries:   entries,
 	})
 	if err != nil {
 		http.Error(w, "Failed to get latest readings: "+err.Error(), http.StatusInternalServerError)

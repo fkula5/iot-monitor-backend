@@ -17,7 +17,7 @@ type TimescaleStorage struct {
 type ITimeScaleStorage interface {
 	StoreReading(ctx context.Context, sensorID int64, value float32, timestamp time.Time) error
 	QueryReadings(ctx context.Context, sensorID int64, startTime, endTime time.Time) ([]*pb_data.DataPoint, error)
-	GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error)
+	GetLatestReadings(ctx context.Context, sensorID int64, entries int64) ([]*pb_data.ReadingUpdate, error)
 }
 
 func NewTimescaleStorage(db *sql.DB) ITimeScaleStorage {
@@ -57,26 +57,39 @@ func (s *TimescaleStorage) QueryReadings(ctx context.Context, sensorID int64, st
 	return dataPoints, nil
 }
 
-func (s *TimescaleStorage) GetLatestReading(ctx context.Context, sensorID int64) (*pb_data.ReadingUpdate, error) {
-	var t time.Time
-	var v float32
+func (s *TimescaleStorage) GetLatestReadings(ctx context.Context, sensorID int64, entries int64) ([]*pb_data.ReadingUpdate, error) {
+	query := `SELECT time, value FROM sensor_readings 
+              WHERE sensor_id = $1 
+              ORDER BY time DESC 
+              LIMIT $2`
 
-	err := s.db.QueryRowContext(ctx,
-		`SELECT time, value FROM sensor_readings 
-         WHERE sensor_id = $1 
-         ORDER BY time DESC 
-         LIMIT 1`,
-		sensorID).Scan(&t, &v)
+	rows, err := s.db.QueryContext(ctx, query, sensorID, entries)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("no readings found for sensor %d", sensorID)
-		}
 		return nil, fmt.Errorf("query error: %w", err)
 	}
 
-	return &pb_data.ReadingUpdate{
-		SensorId:  sensorID,
-		Value:     v,
-		Timestamp: timestamppb.New(t),
-	}, nil
+	defer rows.Close()
+
+	var readings []*pb_data.ReadingUpdate
+
+	for rows.Next() {
+		var t time.Time
+		var v float32
+
+		if err := rows.Scan(&t, &v); err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
+		}
+
+		readings = append(readings, &pb_data.ReadingUpdate{
+			SensorId:  sensorID,
+			Value:     v,
+			Timestamp: timestamppb.New(t),
+		})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows iteration error: %w", err)
+	}
+
+	return readings, nil
 }

@@ -51,6 +51,7 @@ message ReadingUpdate {
 
 message LatestReadingsRequest {
     repeated int64 sensor_ids = 1;
+    int64 entries = 2;
 }
 
 message LatestReading {

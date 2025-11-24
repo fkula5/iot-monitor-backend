@@ -413,6 +413,7 @@ func (x *ReadingUpdate) GetUnit() string {
 type LatestReadingsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SensorIds     []int64                `protobuf:"varint,1,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	Entries       int64                  `protobuf:"varint,2,opt,name=entries,proto3" json:"entries,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -452,6 +453,13 @@ func (x *LatestReadingsRequest) GetSensorIds() []int64 {
 		return x.SensorIds
 	}
 	return nil
+}
+
+func (x *LatestReadingsRequest) GetEntries() int64 {
+	if x != nil {
+		return x.Entries
+	}
+	return 0
 }
 
 type LatestReading struct {
@@ -590,10 +598,11 @@ const file_data_service_proto_rawDesc = "" +
 	"\vsensor_name\x18\x04 \x01(\tR\n" +
 	"sensorName\x12\x1a\n" +
 	"\blocation\x18\x05 \x01(\tR\blocation\x12\x12\n" +
-	"\x04unit\x18\x06 \x01(\tR\x04unit\"6\n" +
+	"\x04unit\x18\x06 \x01(\tR\x04unit\"P\n" +
 	"\x15LatestReadingsRequest\x12\x1d\n" +
 	"\n" +
-	"sensor_ids\x18\x01 \x03(\x03R\tsensorIds\"|\n" +
+	"sensor_ids\x18\x01 \x03(\x03R\tsensorIds\x12\x18\n" +
+	"\aentries\x18\x02 \x01(\x03R\aentries\"|\n" +
 	"\rLatestReading\x12\x1b\n" +
 	"\tsensor_id\x18\x01 \x01(\x03R\bsensorId\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x02R\x05value\x128\n" +
