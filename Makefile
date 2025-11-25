@@ -2,6 +2,8 @@ PROTO_DIR := proto
 PROTO_SRC := $(wildcard $(PROTO_DIR)/*.proto)
 GO_OUT := .
 MODULE_NAME := github.com/skni-kod/iot-monitor-backend
+BIN_DIR := bin
+SERVICE ?= my-service
 
 .PHONY: generate-proto
 generate-proto:
@@ -15,3 +17,7 @@ REBUILD_SERVICES = auth-service sensor-service api-gateway data-generation-servi
 
 up:
 	docker-compose up --build $(REBUILD_SERVICES)
+
+build:
+	mkdir -p $(BIN_DIR)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(BIN_DIR)/$(SERVICE) ./services/$(SERVICE)
