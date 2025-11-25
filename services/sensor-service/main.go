@@ -25,8 +25,8 @@ func getEnvOrFail(key string) string {
 func main() {
 	host := getEnvOrFail("DB_HOST")
 	port := getEnvOrFail("DB_PORT")
-	user := getEnvOrFail("DB_USER")
-	password := getEnvOrFail("DB_PASSWORD")
+	user := getEnvOrFail("SENSOR_SERVICE_DB_USER")
+	password := getEnvOrFail("SENSOR_SERVICE_DB_PASSWORD")
 	dbname := getEnvOrFail("SENSOR_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("SENSOR_SERVICE_GRPC_PORT")
 
