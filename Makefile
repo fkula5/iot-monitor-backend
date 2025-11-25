@@ -21,3 +21,4 @@ up:
 build:
 	mkdir -p $(BIN_DIR)
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(BIN_DIR)/$(SERVICE) ./services/$(SERVICE)
+	chmod +x $(BIN_DIR)/$(SERVICE)
