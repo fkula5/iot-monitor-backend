@@ -40,6 +40,8 @@ type SensorMutation struct {
 	description   *string
 	active        *bool
 	last_updated  *time.Time
+	user_id       *int64
+	adduser_id    *int64
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
@@ -367,6 +369,62 @@ func (m *SensorMutation) ResetLastUpdated() {
 	delete(m.clearedFields, sensor.FieldLastUpdated)
 }
 
+// SetUserID sets the "user_id" field.
+func (m *SensorMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *SensorMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Sensor entity.
+// If the Sensor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *SensorMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *SensorMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *SensorMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *SensorMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -512,7 +570,7 @@ func (m *SensorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SensorMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, sensor.FieldName)
 	}
@@ -527,6 +585,9 @@ func (m *SensorMutation) Fields() []string {
 	}
 	if m.last_updated != nil {
 		fields = append(fields, sensor.FieldLastUpdated)
+	}
+	if m.user_id != nil {
+		fields = append(fields, sensor.FieldUserID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, sensor.FieldCreatedAt)
@@ -552,6 +613,8 @@ func (m *SensorMutation) Field(name string) (ent.Value, bool) {
 		return m.Active()
 	case sensor.FieldLastUpdated:
 		return m.LastUpdated()
+	case sensor.FieldUserID:
+		return m.UserID()
 	case sensor.FieldCreatedAt:
 		return m.CreatedAt()
 	case sensor.FieldUpdatedAt:
@@ -575,6 +638,8 @@ func (m *SensorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldActive(ctx)
 	case sensor.FieldLastUpdated:
 		return m.OldLastUpdated(ctx)
+	case sensor.FieldUserID:
+		return m.OldUserID(ctx)
 	case sensor.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case sensor.FieldUpdatedAt:
@@ -623,6 +688,13 @@ func (m *SensorMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLastUpdated(v)
 		return nil
+	case sensor.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case sensor.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -644,13 +716,21 @@ func (m *SensorMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *SensorMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, sensor.FieldUserID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *SensorMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sensor.FieldUserID:
+		return m.AddedUserID()
+	}
 	return nil, false
 }
 
@@ -659,6 +739,13 @@ func (m *SensorMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *SensorMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case sensor.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Sensor numeric field %s", name)
 }
@@ -721,6 +808,9 @@ func (m *SensorMutation) ResetField(name string) error {
 		return nil
 	case sensor.FieldLastUpdated:
 		m.ResetLastUpdated()
+		return nil
+	case sensor.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case sensor.FieldCreatedAt:
 		m.ResetCreatedAt()

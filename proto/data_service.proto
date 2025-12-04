@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package data_service;
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service";
+
+import "google/protobuf/timestamp.proto";
+
+service DataService{
+    rpc StoreReading(StoreReadingRequest) returns (StoreReadingResponse) {}
+    rpc QueryReadings(QueryReadingsRequest) returns (QueryReadingsResponse) {}
+    rpc StreamReadings(StreamReadingsRequest) returns (stream ReadingUpdate) {}
+    rpc GetLatestReadingsBatch(LatestReadingsBatchRequest) returns (LatestReadingsBatchResponse) {}
+    rpc GetLatestReadingsBySensor(LatestReadingsBySensorRequest) returns (LatestReadingsBySensorResponse) {}
+}
+
+message StoreReadingRequest{
+    int64 sensor_id = 1;
+    float value = 2;
+    google.protobuf.Timestamp timestamp = 3;
+}
+
+message StoreReadingResponse {}
+
+message QueryReadingsRequest {
+    int64 sensor_id = 1;
+    google.protobuf.Timestamp start_time = 2;
+    google.protobuf.Timestamp end_time = 3;
+    string aggregation_interval = 4;
+}
+
+message DataPoint {
+    google.protobuf.Timestamp time = 1;
+    float value = 2;
+}
+
+message QueryReadingsResponse {
+    repeated DataPoint data_points = 1;
+}
+
+message StreamReadingsRequest {
+    repeated int64 sensor_ids = 1;
+}
+
+message ReadingUpdate {
+    int64 sensor_id = 1;
+    float value = 2;
+    google.protobuf.Timestamp timestamp = 3;
+    string sensor_name = 4;
+    string location = 5;
+    string unit = 6;
+}
+
+message LatestReadingsBatchRequest {
+    repeated int64 sensor_ids = 1;
+}
+
+message LatestReadingsBatchResponse {
+    repeated ReadingUpdate readings = 1;
+}
+
+// NEW: Single sensor with limit
+message LatestReadingsBySensorRequest {
+    int64 sensor_id = 1;
+    int64 limit = 2;
+}
+
+message LatestReadingsBySensorResponse {
+    repeated ReadingUpdate readings = 1;
+}

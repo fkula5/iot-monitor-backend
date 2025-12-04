@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
@@ -24,14 +23,10 @@ func getEnvOrFail(key string) string {
 }
 
 func main() {
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
-	}
-
 	host := getEnvOrFail("DB_HOST")
 	port := getEnvOrFail("DB_PORT")
-	user := getEnvOrFail("DB_USER")
-	password := getEnvOrFail("DB_PASSWORD")
+	user := getEnvOrFail("AUTH_SERVICE_DB_USER")
+	password := getEnvOrFail("AUTH_SERVICE_DB_PASSWORD")
 	dbname := getEnvOrFail("AUTH_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("AUTH_SERVICE_GRPC_PORT")
 

@@ -28,6 +28,8 @@ type Sensor struct {
 	Active bool `json:"active,omitempty"`
 	// Last time the sensor value was updated
 	LastUpdated time.Time `json:"last_updated,omitempty"`
+	// ID of the user who owns the sensor
+	UserID int64 `json:"user_id,omitempty"`
 	// Time when the sensor was created
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -67,7 +69,7 @@ func (*Sensor) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case sensor.FieldActive:
 			values[i] = new(sql.NullBool)
-		case sensor.FieldID:
+		case sensor.FieldID, sensor.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case sensor.FieldName, sensor.FieldLocation, sensor.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -127,6 +129,12 @@ func (s *Sensor) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field last_updated", values[i])
 			} else if value.Valid {
 				s.LastUpdated = value.Time
+			}
+		case sensor.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				s.UserID = value.Int64
 			}
 		case sensor.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -209,6 +217,9 @@ func (s *Sensor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("last_updated=")
 	builder.WriteString(s.LastUpdated.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", s.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(s.CreatedAt.Format(time.ANSIC))

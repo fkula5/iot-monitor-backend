@@ -5,10 +5,11 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/services/data-generation-service/services"
 	"google.golang.org/grpc"
@@ -28,25 +29,35 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := godotenv.Load("../../.env"); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
+	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
+	if dataProcAddr == "" {
+		log.Printf("⚠️  WARNING: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
+		dataProcAddr = "localhost:50053"
 	}
+	log.Printf("✅ Connecting to data processing service at: %s", dataProcAddr)
 
-	grpcAddr := os.Getenv("SENSOR_SERVICE_GRPC_ADDR")
-	if grpcAddr == "" {
-		grpcAddr = ":50052"
+	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
+	if sensorGrpcAddr == "" {
+		log.Printf("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		sensorGrpcAddr = "localhost:50052"
 	}
+	log.Printf("✅ Connecting to sensor service at: %s", sensorGrpcAddr)
 
-	conn, err := NewGrpcClient(grpcAddr)
+	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
 		log.Fatalf("Failed to connect to sensor service: %v", err)
 	}
+	defer sensorService.Close()
+	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
-	defer conn.Close()
+	dataProcessingService, err := NewGrpcClient(dataProcAddr)
+	if err != nil {
+		log.Fatalf("Failed to connect to data processing service: %v", err)
+	}
+	defer dataProcessingService.Close()
+	dataProcessingClient := data_service.NewDataServiceClient(dataProcessingService)
 
-	sensorClient := sensor_service.NewSensorServiceClient(conn)
-
-	generatorService := services.NewGeneratorService(sensorClient)
+	generatorService := services.NewGeneratorService(sensorClient, dataProcessingClient)
 	err = generatorService.Start(ctx)
 	if err != nil {
 		log.Fatalf("Failed to start generator service: %v", err)

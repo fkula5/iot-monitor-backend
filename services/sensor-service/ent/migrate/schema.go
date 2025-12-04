@@ -16,6 +16,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "last_updated", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "sensor_type", Type: field.TypeInt},
@@ -29,13 +30,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sensors_sensor_types_type",
-				Columns:    []*schema.Column{SensorsColumns[8]},
+				Columns:    []*schema.Column{SensorsColumns[9]},
 				RefColumns: []*schema.Column{SensorTypesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sensors_sensor_types_sensors",
-				Columns:    []*schema.Column{SensorsColumns[9]},
+				Columns:    []*schema.Column{SensorsColumns[10]},
 				RefColumns: []*schema.Column{SensorTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

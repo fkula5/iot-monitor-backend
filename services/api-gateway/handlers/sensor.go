@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,39 +22,127 @@ type CreateSensorRequest struct {
 	Name         string `json:"name"`
 	Location     string `json:"location"`
 	Description  string `json:"description"`
-	SensorTypeId int32  `json:"sensor_type_id"`
+	SensorTypeId int64  `json:"sensor_type_id"`
 }
 
 type UpdateSensorRequest struct {
 	Name         *string `json:"name,omitempty"`
 	Location     *string `json:"location,omitempty"`
 	Description  *string `json:"description,omitempty"`
-	SensorTypeId *int32  `json:"sensor_type_id,omitempty"`
+	SensorTypeId *int64  `json:"sensor_type_id,omitempty"`
 	Active       *bool   `json:"active,omitempty"`
+}
+
+type SensorResponse struct {
+	ID          int64               `json:"id"`
+	Name        string              `json:"name"`
+	Location    string              `json:"location"`
+	Description string              `json:"description"`
+	Active      bool                `json:"active"`
+	LastUpdated *time.Time          `json:"last_updated,omitempty"`
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
+	SensorType  *SensorTypeResponse `json:"sensor_type,omitempty"`
+}
+
+type SensorTypeResponse struct {
+	ID           int64   `json:"id"`
+	Name         string  `json:"name"`
+	Model        string  `json:"model"`
+	Manufacturer string  `json:"manufacturer,omitempty"`
+	Description  string  `json:"description,omitempty"`
+	Unit         string  `json:"unit,omitempty"`
+	MinValue     float32 `json:"min_value,omitempty"`
+	MaxValue     float32 `json:"max_value,omitempty"`
 }
 
 func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
 	return &SensorHandler{client: client}
 }
 
+// @Summary ListSensors retrieves a list of all sensors.
+// @Description Fetches all sensors from the Sensor Service.
+// @Tags Sensors
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {array} string "List of sensors"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors [get]
 func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{})
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		return
+	}
+
+	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{UserId: int64(claims.UserId)})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensors: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	sensorResponses := make([]SensorResponse, 0, len(res.Sensors))
+	for _, sensor := range res.Sensors {
+		sensorWithType := SensorResponse{
+			ID:          sensor.Id,
+			Name:        sensor.Name,
+			Location:    sensor.Location,
+			Description: sensor.Description,
+			Active:      sensor.Active,
+			CreatedAt:   sensor.CreatedAt.AsTime(),
+			UpdatedAt:   sensor.UpdatedAt.AsTime(),
+		}
+
+		if sensor.LastUpdated != nil {
+			t := sensor.LastUpdated.AsTime()
+			sensorWithType.LastUpdated = &t
+		}
+
+		if sensor.SensorTypeId > 0 {
+			typeRes, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{
+				Id: sensor.SensorTypeId,
+			})
+			if err == nil && typeRes.SensorType != nil {
+				sensorWithType.SensorType = &SensorTypeResponse{
+					ID:           typeRes.SensorType.Id,
+					Name:         typeRes.SensorType.Name,
+					Model:        typeRes.SensorType.Model,
+					Manufacturer: typeRes.SensorType.Manufacturer,
+					Description:  typeRes.SensorType.Description,
+					Unit:         typeRes.SensorType.Unit,
+					MinValue:     typeRes.SensorType.MinValue,
+					MaxValue:     typeRes.SensorType.MaxValue,
+				}
+			}
+		}
+
+		sensorResponses = append(sensorResponses, sensorWithType)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(res.Sensors)
+	err = json.NewEncoder(w).Encode(sensorResponses)
 	if err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
+// @Summary GetSensor retrieves a sensor by ID.
+// @Description Fetches a sensor from the Sensor Service by its ID.
+// @Tags Sensors
+// @Produce json
+// @Param id path int true "Sensor ID"
+// @Security ApiKeyAuth
+// @Success 200 {object} string "Sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors/{id} [get]
 func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -65,7 +154,7 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int32(id)})
+	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
 		http.Error(w, "Failed to fetch sensor: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -85,6 +174,17 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary SetSensorActive sets a sensor as active.
+// @Description Marks a sensor as active in the Sensor Service.
+// @Tags Sensors
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "Sensor ID"
+// @Success 200 {object} string "Updated sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors/{id}/activate [post]
 func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -97,7 +197,7 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	}
 
 	res, err := h.client.SetSensorActive(ctx, &pb.SetSensorActiveRequest{
-		Id: int32(id),
+		Id: int64(id),
 	})
 	if err != nil {
 		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
@@ -112,9 +212,29 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// @Summary CreateSensor creates a new sensor.
+// @Description Creates a new sensor in the Sensor Service.
+// @Tags Sensors
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param sensor body CreateSensorRequest true "Sensor to create"
+// @Success 201 {object} string "Created sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors [post]
 func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
+
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		return
+	}
+
+	userId := claims.UserId
 
 	var req CreateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -136,6 +256,7 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 		Location:     req.Location,
 		Description:  req.Description,
 		SensorTypeId: req.SensorTypeId,
+		UserId:       int64(userId),
 		Active:       true,
 	}
 
@@ -154,6 +275,20 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary UpdateSensor updates an existing sensor.
+// @Description Updates an existing sensor in the Sensor Service.
+// @Tags Sensors
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "Sensor ID"
+// @Param sensor body UpdateSensorRequest true "Sensor fields to update"
+// @Success 200 {object} string "Updated sensor details"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors/{id} [put]
 func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -171,7 +306,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int32(id)})
+	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
@@ -184,7 +319,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	currentSensor := currentSensorRes.Sensor
 
 	grpcReq := &pb.UpdateSensorRequest{
-		Id:           int32(id),
+		Id:           int64(id),
 		Name:         currentSensor.Name,
 		Location:     currentSensor.Location,
 		Description:  currentSensor.Description,
@@ -246,6 +381,17 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary DeleteSensor deletes a sensor by ID.
+// @Description Deletes a sensor from the Sensor Service by its ID.
+// @Tags Sensors
+// @Param id path int true "Sensor ID"
+// @Security ApiKeyAuth
+// @Success 204 {string} string "No Content"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 404 {string} string "Not Found"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/sensors/{id} [delete]
 func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -257,7 +403,7 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int32(id)})
+	_, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {

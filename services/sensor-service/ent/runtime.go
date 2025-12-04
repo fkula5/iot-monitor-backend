@@ -25,11 +25,11 @@ func init() {
 	// sensor.DefaultActive holds the default value on creation for the active field.
 	sensor.DefaultActive = sensorDescActive.Default.(bool)
 	// sensorDescCreatedAt is the schema descriptor for created_at field.
-	sensorDescCreatedAt := sensorFields[5].Descriptor()
+	sensorDescCreatedAt := sensorFields[6].Descriptor()
 	// sensor.DefaultCreatedAt holds the default value on creation for the created_at field.
 	sensor.DefaultCreatedAt = sensorDescCreatedAt.Default.(func() time.Time)
 	// sensorDescUpdatedAt is the schema descriptor for updated_at field.
-	sensorDescUpdatedAt := sensorFields[6].Descriptor()
+	sensorDescUpdatedAt := sensorFields[7].Descriptor()
 	// sensor.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	sensor.DefaultUpdatedAt = sensorDescUpdatedAt.Default.(func() time.Time)
 	// sensor.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

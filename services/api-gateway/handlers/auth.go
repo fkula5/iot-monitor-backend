@@ -17,6 +17,17 @@ func NewAuthHandler(client auth.AuthServiceClient) *AuthHandler {
 	return &AuthHandler{Client: client}
 }
 
+// @Summary Login authenticates a user and returns a token.
+// @Description Authenticates a user with email and password.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param credentials body object{email=string,password=string} true "User credentials"
+// @Success 200 {object} object{token=string,expires_at=string,user=object} "Authentication successful"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 401 {string} string "Unauthorized"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email    string `json:"email"`
@@ -69,6 +80,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Register creates a new user account.
+// @Description Registers a new user with email, username, and password.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body object{email=string,username=string,password=string,first_name=string,last_name=string} true "User registration data"
+// @Success 201 {object} object{token=string,expires_at=string,user=object} "Registration successful"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email     string `json:"email"`

@@ -31,6 +31,8 @@ func (Sensor) Fields() []ent.Field {
 		field.Time("last_updated").
 			Optional().
 			Comment("Last time the sensor value was updated"),
+		field.Int64("user_id").
+			Comment("ID of the user who owns the sensor"),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable().
