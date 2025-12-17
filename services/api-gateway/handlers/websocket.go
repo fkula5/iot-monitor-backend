@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	"github.com/gorilla/websocket"
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -90,11 +91,11 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	log.Printf("WebSocket connection request for sensors: %v", sensorIDs)
+	logger.Info("WebSocket connection request for sensors: %v", zap.Int64s("sensor_ids", sensorIDs))
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("Failed to upgrade to WebSocket: %v", err)
+		logger.Info("Failed to upgrade to WebSocket: %v", zap.Error(err))
 		return
 	}
 
@@ -107,15 +108,15 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		delete(h.clients, conn)
 		h.clientsMu.Unlock()
 		conn.Close()
-		log.Printf("WebSocket client disconnected")
+		logger.Info("WebSocket client disconnected")
 	}()
 
-	log.Printf("WebSocket client connected for sensors: %v", sensorIDs)
+	logger.Info("WebSocket client connected for sensors: %v", zap.Int64s("sensors_ids", sensorIDs))
 
 	if len(sensorIDs) > 0 {
 		go h.streamToClient(conn, sensorIDs)
 	} else {
-		log.Printf("No active sensors found to stream")
+		logger.Info("No active sensors found to stream")
 	}
 
 	for {
@@ -123,13 +124,13 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("WebSocket error: %v", err)
+				logger.Info("WebSocket error: %v", zap.Error(err))
 			}
 			break
 		}
 
 		if msg.Type == "subscribe" && len(msg.SensorIDs) > 0 {
-			log.Printf("Client subscribing to sensors: %v", msg.SensorIDs)
+			logger.Info("Client subscribing to sensors: %v", zap.Int64s("sensor_ids", msg.SensorIDs))
 			go h.streamToClient(conn, msg.SensorIDs)
 		}
 	}
@@ -139,32 +140,35 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	log.Printf("Starting stream for sensors: %v", sensorIDs)
+	logger.Info("Starting stream for sensors: %v", zap.Int64s("sensor_ids", sensorIDs))
 
 	stream, err := h.dataClient.StreamReadings(ctx, &pb_data.StreamReadingsRequest{
 		SensorIds: sensorIDs,
 	})
 	if err != nil {
-		log.Printf("Failed to start stream: %v", err)
+		logger.Info("Failed to start stream: %v", zap.Error(err))
 		return
 	}
 
-	log.Printf("Stream established successfully")
+	logger.Info("Stream established successfully")
 
 	for {
 		update, err := stream.Recv()
 		if err != nil {
 			if st, ok := status.FromError(err); ok {
 				if st.Code() == codes.Canceled {
-					log.Printf("Stream cancelled")
+					logger.Info("Stream cancelled")
 					return
 				}
 			}
-			log.Printf("Stream receive error: %v", err)
+			logger.Info("Stream receive error: %v", zap.Error(err))
 			return
 		}
 
-		log.Printf("Received update: Sensor=%d, Value=%.2f", update.SensorId, update.Value)
+		logger.Info("Received update",
+			zap.Int64("sensor_id", update.SensorId),
+			zap.Float32("value", update.Value),
+		)
 
 		msg := ReadingMessage{
 			SensorID:   update.SensorId,
@@ -180,16 +184,19 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 		h.clientsMu.RUnlock()
 
 		if !clientExists {
-			log.Printf("Client no longer exists")
+			logger.Info("Client no longer exists")
 			return
 		}
 
 		if err := conn.WriteJSON(msg); err != nil {
-			log.Printf("Failed to write to WebSocket: %v", err)
+			logger.Info("Failed to write to WebSocket: %v", zap.Error(err))
 			return
 		}
 
-		log.Printf("Sent update to client: Sensor=%d, Value=%.2f", update.SensorId, update.Value)
+		logger.Info("Sent update to client",
+			zap.Int64("sensor_id", update.SensorId),
+			zap.Float32("value", update.Value),
+		)
 	}
 }
 
