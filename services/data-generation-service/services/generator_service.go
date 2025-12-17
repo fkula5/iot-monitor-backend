@@ -2,13 +2,14 @@ package services
 
 import (
 	"context"
-	"log"
 	"math/rand/v2"
 	"sync"
 	"time"
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -54,7 +55,7 @@ func (g *GeneratorService) Start(ctx context.Context) error {
 
 	go func() {
 		defer ticker.Stop()
-		log.Println("Started data generator")
+		logger.Info("Started data generator")
 
 		g.generateData(ctx)
 
@@ -63,10 +64,10 @@ func (g *GeneratorService) Start(ctx context.Context) error {
 			case <-ticker.C:
 				g.generateData(ctx)
 			case <-g.stopChan:
-				log.Println("Stopping data generator")
+				logger.Info("Stopping data generator")
 				return
 			case <-ctx.Done():
-				log.Println("Context cancelled, stopping data generator")
+				logger.Info("Context cancelled, stopping data generator")
 				return
 			}
 		}
@@ -135,7 +136,10 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 			UserId: userId,
 		})
 		if err != nil {
-			log.Printf("Error fetching sensors for user %d: %v", userId, err)
+			logger.Error("Failed to fetch sensors",
+				zap.Int64("user_id", userId),
+				zap.Error(err),
+			)
 			continue
 		}
 		allSensors = append(allSensors, sensors.Sensors...)
@@ -150,7 +154,10 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 
 		sensorDetails, err := g.sensorClient.GetSensor(ctxTimeout, &pb_sensor.GetSensorRequest{Id: sensor.Id})
 		if err != nil {
-			log.Printf("Error fetching sensor details for sensor %d: %v", sensor.Id, err)
+			logger.Error("Failed to fetch sensor details",
+				zap.Int64("sensor_id", sensor.Id),
+				zap.Error(err),
+			)
 			continue
 		}
 
@@ -161,7 +168,10 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 		sensorTypeId := sensorDetails.Sensor.SensorTypeId
 		sensorType, err := g.sensorClient.GetSensorType(ctxTimeout, &pb_sensor.GetSensorTypeRequest{Id: sensorTypeId})
 		if err != nil {
-			log.Printf("Error fetching sensor type for sensor %d: %v", sensor.Id, err)
+			logger.Error("Failed to fetch sensor type",
+				zap.Int64("sensor_id", sensor.Id),
+				zap.Error(err),
+			)
 			continue
 		}
 
@@ -189,7 +199,10 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 			Timestamp: timestamppb.New(timestamp),
 		})
 		if err != nil {
-			log.Printf("Error storing reading for sensor %d: %v", sensor.Id, err)
+			logger.Error("Failed to store reading",
+				zap.Int64("sensor_id", sensor.Id),
+				zap.Error(err),
+			)
 		}
 
 		update := &pb_data.ReadingUpdate{
@@ -207,11 +220,18 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 
 		g.broadcastUpdate(update)
 
-		log.Printf("Generated data: Sensor ID=%d, Name=%s, Location=%s, Value=%.2f %s",
-			sensor.Id, sensor.Name, sensor.Location, generatedValue, unit)
+		logger.Info("Generated sensor data",
+			zap.Int64("sensor_id", sensor.Id),
+			zap.String("name", sensor.Name),
+			zap.String("location", sensor.Location),
+			zap.Float64("value", generatedValue),
+			zap.String("unit", unit),
+		)
 	}
 
-	log.Printf("Generated data for %d active sensors", activeSensors)
+	logger.Info("Data generation cycle completed",
+		zap.Int("active_sensors", activeSensors),
+	)
 }
 
 func (g *GeneratorService) broadcastUpdate(update *pb_data.ReadingUpdate) {
