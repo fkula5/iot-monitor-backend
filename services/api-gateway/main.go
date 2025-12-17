@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -13,10 +12,12 @@ import (
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -24,7 +25,7 @@ import (
 func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.Fatal("did not connect: %v", zap.Error(err))
 	}
 
 	return conn, err
@@ -48,44 +49,57 @@ func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 // @name						Authorization
 // @description				Wprowadź token JWT w formacie 'Bearer {token}'.
 func main() {
+	environment := os.Getenv("ENVIRONMENT")
+	logLevel := os.Getenv("LOG_LEVEL")
+
+	err := logger.Init(logger.Config{
+		Level:       logLevel,
+		Environment: environment,
+		OutputPaths: []string{"stdout"},
+	})
+	if err != nil {
+		logger.Fatal("Failed to initialize logger: %v", zap.Error(err))
+	}
+	defer logger.Sync()
+
 	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
 	if authGrpcAddr == "" {
-		log.Printf("⚠️  WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
+		logger.Warn("⚠️  WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
 		authGrpcAddr = "localhost:50051"
 	}
-	log.Printf("✅ Connecting to auth service at: %s", authGrpcAddr)
+	logger.Info("✅ Connecting to auth service", zap.String("address", authGrpcAddr))
 
 	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
 	if sensorGrpcAddr == "" {
-		log.Printf("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		logger.Warn("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
 		sensorGrpcAddr = "localhost:50052"
 	}
-	log.Printf("✅ Connecting to sensor service at: %s", sensorGrpcAddr)
+	logger.Info("✅ Connecting to sensor service at: %s", zap.String("address", sensorGrpcAddr))
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
-		log.Fatalf("Failed to connect to sensor service: %v", err)
+		logger.Fatal("Failed to connect to sensor service: %v", zap.Error(err))
 	}
 	defer sensorService.Close()
 	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
 	authService, err := NewGrpcClient(authGrpcAddr)
 	if err != nil {
-		log.Fatalf("Failed to connect to auth service: %v", err)
+		logger.Fatal("Failed to connect to auth service: %v", zap.Error(err))
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
 
 	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
 	if dataProcAddr == "" {
-		log.Printf("Warning: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
+		logger.Warn("Warning: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
 		dataProcAddr = "localhost:50053"
 	}
-	log.Printf("✅ Connecting to data processing service at: %s", dataProcAddr)
+	logger.Info("✅ Connecting to data processing service at: %s", zap.String("address", dataProcAddr))
 
 	dataProcService, err := NewGrpcClient(dataProcAddr)
 	if err != nil {
-		log.Fatalf("Failed to connect to data processing service: %v", err)
+		logger.Fatal("Failed to connect to data processing service: %v", zap.Error(err))
 	}
 	defer dataProcService.Close()
 	dataProcClient := data_service.NewDataServiceClient(dataProcService)
@@ -142,14 +156,14 @@ func main() {
 	r.Mount("/auth", authRouter)
 
 	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		log.Printf("Registered route: %s %s", method, route)
+		logger.Info("Registered route: %s %s", zap.String("method", method), zap.String("route", route))
 		return nil
 	})
 
-	log.Println("Starting API gateway server on port", apiGatewayPort)
+	logger.Info("Starting API gateway server on port", zap.String("port", apiGatewayPort))
 
 	err = http.ListenAndServe(":"+apiGatewayPort, r)
 	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		logger.Fatal("Server failed to start: %v", zap.Error(err))
 	}
 }

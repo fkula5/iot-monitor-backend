@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"os"
 
@@ -19,7 +18,7 @@ import (
 func getEnvOrFail(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		log.Fatalf("Environment variable %s is not set", key)
+		logger.Fatal("Environment variable %s is not set", zap.String("key", key))
 	}
 	return value
 }
@@ -40,7 +39,7 @@ func main() {
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
+		logger.Fatal("Failed to initialize logger: %v", zap.Error(err))
 	}
 	defer logger.Sync()
 
