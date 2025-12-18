@@ -25,7 +25,7 @@ import (
 func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		logger.Fatal("did not connect: %v", zap.Error(err))
+		logger.Fatal("did not connect", zap.Error(err))
 	}
 
 	return conn, err
@@ -58,34 +58,34 @@ func main() {
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
-		logger.Fatal("Failed to initialize logger: %v", zap.Error(err))
+		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
 
 	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
 	if authGrpcAddr == "" {
-		logger.Warn("⚠️  WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
+		logger.Warn("WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
 		authGrpcAddr = "localhost:50051"
 	}
-	logger.Info("✅ Connecting to auth service", zap.String("address", authGrpcAddr))
+	logger.Info("Connecting to auth service", zap.String("address", authGrpcAddr))
 
 	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
 	if sensorGrpcAddr == "" {
-		logger.Warn("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		logger.Warn("WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
 		sensorGrpcAddr = "localhost:50052"
 	}
-	logger.Info("✅ Connecting to sensor service at: %s", zap.String("address", sensorGrpcAddr))
+	logger.Info("Connecting to sensor service at", zap.String("address", sensorGrpcAddr))
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
-		logger.Fatal("Failed to connect to sensor service: %v", zap.Error(err))
+		logger.Fatal("Failed to connect to sensor service", zap.Error(err))
 	}
 	defer sensorService.Close()
 	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
 	authService, err := NewGrpcClient(authGrpcAddr)
 	if err != nil {
-		logger.Fatal("Failed to connect to auth service: %v", zap.Error(err))
+		logger.Fatal("Failed to connect to auth service", zap.Error(err))
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
@@ -95,11 +95,11 @@ func main() {
 		logger.Warn("Warning: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
 		dataProcAddr = "localhost:50053"
 	}
-	logger.Info("✅ Connecting to data processing service at: %s", zap.String("address", dataProcAddr))
+	logger.Info("Connecting to data processing service at", zap.String("address", dataProcAddr))
 
 	dataProcService, err := NewGrpcClient(dataProcAddr)
 	if err != nil {
-		logger.Fatal("Failed to connect to data processing service: %v", zap.Error(err))
+		logger.Fatal("Failed to connect to data processing service", zap.Error(err))
 	}
 	defer dataProcService.Close()
 	dataProcClient := data_service.NewDataServiceClient(dataProcService)
@@ -156,7 +156,7 @@ func main() {
 	r.Mount("/auth", authRouter)
 
 	chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		logger.Info("Registered route: %s %s", zap.String("method", method), zap.String("route", route))
+		logger.Info("Registered route", zap.String("method", method), zap.String("route", route))
 		return nil
 	})
 
@@ -164,6 +164,6 @@ func main() {
 
 	err = http.ListenAndServe(":"+apiGatewayPort, r)
 	if err != nil {
-		logger.Fatal("Server failed to start: %v", zap.Error(err))
+		logger.Fatal("Server failed to start", zap.Error(err))
 	}
 }
