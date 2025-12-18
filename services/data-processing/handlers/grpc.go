@@ -39,7 +39,7 @@ func (h *DataGrpcHandler) StoreReading(ctx context.Context, req *pb_data.StoreRe
 
 	err := h.store.StoreReading(ctx, req.SensorId, req.Value, req.Timestamp.AsTime())
 	if err != nil {
-		logger.Info("Failed to store reading", zap.Error(err))
+		logger.Error("Failed to store reading", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to store reading")
 	}
 
@@ -70,7 +70,7 @@ func (h *DataGrpcHandler) QueryReadings(ctx context.Context, req *pb_data.QueryR
 
 	readings, err := h.store.QueryReadings(ctx, req.SensorId, req.StartTime.AsTime(), req.EndTime.AsTime())
 	if err != nil {
-		logger.Info("Failed to query readings", zap.Error(err))
+		logger.Error("Failed to query readings", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to query readings")
 	}
 
@@ -144,7 +144,7 @@ func (h *DataGrpcHandler) GetLatestReadingsBatch(ctx context.Context, req *pb_da
 
 	readings, err := h.store.GetLatestReadingsBatch(ctx, req.SensorIds)
 	if err != nil {
-		logger.Info("Failed to get latest readings batch", zap.Error(err))
+		logger.Error("Failed to get latest readings batch", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to get latest readings")
 	}
 
@@ -176,7 +176,7 @@ func (h *DataGrpcHandler) GetLatestReadingsBySensor(ctx context.Context, req *pb
 
 	readings, err := h.store.GetLatestReadingsBySensor(ctx, req.SensorId, limit)
 	if err != nil {
-		logger.Info("Failed to get latest readings by sensor", zap.Error(err))
+		logger.Error("Failed to get latest readings by sensor", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to get sensor readings")
 	}
 
