@@ -220,12 +220,9 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 
 		g.broadcastUpdate(update)
 
-		logger.Info("Generated sensor data",
+		logger.Debug("Generated sensor data",
 			zap.Int64("sensor_id", sensor.Id),
-			zap.String("name", sensor.Name),
-			zap.String("location", sensor.Location),
 			zap.Float64("value", generatedValue),
-			zap.String("unit", unit),
 		)
 	}
 
