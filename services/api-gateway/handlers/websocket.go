@@ -91,11 +91,11 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	logger.Info("WebSocket connection request for sensors: %v", zap.Int64s("sensor_ids", sensorIDs))
+	logger.Info("WebSocket connection request for sensors", zap.Int64s("sensor_ids", sensorIDs))
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		logger.Info("Failed to upgrade to WebSocket: %v", zap.Error(err))
+		logger.Error("Failed to upgrade to WebSocket", zap.Error(err))
 		return
 	}
 
@@ -111,7 +111,7 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		logger.Info("WebSocket client disconnected")
 	}()
 
-	logger.Info("WebSocket client connected for sensors: %v", zap.Int64s("sensors_ids", sensorIDs))
+	logger.Info("WebSocket client connected for sensors", zap.Int64s("sensors_ids", sensorIDs))
 
 	if len(sensorIDs) > 0 {
 		go h.streamToClient(conn, sensorIDs)
@@ -124,13 +124,13 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logger.Info("WebSocket error: %v", zap.Error(err))
+				logger.Error("WebSocket error", zap.Error(err))
 			}
 			break
 		}
 
 		if msg.Type == "subscribe" && len(msg.SensorIDs) > 0 {
-			logger.Info("Client subscribing to sensors: %v", zap.Int64s("sensor_ids", msg.SensorIDs))
+			logger.Info("Client subscribing to sensors", zap.Int64s("sensor_ids", msg.SensorIDs))
 			go h.streamToClient(conn, msg.SensorIDs)
 		}
 	}
@@ -140,13 +140,13 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger.Info("Starting stream for sensors: %v", zap.Int64s("sensor_ids", sensorIDs))
+	logger.Info("Starting stream for sensors", zap.Int64s("sensor_ids", sensorIDs))
 
 	stream, err := h.dataClient.StreamReadings(ctx, &pb_data.StreamReadingsRequest{
 		SensorIds: sensorIDs,
 	})
 	if err != nil {
-		logger.Info("Failed to start stream: %v", zap.Error(err))
+		logger.Error("Failed to start stream", zap.Error(err))
 		return
 	}
 
@@ -161,7 +161,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 					return
 				}
 			}
-			logger.Info("Stream receive error: %v", zap.Error(err))
+			logger.Error("Stream receive error", zap.Error(err))
 			return
 		}
 
@@ -189,7 +189,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 		}
 
 		if err := conn.WriteJSON(msg); err != nil {
-			logger.Info("Failed to write to WebSocket: %v", zap.Error(err))
+			logger.Error("Failed to write to WebSocket", zap.Error(err))
 			return
 		}
 
