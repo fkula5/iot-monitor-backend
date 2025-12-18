@@ -52,7 +52,7 @@ func (h *SensorsGrpcHandler) CreateSensor(ctx context.Context, req *pb.CreateSen
 		},
 	})
 	if err != nil {
-		logger.Info("Failed to create sensor", zap.Error(err))
+		logger.Error("Failed to create sensor", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to create sensor")
 	}
 
@@ -78,7 +78,7 @@ func (h *SensorsGrpcHandler) CreateSensorType(ctx context.Context, req *pb.Creat
 		MaxValue:     float64(req.MaxValue),
 	})
 	if err != nil {
-		logger.Info("Failed to create sensor type", zap.Error(err))
+		logger.Error("Failed to create sensor type", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to create sensor type")
 	}
 
@@ -100,7 +100,7 @@ func (h *SensorsGrpcHandler) DeleteSensor(ctx context.Context, req *pb.DeleteSen
 
 	err = h.sensorsService.DeleteSensor(ctx, int(req.Id))
 	if err != nil {
-		logger.Info("Failed to delete sensor", zap.Error(err))
+		logger.Error("Failed to delete sensor", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to delete sensor")
 	}
 
@@ -137,7 +137,7 @@ func (h *SensorsGrpcHandler) GetSensorType(ctx context.Context, req *pb.GetSenso
 func (h *SensorsGrpcHandler) ListSensorTypes(ctx context.Context, req *pb.ListSensorTypesRequest) (*pb.ListSensorTypesResponse, error) {
 	sensorTypes, err := h.sensorsTypeService.ListSensorTypes(ctx)
 	if err != nil {
-		logger.Info("Failed to list sensor types", zap.Error(err))
+		logger.Error("Failed to list sensor types", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to list sensor types")
 	}
 
@@ -194,7 +194,7 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 
 	updatedSensor, err := h.sensorsService.UpdateSensor(ctx, existingSensor)
 	if err != nil {
-		logger.Info("Failed to update sensor", zap.Error(err))
+		logger.Error("Failed to update sensor", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to update sensor")
 	}
 
