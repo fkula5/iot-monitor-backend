@@ -18,14 +18,28 @@ import (
 func getEnvOrFail(key string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		logger.Fatal("Environment variable %s is not set", zap.String("key", key))
+		logger.Fatal("Environment variable is not set", zap.String("key", key))
 	}
 	return value
 }
 
 func main() {
-	environment := getEnvOrFail("ENVIRONMENT")
-	logLevel := getEnvOrFail("LOG_LEVEL")
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		environment = "development"
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
+
+	err := logger.Init(logger.Config{
+		Level:       logLevel,
+		Environment: environment,
+		OutputPaths: []string{"stdout"},
+	})
+
 	host := getEnvOrFail("DB_HOST")
 	port := getEnvOrFail("DB_PORT")
 	user := getEnvOrFail("AUTH_SERVICE_DB_USER")
@@ -33,13 +47,8 @@ func main() {
 	dbname := getEnvOrFail("AUTH_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("AUTH_SERVICE_GRPC_PORT")
 
-	err := logger.Init(logger.Config{
-		Level:       logLevel,
-		Environment: environment,
-		OutputPaths: []string{"stdout"},
-	})
 	if err != nil {
-		logger.Fatal("Failed to initialize logger: %v", zap.Error(err))
+		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
 

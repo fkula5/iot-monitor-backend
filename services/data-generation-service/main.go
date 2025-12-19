@@ -20,7 +20,7 @@ import (
 func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		logger.Fatal("did not connect: %v", zap.Error(err))
+		logger.Fatal("did not connect", zap.Error(err))
 	}
 
 	return conn, err
@@ -39,34 +39,34 @@ func main() {
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
-		logger.Fatal("Failed to initialize logger: %v", zap.Error(err))
+		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
 
 	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
 	if dataProcAddr == "" {
-		logger.Info("⚠️  WARNING: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
+		logger.Info("WARNING: DATA_SERVICE_GRPC_ADDR is empty, using default localhost:50053")
 		dataProcAddr = "localhost:50053"
 	}
-	logger.Info("✅ Connecting to data processing service at: %s", zap.String("address", dataProcAddr))
+	logger.Info("Connecting to data processing service", zap.String("address", dataProcAddr))
 
 	sensorGrpcAddr := strings.TrimSpace(os.Getenv("SENSOR_SERVICE_GRPC_ADDR"))
 	if sensorGrpcAddr == "" {
-		logger.Info("⚠️  WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
+		logger.Info("WARNING: SENSOR_SERVICE_GRPC_ADDR is empty, using default localhost:50052")
 		sensorGrpcAddr = "localhost:50052"
 	}
-	logger.Info("✅ Connecting to sensor service at: %s", zap.String("address", sensorGrpcAddr))
+	logger.Info("Connecting to sensor service", zap.String("address", sensorGrpcAddr))
 
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
-		logger.Fatal("Failed to connect to sensor service: %v", zap.Error(err))
+		logger.Fatal("Failed to connect to sensor service", zap.Error(err))
 	}
 	defer sensorService.Close()
 	sensorClient := sensor_service.NewSensorServiceClient(sensorService)
 
 	dataProcessingService, err := NewGrpcClient(dataProcAddr)
 	if err != nil {
-		logger.Fatal("Failed to connect to data processing service: %v", zap.Error(err))
+		logger.Fatal("Failed to connect to data processing service", zap.Error(err))
 	}
 	defer dataProcessingService.Close()
 	dataProcessingClient := data_service.NewDataServiceClient(dataProcessingService)
@@ -74,7 +74,7 @@ func main() {
 	generatorService := services.NewGeneratorService(sensorClient, dataProcessingClient)
 	err = generatorService.Start(ctx)
 	if err != nil {
-		logger.Fatal("Failed to start generator service: %v", zap.Error(err))
+		logger.Fatal("Failed to start generator service", zap.Error(err))
 	}
 
 	sigChan := make(chan os.Signal, 1)
@@ -88,7 +88,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := generatorService.Stop(); err != nil {
-		logger.Info("Error stopping generator service: %v", zap.Error(err))
+		logger.Error("Error stopping generator service", zap.Error(err))
 	}
 
 	select {
