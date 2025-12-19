@@ -3,13 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net"
 	"os"
 
 	_ "github.com/lib/pq"
+	"go.uber.org/zap"
 
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/data-processing/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/data-processing/storage"
 	"google.golang.org/grpc"
@@ -52,23 +53,36 @@ func main() {
 		dbPass = "datapassword"
 	}
 
+	environment := os.Getenv("ENVIRONMENT")
+	logLevel := os.Getenv("LOG_LEVEL")
+
+	err := logger.Init(logger.Config{
+		Level:       logLevel,
+		Environment: environment,
+		OutputPaths: []string{"stdout"},
+	})
+	if err != nil {
+		logger.Fatal("Failed to initialize logger", zap.Error(err))
+	}
+	defer logger.Sync()
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPass, dbName)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("❌ Failed to open database connection: %v", err)
+		logger.Fatal("Failed to open database connection", zap.Error(err))
 	}
 	defer db.Close()
 
 	if err := db.Ping(); err != nil {
-		log.Fatalf("❌ Failed to ping database: %v", err)
+		logger.Fatal("Failed to ping database", zap.Error(err))
 	}
-	log.Println("✅ Database connection established")
+	logger.Info("Database connection established")
 
 	sensorConn, err := grpc.NewClient(sensorServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("Failed to connect to sensor service: %v", err)
+		logger.Fatal("Failed to connect to sensor service", zap.Error(err))
 	}
 	defer sensorConn.Close()
 
@@ -76,15 +90,18 @@ func main() {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
+		logger.Fatal("Failed to listen on port",
+			zap.String("port", grpcPort),
+			zap.Error(err),
+		)
 	}
 
 	grpcServer := grpc.NewServer()
 	dataStore := storage.NewTimescaleStorage(db)
 	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient)
 
-	log.Printf("Starting Data Service gRPC server on port %s...", grpcPort)
+	logger.Info("Starting Data Service gRPC server on port", zap.String("port", grpcPort))
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+		logger.Fatal("Failed to serve", zap.Error(err))
 	}
 }

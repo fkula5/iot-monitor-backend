@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"context"
-	"log"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,14 +24,17 @@ func NewGrpcHandler(s *grpc.Server, authService services.IAuthService) {
 		authService: authService,
 	}
 	pb.RegisterAuthServiceServer(s, handler)
+	logger.Info("Auth gRPC handler registered")
 }
 
 func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	if req.Email == "" {
+		logger.Warn("Login request missing email")
 		return nil, status.Error(codes.InvalidArgument, "email is required")
 	}
 
 	if req.Password == "" {
+		logger.Warn("Login request missing password")
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
@@ -41,7 +45,7 @@ func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 
 	authRes, err := h.authService.Login(ctx, authReq)
 	if err != nil {
-		log.Printf("Failed to login user: %v", err)
+		logger.Error("Failed to login user", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -54,18 +58,22 @@ func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 
 func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if req.Email == "" {
+		logger.Warn("Register request missing email")
 		return nil, status.Error(codes.InvalidArgument, "email is required")
 	}
 
 	if req.Username == "" {
+		logger.Warn("Register request missing username")
 		return nil, status.Error(codes.InvalidArgument, "username is required")
 	}
 
 	if req.Password == "" {
+		logger.Warn("Register request missing password")
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
 	if len(req.Password) < 8 {
+		logger.Warn("Register request password too short")
 		return nil, status.Error(codes.InvalidArgument, "password must be at least 8 characters long")
 	}
 
@@ -79,7 +87,7 @@ func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest)
 
 	authRes, err := h.authService.Register(ctx, authReq)
 	if err != nil {
-		log.Printf("Failed to register user: %v", err)
+		logger.Error("Failed to register user", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
