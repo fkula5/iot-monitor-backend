@@ -9,12 +9,13 @@ import (
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/data-processing/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/data-processing/storage"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {

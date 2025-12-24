@@ -5,14 +5,15 @@ import (
 	"sync"
 	"time"
 
-	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
-	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
-	"github.com/skni-kod/iot-monitor-backend/services/data-processing/storage"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
+	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/services/data-processing/storage"
 )
 
 type DataGrpcHandler struct {

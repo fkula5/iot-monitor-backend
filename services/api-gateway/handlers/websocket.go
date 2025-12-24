@@ -12,13 +12,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
-	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
+	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
 var upgrader = websocket.Upgrader{

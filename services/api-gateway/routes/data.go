@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/go-chi/chi/v5"
+
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
 )
 

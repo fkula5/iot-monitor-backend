@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type SensorHandler struct {
