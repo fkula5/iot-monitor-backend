@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 )
 
 type IDataStorage interface {

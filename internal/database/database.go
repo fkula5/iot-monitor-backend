@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
+
 	userEnt "github.com/skni-kod/iot-monitor-backend/services/auth/ent"
 	sensorEnt "github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
 )
