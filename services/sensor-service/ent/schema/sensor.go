@@ -50,5 +50,8 @@ func (Sensor) Edges() []ent.Edge {
 			Unique().
 			Required().
 			Comment("The type of this sensor"),
+		edge.From("groups", SensorGroup.Type).
+			Ref("sensors").
+			Comment("Groups this sensor belongs to"),
 	}
 }

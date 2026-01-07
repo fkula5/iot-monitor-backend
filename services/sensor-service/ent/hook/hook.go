@@ -21,6 +21,18 @@ func (f SensorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SensorMutation", m)
 }
 
+// The SensorGroupFunc type is an adapter to allow the use of ordinary
+// function as SensorGroup mutator.
+type SensorGroupFunc func(context.Context, *ent.SensorGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SensorGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SensorGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SensorGroupMutation", m)
+}
+
 // The SensorTypeFunc type is an adapter to allow the use of ordinary
 // function as SensorType mutator.
 type SensorTypeFunc func(context.Context, *ent.SensorTypeMutation) (ent.Value, error)

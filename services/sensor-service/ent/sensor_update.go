@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/predicate"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -155,6 +156,21 @@ func (su *SensorUpdate) SetType(s *SensorType) *SensorUpdate {
 	return su.SetTypeID(s.ID)
 }
 
+// AddGroupIDs adds the "groups" edge to the SensorGroup entity by IDs.
+func (su *SensorUpdate) AddGroupIDs(ids ...int) *SensorUpdate {
+	su.mutation.AddGroupIDs(ids...)
+	return su
+}
+
+// AddGroups adds the "groups" edges to the SensorGroup entity.
+func (su *SensorUpdate) AddGroups(s ...*SensorGroup) *SensorUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.AddGroupIDs(ids...)
+}
+
 // Mutation returns the SensorMutation object of the builder.
 func (su *SensorUpdate) Mutation() *SensorMutation {
 	return su.mutation
@@ -164,6 +180,27 @@ func (su *SensorUpdate) Mutation() *SensorMutation {
 func (su *SensorUpdate) ClearType() *SensorUpdate {
 	su.mutation.ClearType()
 	return su
+}
+
+// ClearGroups clears all "groups" edges to the SensorGroup entity.
+func (su *SensorUpdate) ClearGroups() *SensorUpdate {
+	su.mutation.ClearGroups()
+	return su
+}
+
+// RemoveGroupIDs removes the "groups" edge to SensorGroup entities by IDs.
+func (su *SensorUpdate) RemoveGroupIDs(ids ...int) *SensorUpdate {
+	su.mutation.RemoveGroupIDs(ids...)
+	return su
+}
+
+// RemoveGroups removes "groups" edges to SensorGroup entities.
+func (su *SensorUpdate) RemoveGroups(s ...*SensorGroup) *SensorUpdate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveGroupIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -282,6 +319,51 @@ func (su *SensorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(sensortype.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !su.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -435,6 +517,21 @@ func (suo *SensorUpdateOne) SetType(s *SensorType) *SensorUpdateOne {
 	return suo.SetTypeID(s.ID)
 }
 
+// AddGroupIDs adds the "groups" edge to the SensorGroup entity by IDs.
+func (suo *SensorUpdateOne) AddGroupIDs(ids ...int) *SensorUpdateOne {
+	suo.mutation.AddGroupIDs(ids...)
+	return suo
+}
+
+// AddGroups adds the "groups" edges to the SensorGroup entity.
+func (suo *SensorUpdateOne) AddGroups(s ...*SensorGroup) *SensorUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.AddGroupIDs(ids...)
+}
+
 // Mutation returns the SensorMutation object of the builder.
 func (suo *SensorUpdateOne) Mutation() *SensorMutation {
 	return suo.mutation
@@ -444,6 +541,27 @@ func (suo *SensorUpdateOne) Mutation() *SensorMutation {
 func (suo *SensorUpdateOne) ClearType() *SensorUpdateOne {
 	suo.mutation.ClearType()
 	return suo
+}
+
+// ClearGroups clears all "groups" edges to the SensorGroup entity.
+func (suo *SensorUpdateOne) ClearGroups() *SensorUpdateOne {
+	suo.mutation.ClearGroups()
+	return suo
+}
+
+// RemoveGroupIDs removes the "groups" edge to SensorGroup entities by IDs.
+func (suo *SensorUpdateOne) RemoveGroupIDs(ids ...int) *SensorUpdateOne {
+	suo.mutation.RemoveGroupIDs(ids...)
+	return suo
+}
+
+// RemoveGroups removes "groups" edges to SensorGroup entities.
+func (suo *SensorUpdateOne) RemoveGroups(s ...*SensorGroup) *SensorUpdateOne {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveGroupIDs(ids...)
 }
 
 // Where appends a list predicates to the SensorUpdate builder.
@@ -592,6 +710,51 @@ func (suo *SensorUpdateOne) sqlSave(ctx context.Context) (_node *Sensor, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(sensortype.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !suo.mutation.GroupsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -126,6 +127,21 @@ func (sc *SensorCreate) SetTypeID(id int) *SensorCreate {
 // SetType sets the "type" edge to the SensorType entity.
 func (sc *SensorCreate) SetType(s *SensorType) *SensorCreate {
 	return sc.SetTypeID(s.ID)
+}
+
+// AddGroupIDs adds the "groups" edge to the SensorGroup entity by IDs.
+func (sc *SensorCreate) AddGroupIDs(ids ...int) *SensorCreate {
+	sc.mutation.AddGroupIDs(ids...)
+	return sc
+}
+
+// AddGroups adds the "groups" edges to the SensorGroup entity.
+func (sc *SensorCreate) AddGroups(s ...*SensorGroup) *SensorCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddGroupIDs(ids...)
 }
 
 // Mutation returns the SensorMutation object of the builder.
@@ -275,6 +291,22 @@ func (sc *SensorCreate) createSpec() (*Sensor, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.sensor_type = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.GroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   sensor.GroupsTable,
+			Columns: sensor.GroupsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(sensorgroup.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Sensor is the client for interacting with the Sensor builders.
 	Sensor *SensorClient
+	// SensorGroup is the client for interacting with the SensorGroup builders.
+	SensorGroup *SensorGroupClient
 	// SensorType is the client for interacting with the SensorType builders.
 	SensorType *SensorTypeClient
 
@@ -148,6 +150,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Sensor = NewSensorClient(tx.config)
+	tx.SensorGroup = NewSensorGroupClient(tx.config)
 	tx.SensorType = NewSensorTypeClient(tx.config)
 }
 

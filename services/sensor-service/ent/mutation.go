@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/predicate"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -25,8 +26,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeSensor     = "Sensor"
-	TypeSensorType = "SensorType"
+	TypeSensor      = "Sensor"
+	TypeSensorGroup = "SensorGroup"
+	TypeSensorType  = "SensorType"
 )
 
 // SensorMutation represents an operation that mutates the Sensor nodes in the graph.
@@ -47,6 +49,9 @@ type SensorMutation struct {
 	clearedFields map[string]struct{}
 	_type         *int
 	cleared_type  bool
+	groups        map[int]struct{}
+	removedgroups map[int]struct{}
+	clearedgroups bool
 	done          bool
 	oldValue      func(context.Context) (*Sensor, error)
 	predicates    []predicate.Sensor
@@ -536,6 +541,60 @@ func (m *SensorMutation) ResetType() {
 	m.cleared_type = false
 }
 
+// AddGroupIDs adds the "groups" edge to the SensorGroup entity by ids.
+func (m *SensorMutation) AddGroupIDs(ids ...int) {
+	if m.groups == nil {
+		m.groups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.groups[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGroups clears the "groups" edge to the SensorGroup entity.
+func (m *SensorMutation) ClearGroups() {
+	m.clearedgroups = true
+}
+
+// GroupsCleared reports if the "groups" edge to the SensorGroup entity was cleared.
+func (m *SensorMutation) GroupsCleared() bool {
+	return m.clearedgroups
+}
+
+// RemoveGroupIDs removes the "groups" edge to the SensorGroup entity by IDs.
+func (m *SensorMutation) RemoveGroupIDs(ids ...int) {
+	if m.removedgroups == nil {
+		m.removedgroups = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.groups, ids[i])
+		m.removedgroups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroups returns the removed IDs of the "groups" edge to the SensorGroup entity.
+func (m *SensorMutation) RemovedGroupsIDs() (ids []int) {
+	for id := range m.removedgroups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupsIDs returns the "groups" edge IDs in the mutation.
+func (m *SensorMutation) GroupsIDs() (ids []int) {
+	for id := range m.groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroups resets all changes to the "groups" edge.
+func (m *SensorMutation) ResetGroups() {
+	m.groups = nil
+	m.clearedgroups = false
+	m.removedgroups = nil
+}
+
 // Where appends a list predicates to the SensorMutation builder.
 func (m *SensorMutation) Where(ps ...predicate.Sensor) {
 	m.predicates = append(m.predicates, ps...)
@@ -824,9 +883,12 @@ func (m *SensorMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SensorMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._type != nil {
 		edges = append(edges, sensor.EdgeType)
+	}
+	if m.groups != nil {
+		edges = append(edges, sensor.EdgeGroups)
 	}
 	return edges
 }
@@ -839,27 +901,47 @@ func (m *SensorMutation) AddedIDs(name string) []ent.Value {
 		if id := m._type; id != nil {
 			return []ent.Value{*id}
 		}
+	case sensor.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.groups))
+		for id := range m.groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SensorMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedgroups != nil {
+		edges = append(edges, sensor.EdgeGroups)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *SensorMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case sensor.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.removedgroups))
+		for id := range m.removedgroups {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SensorMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_type {
 		edges = append(edges, sensor.EdgeType)
+	}
+	if m.clearedgroups {
+		edges = append(edges, sensor.EdgeGroups)
 	}
 	return edges
 }
@@ -870,6 +952,8 @@ func (m *SensorMutation) EdgeCleared(name string) bool {
 	switch name {
 	case sensor.EdgeType:
 		return m.cleared_type
+	case sensor.EdgeGroups:
+		return m.clearedgroups
 	}
 	return false
 }
@@ -892,8 +976,850 @@ func (m *SensorMutation) ResetEdge(name string) error {
 	case sensor.EdgeType:
 		m.ResetType()
 		return nil
+	case sensor.EdgeGroups:
+		m.ResetGroups()
+		return nil
 	}
 	return fmt.Errorf("unknown Sensor edge %s", name)
+}
+
+// SensorGroupMutation represents an operation that mutates the SensorGroup nodes in the graph.
+type SensorGroupMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	name           *string
+	description    *string
+	color          *string
+	icon           *string
+	user_id        *int64
+	adduser_id     *int64
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	sensors        map[int]struct{}
+	removedsensors map[int]struct{}
+	clearedsensors bool
+	done           bool
+	oldValue       func(context.Context) (*SensorGroup, error)
+	predicates     []predicate.SensorGroup
+}
+
+var _ ent.Mutation = (*SensorGroupMutation)(nil)
+
+// sensorgroupOption allows management of the mutation configuration using functional options.
+type sensorgroupOption func(*SensorGroupMutation)
+
+// newSensorGroupMutation creates new mutation for the SensorGroup entity.
+func newSensorGroupMutation(c config, op Op, opts ...sensorgroupOption) *SensorGroupMutation {
+	m := &SensorGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeSensorGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withSensorGroupID sets the ID field of the mutation.
+func withSensorGroupID(id int) sensorgroupOption {
+	return func(m *SensorGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *SensorGroup
+		)
+		m.oldValue = func(ctx context.Context) (*SensorGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().SensorGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withSensorGroup sets the old SensorGroup of the mutation.
+func withSensorGroup(node *SensorGroup) sensorgroupOption {
+	return func(m *SensorGroupMutation) {
+		m.oldValue = func(context.Context) (*SensorGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m SensorGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m SensorGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *SensorGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *SensorGroupMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().SensorGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *SensorGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *SensorGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *SensorGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *SensorGroupMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *SensorGroupMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *SensorGroupMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[sensorgroup.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *SensorGroupMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[sensorgroup.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *SensorGroupMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, sensorgroup.FieldDescription)
+}
+
+// SetColor sets the "color" field.
+func (m *SensorGroupMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *SensorGroupMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *SensorGroupMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[sensorgroup.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *SensorGroupMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[sensorgroup.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *SensorGroupMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, sensorgroup.FieldColor)
+}
+
+// SetIcon sets the "icon" field.
+func (m *SensorGroupMutation) SetIcon(s string) {
+	m.icon = &s
+}
+
+// Icon returns the value of the "icon" field in the mutation.
+func (m *SensorGroupMutation) Icon() (r string, exists bool) {
+	v := m.icon
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcon returns the old "icon" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldIcon(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcon is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcon requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcon: %w", err)
+	}
+	return oldValue.Icon, nil
+}
+
+// ClearIcon clears the value of the "icon" field.
+func (m *SensorGroupMutation) ClearIcon() {
+	m.icon = nil
+	m.clearedFields[sensorgroup.FieldIcon] = struct{}{}
+}
+
+// IconCleared returns if the "icon" field was cleared in this mutation.
+func (m *SensorGroupMutation) IconCleared() bool {
+	_, ok := m.clearedFields[sensorgroup.FieldIcon]
+	return ok
+}
+
+// ResetIcon resets all changes to the "icon" field.
+func (m *SensorGroupMutation) ResetIcon() {
+	m.icon = nil
+	delete(m.clearedFields, sensorgroup.FieldIcon)
+}
+
+// SetUserID sets the "user_id" field.
+func (m *SensorGroupMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *SensorGroupMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *SensorGroupMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *SensorGroupMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *SensorGroupMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *SensorGroupMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *SensorGroupMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *SensorGroupMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *SensorGroupMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *SensorGroupMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the SensorGroup entity.
+// If the SensorGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SensorGroupMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *SensorGroupMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddSensorIDs adds the "sensors" edge to the Sensor entity by ids.
+func (m *SensorGroupMutation) AddSensorIDs(ids ...int) {
+	if m.sensors == nil {
+		m.sensors = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.sensors[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSensors clears the "sensors" edge to the Sensor entity.
+func (m *SensorGroupMutation) ClearSensors() {
+	m.clearedsensors = true
+}
+
+// SensorsCleared reports if the "sensors" edge to the Sensor entity was cleared.
+func (m *SensorGroupMutation) SensorsCleared() bool {
+	return m.clearedsensors
+}
+
+// RemoveSensorIDs removes the "sensors" edge to the Sensor entity by IDs.
+func (m *SensorGroupMutation) RemoveSensorIDs(ids ...int) {
+	if m.removedsensors == nil {
+		m.removedsensors = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.sensors, ids[i])
+		m.removedsensors[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSensors returns the removed IDs of the "sensors" edge to the Sensor entity.
+func (m *SensorGroupMutation) RemovedSensorsIDs() (ids []int) {
+	for id := range m.removedsensors {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SensorsIDs returns the "sensors" edge IDs in the mutation.
+func (m *SensorGroupMutation) SensorsIDs() (ids []int) {
+	for id := range m.sensors {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSensors resets all changes to the "sensors" edge.
+func (m *SensorGroupMutation) ResetSensors() {
+	m.sensors = nil
+	m.clearedsensors = false
+	m.removedsensors = nil
+}
+
+// Where appends a list predicates to the SensorGroupMutation builder.
+func (m *SensorGroupMutation) Where(ps ...predicate.SensorGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the SensorGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *SensorGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.SensorGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *SensorGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *SensorGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (SensorGroup).
+func (m *SensorGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *SensorGroupMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.name != nil {
+		fields = append(fields, sensorgroup.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, sensorgroup.FieldDescription)
+	}
+	if m.color != nil {
+		fields = append(fields, sensorgroup.FieldColor)
+	}
+	if m.icon != nil {
+		fields = append(fields, sensorgroup.FieldIcon)
+	}
+	if m.user_id != nil {
+		fields = append(fields, sensorgroup.FieldUserID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, sensorgroup.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, sensorgroup.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *SensorGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case sensorgroup.FieldName:
+		return m.Name()
+	case sensorgroup.FieldDescription:
+		return m.Description()
+	case sensorgroup.FieldColor:
+		return m.Color()
+	case sensorgroup.FieldIcon:
+		return m.Icon()
+	case sensorgroup.FieldUserID:
+		return m.UserID()
+	case sensorgroup.FieldCreatedAt:
+		return m.CreatedAt()
+	case sensorgroup.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *SensorGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case sensorgroup.FieldName:
+		return m.OldName(ctx)
+	case sensorgroup.FieldDescription:
+		return m.OldDescription(ctx)
+	case sensorgroup.FieldColor:
+		return m.OldColor(ctx)
+	case sensorgroup.FieldIcon:
+		return m.OldIcon(ctx)
+	case sensorgroup.FieldUserID:
+		return m.OldUserID(ctx)
+	case sensorgroup.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case sensorgroup.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown SensorGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SensorGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case sensorgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case sensorgroup.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case sensorgroup.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	case sensorgroup.FieldIcon:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcon(v)
+		return nil
+	case sensorgroup.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case sensorgroup.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case sensorgroup.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SensorGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *SensorGroupMutation) AddedFields() []string {
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, sensorgroup.FieldUserID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *SensorGroupMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case sensorgroup.FieldUserID:
+		return m.AddedUserID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *SensorGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case sensorgroup.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown SensorGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *SensorGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(sensorgroup.FieldDescription) {
+		fields = append(fields, sensorgroup.FieldDescription)
+	}
+	if m.FieldCleared(sensorgroup.FieldColor) {
+		fields = append(fields, sensorgroup.FieldColor)
+	}
+	if m.FieldCleared(sensorgroup.FieldIcon) {
+		fields = append(fields, sensorgroup.FieldIcon)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *SensorGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *SensorGroupMutation) ClearField(name string) error {
+	switch name {
+	case sensorgroup.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case sensorgroup.FieldColor:
+		m.ClearColor()
+		return nil
+	case sensorgroup.FieldIcon:
+		m.ClearIcon()
+		return nil
+	}
+	return fmt.Errorf("unknown SensorGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *SensorGroupMutation) ResetField(name string) error {
+	switch name {
+	case sensorgroup.FieldName:
+		m.ResetName()
+		return nil
+	case sensorgroup.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case sensorgroup.FieldColor:
+		m.ResetColor()
+		return nil
+	case sensorgroup.FieldIcon:
+		m.ResetIcon()
+		return nil
+	case sensorgroup.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case sensorgroup.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case sensorgroup.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown SensorGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *SensorGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.sensors != nil {
+		edges = append(edges, sensorgroup.EdgeSensors)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *SensorGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case sensorgroup.EdgeSensors:
+		ids := make([]ent.Value, 0, len(m.sensors))
+		for id := range m.sensors {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *SensorGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedsensors != nil {
+		edges = append(edges, sensorgroup.EdgeSensors)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *SensorGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case sensorgroup.EdgeSensors:
+		ids := make([]ent.Value, 0, len(m.removedsensors))
+		for id := range m.removedsensors {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *SensorGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedsensors {
+		edges = append(edges, sensorgroup.EdgeSensors)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *SensorGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case sensorgroup.EdgeSensors:
+		return m.clearedsensors
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *SensorGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown SensorGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *SensorGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case sensorgroup.EdgeSensors:
+		m.ResetSensors()
+		return nil
+	}
+	return fmt.Errorf("unknown SensorGroup edge %s", name)
 }
 
 // SensorTypeMutation represents an operation that mutates the SensorType nodes in the graph.

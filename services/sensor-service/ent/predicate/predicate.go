@@ -9,5 +9,8 @@ import (
 // Sensor is the predicate function for sensor builders.
 type Sensor func(*sql.Selector)
 
+// SensorGroup is the predicate function for sensorgroup builders.
+type SensorGroup func(*sql.Selector)
+
 // SensorType is the predicate function for sensortype builders.
 type SensorType func(*sql.Selector)

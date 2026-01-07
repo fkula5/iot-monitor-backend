@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -26,6 +27,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Sensor is the client for interacting with the Sensor builders.
 	Sensor *SensorClient
+	// SensorGroup is the client for interacting with the SensorGroup builders.
+	SensorGroup *SensorGroupClient
 	// SensorType is the client for interacting with the SensorType builders.
 	SensorType *SensorTypeClient
 }
@@ -40,6 +43,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Sensor = NewSensorClient(c.config)
+	c.SensorGroup = NewSensorGroupClient(c.config)
 	c.SensorType = NewSensorTypeClient(c.config)
 }
 
@@ -131,10 +135,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Sensor:     NewSensorClient(cfg),
-		SensorType: NewSensorTypeClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Sensor:      NewSensorClient(cfg),
+		SensorGroup: NewSensorGroupClient(cfg),
+		SensorType:  NewSensorTypeClient(cfg),
 	}, nil
 }
 
@@ -152,10 +157,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Sensor:     NewSensorClient(cfg),
-		SensorType: NewSensorTypeClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Sensor:      NewSensorClient(cfg),
+		SensorGroup: NewSensorGroupClient(cfg),
+		SensorType:  NewSensorTypeClient(cfg),
 	}, nil
 }
 
@@ -185,6 +191,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Sensor.Use(hooks...)
+	c.SensorGroup.Use(hooks...)
 	c.SensorType.Use(hooks...)
 }
 
@@ -192,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Sensor.Intercept(interceptors...)
+	c.SensorGroup.Intercept(interceptors...)
 	c.SensorType.Intercept(interceptors...)
 }
 
@@ -200,6 +208,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *SensorMutation:
 		return c.Sensor.mutate(ctx, m)
+	case *SensorGroupMutation:
+		return c.SensorGroup.mutate(ctx, m)
 	case *SensorTypeMutation:
 		return c.SensorType.mutate(ctx, m)
 	default:
@@ -331,6 +341,22 @@ func (c *SensorClient) QueryType(s *Sensor) *SensorTypeQuery {
 	return query
 }
 
+// QueryGroups queries the groups edge of a Sensor.
+func (c *SensorClient) QueryGroups(s *Sensor) *SensorGroupQuery {
+	query := (&SensorGroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(sensor.Table, sensor.FieldID, id),
+			sqlgraph.To(sensorgroup.Table, sensorgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, sensor.GroupsTable, sensor.GroupsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SensorClient) Hooks() []Hook {
 	return c.hooks.Sensor
@@ -353,6 +379,155 @@ func (c *SensorClient) mutate(ctx context.Context, m *SensorMutation) (Value, er
 		return (&SensorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Sensor mutation op: %q", m.Op())
+	}
+}
+
+// SensorGroupClient is a client for the SensorGroup schema.
+type SensorGroupClient struct {
+	config
+}
+
+// NewSensorGroupClient returns a client for the SensorGroup from the given config.
+func NewSensorGroupClient(c config) *SensorGroupClient {
+	return &SensorGroupClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `sensorgroup.Hooks(f(g(h())))`.
+func (c *SensorGroupClient) Use(hooks ...Hook) {
+	c.hooks.SensorGroup = append(c.hooks.SensorGroup, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `sensorgroup.Intercept(f(g(h())))`.
+func (c *SensorGroupClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SensorGroup = append(c.inters.SensorGroup, interceptors...)
+}
+
+// Create returns a builder for creating a SensorGroup entity.
+func (c *SensorGroupClient) Create() *SensorGroupCreate {
+	mutation := newSensorGroupMutation(c.config, OpCreate)
+	return &SensorGroupCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SensorGroup entities.
+func (c *SensorGroupClient) CreateBulk(builders ...*SensorGroupCreate) *SensorGroupCreateBulk {
+	return &SensorGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SensorGroupClient) MapCreateBulk(slice any, setFunc func(*SensorGroupCreate, int)) *SensorGroupCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SensorGroupCreateBulk{err: fmt.Errorf("calling to SensorGroupClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SensorGroupCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SensorGroupCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SensorGroup.
+func (c *SensorGroupClient) Update() *SensorGroupUpdate {
+	mutation := newSensorGroupMutation(c.config, OpUpdate)
+	return &SensorGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SensorGroupClient) UpdateOne(sg *SensorGroup) *SensorGroupUpdateOne {
+	mutation := newSensorGroupMutation(c.config, OpUpdateOne, withSensorGroup(sg))
+	return &SensorGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SensorGroupClient) UpdateOneID(id int) *SensorGroupUpdateOne {
+	mutation := newSensorGroupMutation(c.config, OpUpdateOne, withSensorGroupID(id))
+	return &SensorGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SensorGroup.
+func (c *SensorGroupClient) Delete() *SensorGroupDelete {
+	mutation := newSensorGroupMutation(c.config, OpDelete)
+	return &SensorGroupDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SensorGroupClient) DeleteOne(sg *SensorGroup) *SensorGroupDeleteOne {
+	return c.DeleteOneID(sg.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SensorGroupClient) DeleteOneID(id int) *SensorGroupDeleteOne {
+	builder := c.Delete().Where(sensorgroup.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SensorGroupDeleteOne{builder}
+}
+
+// Query returns a query builder for SensorGroup.
+func (c *SensorGroupClient) Query() *SensorGroupQuery {
+	return &SensorGroupQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSensorGroup},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SensorGroup entity by its id.
+func (c *SensorGroupClient) Get(ctx context.Context, id int) (*SensorGroup, error) {
+	return c.Query().Where(sensorgroup.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SensorGroupClient) GetX(ctx context.Context, id int) *SensorGroup {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QuerySensors queries the sensors edge of a SensorGroup.
+func (c *SensorGroupClient) QuerySensors(sg *SensorGroup) *SensorQuery {
+	query := (&SensorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := sg.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(sensorgroup.Table, sensorgroup.FieldID, id),
+			sqlgraph.To(sensor.Table, sensor.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, sensorgroup.SensorsTable, sensorgroup.SensorsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(sg.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SensorGroupClient) Hooks() []Hook {
+	return c.hooks.SensorGroup
+}
+
+// Interceptors returns the client interceptors.
+func (c *SensorGroupClient) Interceptors() []Interceptor {
+	return c.inters.SensorGroup
+}
+
+func (c *SensorGroupClient) mutate(ctx context.Context, m *SensorGroupMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SensorGroupCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SensorGroupUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SensorGroupUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SensorGroupDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SensorGroup mutation op: %q", m.Op())
 	}
 }
 
@@ -508,9 +683,9 @@ func (c *SensorTypeClient) mutate(ctx context.Context, m *SensorTypeMutation) (V
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Sensor, SensorType []ent.Hook
+		Sensor, SensorGroup, SensorType []ent.Hook
 	}
 	inters struct {
-		Sensor, SensorType []ent.Interceptor
+		Sensor, SensorGroup, SensorType []ent.Interceptor
 	}
 )
