@@ -17,13 +17,13 @@ import (
 
 type SensorsGrpcHandler struct {
 	pb.UnimplementedSensorServiceServer
-	sensorsService     services.ISensorService
-	sensorsTypeService services.ISensorTypeService
+	sensorsService      services.ISensorService
+	sensorsTypeService  services.ISensorTypeService
+	sensorsGroupService services.ISensorGroupService
 }
 
-func NewGrpcHandler(s *grpc.Server, sensorsService services.ISensorService, sensorsTypeService services.ISensorTypeService) {
-	handler := &SensorsGrpcHandler{sensorsService: sensorsService, sensorsTypeService: sensorsTypeService}
-
+func NewGrpcHandler(s *grpc.Server, sensorsService services.ISensorService, sensorsTypeService services.ISensorTypeService, sensorsGroupService services.ISensorGroupService) {
+	handler := &SensorsGrpcHandler{sensorsService: sensorsService, sensorsTypeService: sensorsTypeService, sensorsGroupService: sensorsGroupService}
 	pb.RegisterSensorServiceServer(s, handler)
 }
 
@@ -214,6 +214,69 @@ func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSen
 		Sensor: convertSensorToProto(sensor),
 	}, nil
 }
+
+func (h *SensorsGrpcHandler) CreateGroup(ctx context.Context, req *pb.CreateSensorGroupRequest) (*pb.CreateSensorGroupResponse, error) {
+	group := &ent.SensorGroup{
+		Name:        req.Name,
+		Description: req.Description,
+		Color:       req.Color,
+		UserID:      req.UserId,
+	}
+
+	createdGroup, err := h.sensorsGroupService.CreateGroup(ctx, group, req.SensorIds)
+	if err != nil {
+		logger.Error("Failed to create sensor group", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to create sensor group")
+	}
+
+	return &pb.CreateSensorGroupResponse{
+		Group: &pb.SensorGroup{
+			Id:          int64(createdGroup.ID),
+			Name:        createdGroup.Name,
+			Description: createdGroup.Description,
+			Color:       createdGroup.Color,
+			UserId:      createdGroup.UserID,
+			CreatedAt:   timestamppb.New(createdGroup.CreatedAt),
+			UpdatedAt:   timestamppb.New(createdGroup.UpdatedAt),
+		},
+	}, nil
+}
+
+func (h *SensorsGrpcHandler) DeleteGroup(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
+	err := h.sensorsGroupService.DeleteGroup(ctx, int(req.Id))
+	if err != nil {
+		logger.Error("Failed to delete sensor group", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to delete sensor group")
+	}
+
+	return &pb.DeleteSensorGroupResponse{}, nil
+}
+
+func (h *SensorsGrpcHandler) GetGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
+	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	var protoSensors []*pb.Sensor
+	for _, s := range group.Edges.Sensors {
+		protoSensors = append(protoSensors, convertSensorToProto(s))
+	}
+
+	return &pb.GetSensorGroupResponse{
+		Group: &pb.SensorGroup{
+			Id:          int64(group.ID),
+			Name:        group.Name,
+			Description: group.Description,
+			Color:       group.Color,
+			UserId:      group.UserID,
+			CreatedAt:   timestamppb.New(group.CreatedAt),
+			UpdatedAt:   timestamppb.New(group.UpdatedAt),
+		},
+	}, nil
+}
+
+
 
 func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 	if s == nil {
