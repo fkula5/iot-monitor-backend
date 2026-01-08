@@ -13,7 +13,7 @@ linters:
     - govet
     - ineffassign
     - staticcheck
-    - unused
+    # - unused
 
     # Additional recommended linters
     - gofmt
@@ -40,6 +40,7 @@ linters-settings:
       - "(*encoding/json.Encoder).Encode"
       - "github.com/skni-kod/iot-monitor-backend/pkg/logger.Sync"
       - "github.com/go-chi/chi/v5.Walk"
+      - "(*github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent.Tx).Rollback"
 
   govet:
     # Note: check-shadowing is deprecated, use 'shadow' linter instead

@@ -59,7 +59,7 @@ func (s *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(s.secretKey), nil
+		return s.secretKey, nil
 	})
 	if err != nil {
 		return nil, err
