@@ -1,5 +1,27 @@
 basePath: /
 definitions:
+  handlers.AddSensorsRequest:
+    properties:
+      sensor_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  handlers.CreateGroupRequest:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sensor_ids:
+        items:
+          type: integer
+        type: array
+    type: object
   handlers.CreateSensorRequest:
     properties:
       description:
@@ -10,6 +32,21 @@ definitions:
         type: string
       sensor_type_id:
         type: integer
+    type: object
+  handlers.UpdateGroupRequest:
+    properties:
+      color:
+        type: string
+      description:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sensor_ids:
+        items:
+          type: integer
+        type: array
     type: object
   handlers.UpdateSensorRequest:
     properties:
@@ -113,6 +150,304 @@ paths:
       summary: Stream sensor readings via WebSocket
       tags:
       - Data
+  /api/sensor-groups:
+    get:
+      description: Get all sensor groups for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List sensor groups
+      tags:
+      - SensorGroups
+    post:
+      consumes:
+      - application/json
+      description: Create a new sensor group
+      parameters:
+      - description: Group data
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create sensor group
+      tags:
+      - SensorGroups
+  /api/sensor-groups/{id}:
+    delete:
+      description: Delete a sensor group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete sensor group
+      tags:
+      - SensorGroups
+    get:
+      description: Get a specific sensor group with its sensors
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get sensor group
+      tags:
+      - SensorGroups
+    put:
+      consumes:
+      - application/json
+      description: Update an existing sensor group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Group data
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update sensor group
+      tags:
+      - SensorGroups
+  /api/sensor-groups/{id}/sensors:
+    delete:
+      consumes:
+      - application/json
+      description: Remove sensors from an existing group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sensor IDs
+        in: body
+        name: sensors
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddSensorsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Remove sensors from group
+      tags:
+      - SensorGroups
+    post:
+      consumes:
+      - application/json
+      description: Add sensors to an existing group
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sensor IDs
+        in: body
+        name: sensors
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddSensorsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Add sensors to group
+      tags:
+      - SensorGroups
   /api/sensors:
     get:
       description: Fetches all sensors from the Sensor Service.
