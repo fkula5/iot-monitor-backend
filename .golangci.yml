@@ -39,7 +39,7 @@ linters-settings:
       - "(*google.golang.org/grpc.ClientConn).Close"
       - "(*encoding/json.Encoder).Encode"
       - "github.com/skni-kod/iot-monitor-backend/pkg/logger.Sync"
-      - "github.com/go-chi/chi/v5.Walk
+      - "github.com/go-chi/chi/v5.Walk"
 
   govet:
     # Note: check-shadowing is deprecated, use 'shadow' linter instead
