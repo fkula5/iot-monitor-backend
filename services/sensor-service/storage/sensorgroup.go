@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 )
 
@@ -149,10 +150,13 @@ func (s *SensorGroupStorage) RemoveSensors(ctx context.Context, groupID int, sen
 }
 
 func (s *SensorGroupStorage) GetGroupsForSensor(ctx context.Context, sensorID int) ([]*ent.SensorGroup, error) {
-	panic("unimplemented")
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to get groups for sensor: %w", err)
-	// }
+	sensor, err := s.client.Sensor.Query().
+		Where(sensor.ID(sensorID)).
+		WithGroups().
+		Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get groups for sensor: %w", err)
+	}
 
-	// return sensor.Edges.Groups, nil
+	return sensor.Edges.Groups, nil
 }
