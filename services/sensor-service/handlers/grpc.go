@@ -216,10 +216,15 @@ func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSen
 }
 
 func (h *SensorsGrpcHandler) CreateGroup(ctx context.Context, req *pb.CreateSensorGroupRequest) (*pb.CreateSensorGroupResponse, error) {
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "Group name is required")
+	}
+
 	group := &ent.SensorGroup{
 		Name:        req.Name,
 		Description: req.Description,
 		Color:       req.Color,
+		Icon:        req.Icon,
 		UserID:      req.UserId,
 	}
 
@@ -230,19 +235,74 @@ func (h *SensorsGrpcHandler) CreateGroup(ctx context.Context, req *pb.CreateSens
 	}
 
 	return &pb.CreateSensorGroupResponse{
-		Group: &pb.SensorGroup{
-			Id:          int64(createdGroup.ID),
-			Name:        createdGroup.Name,
-			Description: createdGroup.Description,
-			Color:       createdGroup.Color,
-			UserId:      createdGroup.UserID,
-			CreatedAt:   timestamppb.New(createdGroup.CreatedAt),
-			UpdatedAt:   timestamppb.New(createdGroup.UpdatedAt),
-		},
+		Group: convertSensorGroupToProto(createdGroup),
+	}, nil
+}
+
+func (h *SensorsGrpcHandler) GetGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
+	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "sensor group not found")
+	}
+
+	var protoSensors []*pb.Sensor
+	if group.Edges.Sensors != nil {
+		for _, s := range group.Edges.Sensors {
+			protoSensors = append(protoSensors, convertSensorToProto(s))
+		}
+	}
+
+	return &pb.GetSensorGroupResponse{
+		Group:   convertSensorGroupToProto(group),
+		Sensors: protoSensors,
+	}, nil
+}
+
+func (h *SensorsGrpcHandler) ListSensorGroups(ctx context.Context, req *pb.ListSensorGroupsRequest) (*pb.ListSensorGroupsResponse, error) {
+	groups, err := h.sensorsGroupService.ListGroups(ctx, req.UserId)
+	if err != nil {
+		logger.Error("Failed to list sensor groups", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to list sensor groups")
+	}
+
+	var protoGroups []*pb.SensorGroup
+	for _, g := range groups {
+		protoGroups = append(protoGroups, convertSensorGroupToProto(g))
+	}
+
+	return &pb.ListSensorGroupsResponse{
+		Groups: protoGroups,
+	}, nil
+}
+
+func (h *SensorsGrpcHandler) UpdateSensorGroup(ctx context.Context, req *pb.UpdateSensorGroupRequest) (*pb.UpdateSensorGroupResponse, error) {
+	if req.Id <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
+	}
+
+	groupUpdate := &ent.SensorGroup{
+		Name:        req.Name,
+		Description: req.Description,
+		Color:       req.Color,
+		Icon:        req.Icon,
+	}
+
+	updatedGroup, err := h.sensorsGroupService.UpdateGroup(ctx, int(req.Id), groupUpdate)
+	if err != nil {
+		logger.Error("Failed to update sensor group", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to update sensor group")
+	}
+
+	return &pb.UpdateSensorGroupResponse{
+		Group: convertSensorGroupToProto(updatedGroup),
 	}, nil
 }
 
 func (h *SensorsGrpcHandler) DeleteGroup(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
+	if req.Id <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
+	}
+
 	err := h.sensorsGroupService.DeleteGroup(ctx, int(req.Id))
 	if err != nil {
 		logger.Error("Failed to delete sensor group", zap.Error(err))
@@ -252,31 +312,70 @@ func (h *SensorsGrpcHandler) DeleteGroup(ctx context.Context, req *pb.DeleteSens
 	return &pb.DeleteSensorGroupResponse{}, nil
 }
 
-func (h *SensorsGrpcHandler) GetGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
-	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
+func (h *SensorsGrpcHandler) AddSensorsToGroup(ctx context.Context, req *pb.AddSensorsToGroupRequest) (*pb.AddSensorsToGroupResponse, error) {
+	if req.GroupId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
+	}
+	if len(req.SensorIds) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "sensor ids list cannot be empty")
+	}
+
+	group, err := h.sensorsGroupService.AddSensorsToGroup(ctx, int(req.GroupId), req.SensorIds)
 	if err != nil {
-		return nil, err
+		logger.Error("Failed to add sensors to group", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to add sensors to group")
 	}
 
-	var protoSensors []*pb.Sensor
-	for _, s := range group.Edges.Sensors {
-		protoSensors = append(protoSensors, convertSensorToProto(s))
-	}
-
-	return &pb.GetSensorGroupResponse{
-		Group: &pb.SensorGroup{
-			Id:          int64(group.ID),
-			Name:        group.Name,
-			Description: group.Description,
-			Color:       group.Color,
-			UserId:      group.UserID,
-			CreatedAt:   timestamppb.New(group.CreatedAt),
-			UpdatedAt:   timestamppb.New(group.UpdatedAt),
-		},
+	return &pb.AddSensorsToGroupResponse{
+		Group: convertSensorGroupToProto(group),
 	}, nil
 }
 
+func (h *SensorsGrpcHandler) RemoveSensorsFromGroup(ctx context.Context, req *pb.RemoveSensorsFromGroupRequest) (*pb.RemoveSensorsFromGroupResponse, error) {
+	if req.GroupId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
+	}
+	if len(req.SensorIds) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "sensor ids list cannot be empty")
+	}
 
+	group, err := h.sensorsGroupService.RemoveSensorsFromGroup(ctx, int(req.GroupId), req.SensorIds)
+	if err != nil {
+		logger.Error("Failed to remove sensors from group", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to remove sensors from group")
+	}
+
+	return &pb.RemoveSensorsFromGroupResponse{
+		Group: convertSensorGroupToProto(group),
+	}, nil
+}
+
+func convertSensorGroupToProto(g *ent.SensorGroup) *pb.SensorGroup {
+	if g == nil {
+		return nil
+	}
+
+	groupProto := &pb.SensorGroup{
+		Id:          int64(g.ID),
+		Name:        g.Name,
+		Description: g.Description,
+		Color:       g.Color,
+		Icon:        g.Icon,
+		UserId:      g.UserID,
+		CreatedAt:   timestamppb.New(g.CreatedAt),
+		UpdatedAt:   timestamppb.New(g.UpdatedAt),
+	}
+
+	if g.Edges.Sensors != nil {
+		var sensorIds []int64
+		for _, s := range g.Edges.Sensors {
+			sensorIds = append(sensorIds, int64(s.ID))
+		}
+		groupProto.SensorIds = sensorIds
+	}
+
+	return groupProto
+}
 
 func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 	if s == nil {
