@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/predicate"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -24,6 +26,7 @@ type SensorQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Sensor
 	withType   *SensorTypeQuery
+	withGroups *SensorGroupQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -76,6 +79,28 @@ func (sq *SensorQuery) QueryType() *SensorTypeQuery {
 			sqlgraph.From(sensor.Table, sensor.FieldID, selector),
 			sqlgraph.To(sensortype.Table, sensortype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, sensor.TypeTable, sensor.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroups chains the current query on the "groups" edge.
+func (sq *SensorQuery) QueryGroups() *SensorGroupQuery {
+	query := (&SensorGroupClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(sensor.Table, sensor.FieldID, selector),
+			sqlgraph.To(sensorgroup.Table, sensorgroup.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, sensor.GroupsTable, sensor.GroupsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +301,7 @@ func (sq *SensorQuery) Clone() *SensorQuery {
 		inters:     append([]Interceptor{}, sq.inters...),
 		predicates: append([]predicate.Sensor{}, sq.predicates...),
 		withType:   sq.withType.Clone(),
+		withGroups: sq.withGroups.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -290,6 +316,17 @@ func (sq *SensorQuery) WithType(opts ...func(*SensorTypeQuery)) *SensorQuery {
 		opt(query)
 	}
 	sq.withType = query
+	return sq
+}
+
+// WithGroups tells the query-builder to eager-load the nodes that are connected to
+// the "groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SensorQuery) WithGroups(opts ...func(*SensorGroupQuery)) *SensorQuery {
+	query := (&SensorGroupClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withGroups = query
 	return sq
 }
 
@@ -372,8 +409,9 @@ func (sq *SensorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Senso
 		nodes       = []*Sensor{}
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withType != nil,
+			sq.withGroups != nil,
 		}
 	)
 	if sq.withType != nil {
@@ -403,6 +441,13 @@ func (sq *SensorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Senso
 	if query := sq.withType; query != nil {
 		if err := sq.loadType(ctx, query, nodes, nil,
 			func(n *Sensor, e *SensorType) { n.Edges.Type = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := sq.withGroups; query != nil {
+		if err := sq.loadGroups(ctx, query, nodes,
+			func(n *Sensor) { n.Edges.Groups = []*SensorGroup{} },
+			func(n *Sensor, e *SensorGroup) { n.Edges.Groups = append(n.Edges.Groups, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -437,6 +482,67 @@ func (sq *SensorQuery) loadType(ctx context.Context, query *SensorTypeQuery, nod
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (sq *SensorQuery) loadGroups(ctx context.Context, query *SensorGroupQuery, nodes []*Sensor, init func(*Sensor), assign func(*Sensor, *SensorGroup)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Sensor)
+	nids := make(map[int]map[*Sensor]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(sensor.GroupsTable)
+		s.Join(joinT).On(s.C(sensorgroup.FieldID), joinT.C(sensor.GroupsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(sensor.GroupsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(sensor.GroupsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Sensor]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*SensorGroup](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "groups" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
 		}
 	}
 	return nil

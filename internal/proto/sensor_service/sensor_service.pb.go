@@ -1374,6 +1374,826 @@ func (*DeleteSensorTypeResponse) Descriptor() ([]byte, []int) {
 	return file_sensor_service_proto_rawDescGZIP(), []int{23}
 }
 
+type SensorGroup struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
+	Icon          string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
+	UserId        int64                  `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SensorIds     []int64                `protobuf:"varint,9,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SensorGroup) Reset() {
+	*x = SensorGroup{}
+	mi := &file_sensor_service_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SensorGroup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SensorGroup) ProtoMessage() {}
+
+func (x *SensorGroup) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SensorGroup.ProtoReflect.Descriptor instead.
+func (*SensorGroup) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *SensorGroup) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SensorGroup) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SensorGroup) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *SensorGroup) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *SensorGroup) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *SensorGroup) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *SensorGroup) GetCreatedAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *SensorGroup) GetUpdatedAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *SensorGroup) GetSensorIds() []int64 {
+	if x != nil {
+		return x.SensorIds
+	}
+	return nil
+}
+
+type CreateSensorGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	Icon          string                 `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
+	UserId        int64                  `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	SensorIds     []int64                `protobuf:"varint,6,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSensorGroupRequest) Reset() {
+	*x = CreateSensorGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSensorGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSensorGroupRequest) ProtoMessage() {}
+
+func (x *CreateSensorGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSensorGroupRequest.ProtoReflect.Descriptor instead.
+func (*CreateSensorGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateSensorGroupRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateSensorGroupRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateSensorGroupRequest) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *CreateSensorGroupRequest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *CreateSensorGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CreateSensorGroupRequest) GetSensorIds() []int64 {
+	if x != nil {
+		return x.SensorIds
+	}
+	return nil
+}
+
+type CreateSensorGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSensorGroupResponse) Reset() {
+	*x = CreateSensorGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSensorGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSensorGroupResponse) ProtoMessage() {}
+
+func (x *CreateSensorGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSensorGroupResponse.ProtoReflect.Descriptor instead.
+func (*CreateSensorGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *CreateSensorGroupResponse) GetGroup() *SensorGroup {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
+type GetSensorGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSensorGroupRequest) Reset() {
+	*x = GetSensorGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSensorGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSensorGroupRequest) ProtoMessage() {}
+
+func (x *GetSensorGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSensorGroupRequest.ProtoReflect.Descriptor instead.
+func (*GetSensorGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetSensorGroupRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetSensorGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	Sensors       []*Sensor              `protobuf:"bytes,2,rep,name=sensors,proto3" json:"sensors,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSensorGroupResponse) Reset() {
+	*x = GetSensorGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSensorGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSensorGroupResponse) ProtoMessage() {}
+
+func (x *GetSensorGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSensorGroupResponse.ProtoReflect.Descriptor instead.
+func (*GetSensorGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetSensorGroupResponse) GetGroup() *SensorGroup {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
+func (x *GetSensorGroupResponse) GetSensors() []*Sensor {
+	if x != nil {
+		return x.Sensors
+	}
+	return nil
+}
+
+type ListSensorGroupsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSensorGroupsRequest) Reset() {
+	*x = ListSensorGroupsRequest{}
+	mi := &file_sensor_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSensorGroupsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSensorGroupsRequest) ProtoMessage() {}
+
+func (x *ListSensorGroupsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSensorGroupsRequest.ProtoReflect.Descriptor instead.
+func (*ListSensorGroupsRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListSensorGroupsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ListSensorGroupsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Groups        []*SensorGroup         `protobuf:"bytes,1,rep,name=groups,proto3" json:"groups,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSensorGroupsResponse) Reset() {
+	*x = ListSensorGroupsResponse{}
+	mi := &file_sensor_service_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSensorGroupsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSensorGroupsResponse) ProtoMessage() {}
+
+func (x *ListSensorGroupsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSensorGroupsResponse.ProtoReflect.Descriptor instead.
+func (*ListSensorGroupsResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListSensorGroupsResponse) GetGroups() []*SensorGroup {
+	if x != nil {
+		return x.Groups
+	}
+	return nil
+}
+
+type UpdateSensorGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
+	Icon          string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
+	SensorIds     []int64                `protobuf:"varint,6,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSensorGroupRequest) Reset() {
+	*x = UpdateSensorGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSensorGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSensorGroupRequest) ProtoMessage() {}
+
+func (x *UpdateSensorGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSensorGroupRequest.ProtoReflect.Descriptor instead.
+func (*UpdateSensorGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UpdateSensorGroupRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdateSensorGroupRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateSensorGroupRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateSensorGroupRequest) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *UpdateSensorGroupRequest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *UpdateSensorGroupRequest) GetSensorIds() []int64 {
+	if x != nil {
+		return x.SensorIds
+	}
+	return nil
+}
+
+type UpdateSensorGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateSensorGroupResponse) Reset() {
+	*x = UpdateSensorGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateSensorGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateSensorGroupResponse) ProtoMessage() {}
+
+func (x *UpdateSensorGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateSensorGroupResponse.ProtoReflect.Descriptor instead.
+func (*UpdateSensorGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UpdateSensorGroupResponse) GetGroup() *SensorGroup {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
+type DeleteSensorGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSensorGroupRequest) Reset() {
+	*x = DeleteSensorGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSensorGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSensorGroupRequest) ProtoMessage() {}
+
+func (x *DeleteSensorGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSensorGroupRequest.ProtoReflect.Descriptor instead.
+func (*DeleteSensorGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *DeleteSensorGroupRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DeleteSensorGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteSensorGroupResponse) Reset() {
+	*x = DeleteSensorGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteSensorGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteSensorGroupResponse) ProtoMessage() {}
+
+func (x *DeleteSensorGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteSensorGroupResponse.ProtoReflect.Descriptor instead.
+func (*DeleteSensorGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{34}
+}
+
+type AddSensorsToGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       int64                  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	SensorIds     []int64                `protobuf:"varint,2,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddSensorsToGroupRequest) Reset() {
+	*x = AddSensorsToGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddSensorsToGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddSensorsToGroupRequest) ProtoMessage() {}
+
+func (x *AddSensorsToGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddSensorsToGroupRequest.ProtoReflect.Descriptor instead.
+func (*AddSensorsToGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *AddSensorsToGroupRequest) GetGroupId() int64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *AddSensorsToGroupRequest) GetSensorIds() []int64 {
+	if x != nil {
+		return x.SensorIds
+	}
+	return nil
+}
+
+type AddSensorsToGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddSensorsToGroupResponse) Reset() {
+	*x = AddSensorsToGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddSensorsToGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddSensorsToGroupResponse) ProtoMessage() {}
+
+func (x *AddSensorsToGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddSensorsToGroupResponse.ProtoReflect.Descriptor instead.
+func (*AddSensorsToGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *AddSensorsToGroupResponse) GetGroup() *SensorGroup {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
+type RemoveSensorsFromGroupRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       int64                  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	SensorIds     []int64                `protobuf:"varint,2,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveSensorsFromGroupRequest) Reset() {
+	*x = RemoveSensorsFromGroupRequest{}
+	mi := &file_sensor_service_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveSensorsFromGroupRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveSensorsFromGroupRequest) ProtoMessage() {}
+
+func (x *RemoveSensorsFromGroupRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveSensorsFromGroupRequest.ProtoReflect.Descriptor instead.
+func (*RemoveSensorsFromGroupRequest) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *RemoveSensorsFromGroupRequest) GetGroupId() int64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *RemoveSensorsFromGroupRequest) GetSensorIds() []int64 {
+	if x != nil {
+		return x.SensorIds
+	}
+	return nil
+}
+
+type RemoveSensorsFromGroupResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveSensorsFromGroupResponse) Reset() {
+	*x = RemoveSensorsFromGroupResponse{}
+	mi := &file_sensor_service_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveSensorsFromGroupResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveSensorsFromGroupResponse) ProtoMessage() {}
+
+func (x *RemoveSensorsFromGroupResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_sensor_service_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveSensorsFromGroupResponse.ProtoReflect.Descriptor instead.
+func (*RemoveSensorsFromGroupResponse) Descriptor() ([]byte, []int) {
+	return file_sensor_service_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *RemoveSensorsFromGroupResponse) GetGroup() *SensorGroup {
+	if x != nil {
+		return x.Group
+	}
+	return nil
+}
+
 var File_sensor_service_proto protoreflect.FileDescriptor
 
 const file_sensor_service_proto_rawDesc = "" +
@@ -1472,7 +2292,64 @@ const file_sensor_service_proto_rawDesc = "" +
 	"sensorType\")\n" +
 	"\x17DeleteSensorTypeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"\x1a\n" +
-	"\x18DeleteSensorTypeResponse2\xbb\b\n" +
+	"\x18DeleteSensorTypeResponse\"\xab\x02\n" +
+	"\vSensorGroup\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05color\x18\x04 \x01(\tR\x05color\x12\x12\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x17\n" +
+	"\auser_id\x18\x06 \x01(\x03R\x06userId\x129\n" +
+	"\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1d\n" +
+	"\n" +
+	"sensor_ids\x18\t \x03(\x03R\tsensorIds\"\xb2\x01\n" +
+	"\x18CreateSensorGroupRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\x12\x12\n" +
+	"\x04icon\x18\x04 \x01(\tR\x04icon\x12\x17\n" +
+	"\auser_id\x18\x05 \x01(\x03R\x06userId\x12\x1d\n" +
+	"\n" +
+	"sensor_ids\x18\x06 \x03(\x03R\tsensorIds\"N\n" +
+	"\x19CreateSensorGroupResponse\x121\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"'\n" +
+	"\x15GetSensorGroupRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"}\n" +
+	"\x16GetSensorGroupResponse\x121\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\x120\n" +
+	"\asensors\x18\x02 \x03(\v2\x16.sensor_service.SensorR\asensors\"2\n" +
+	"\x17ListSensorGroupsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"O\n" +
+	"\x18ListSensorGroupsResponse\x123\n" +
+	"\x06groups\x18\x01 \x03(\v2\x1b.sensor_service.SensorGroupR\x06groups\"\xa9\x01\n" +
+	"\x18UpdateSensorGroupRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
+	"\x05color\x18\x04 \x01(\tR\x05color\x12\x12\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x1d\n" +
+	"\n" +
+	"sensor_ids\x18\x06 \x03(\x03R\tsensorIds\"N\n" +
+	"\x19UpdateSensorGroupResponse\x121\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"*\n" +
+	"\x18DeleteSensorGroupRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x1b\n" +
+	"\x19DeleteSensorGroupResponse\"T\n" +
+	"\x18AddSensorsToGroupRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x03R\agroupId\x12\x1d\n" +
+	"\n" +
+	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\"N\n" +
+	"\x19AddSensorsToGroupResponse\x121\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"Y\n" +
+	"\x1dRemoveSensorsFromGroupRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x03R\agroupId\x12\x1d\n" +
+	"\n" +
+	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\"S\n" +
+	"\x1eRemoveSensorsFromGroupResponse\x121\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group2\xb2\x0e\n" +
 	"\rSensorService\x12g\n" +
 	"\x10CreateSensorType\x12'.sensor_service.CreateSensorTypeRequest\x1a(.sensor_service.CreateSensorTypeResponse\"\x00\x12^\n" +
 	"\rGetSensorType\x12$.sensor_service.GetSensorTypeRequest\x1a%.sensor_service.GetSensorTypeResponse\"\x00\x12d\n" +
@@ -1484,7 +2361,14 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\vListSensors\x12\".sensor_service.ListSensorsRequest\x1a#.sensor_service.ListSensorsResponse\"\x00\x12[\n" +
 	"\fUpdateSensor\x12#.sensor_service.UpdateSensorRequest\x1a$.sensor_service.UpdateSensorResponse\"\x00\x12[\n" +
 	"\fDeleteSensor\x12#.sensor_service.DeleteSensorRequest\x1a$.sensor_service.DeleteSensorResponse\"\x00\x12d\n" +
-	"\x0fSetSensorActive\x12&.sensor_service.SetSensorActiveRequest\x1a'.sensor_service.SetSensorActiveResponse\"\x00BGZEgithub.com/skni-kod/iot-monitor-backend/internal/proto/sensor_serviceb\x06proto3"
+	"\x0fSetSensorActive\x12&.sensor_service.SetSensorActiveRequest\x1a'.sensor_service.SetSensorActiveResponse\"\x00\x12j\n" +
+	"\x11CreateSensorGroup\x12(.sensor_service.CreateSensorGroupRequest\x1a).sensor_service.CreateSensorGroupResponse\"\x00\x12a\n" +
+	"\x0eGetSensorGroup\x12%.sensor_service.GetSensorGroupRequest\x1a&.sensor_service.GetSensorGroupResponse\"\x00\x12g\n" +
+	"\x10ListSensorGroups\x12'.sensor_service.ListSensorGroupsRequest\x1a(.sensor_service.ListSensorGroupsResponse\"\x00\x12j\n" +
+	"\x11UpdateSensorGroup\x12(.sensor_service.UpdateSensorGroupRequest\x1a).sensor_service.UpdateSensorGroupResponse\"\x00\x12j\n" +
+	"\x11DeleteSensorGroup\x12(.sensor_service.DeleteSensorGroupRequest\x1a).sensor_service.DeleteSensorGroupResponse\"\x00\x12j\n" +
+	"\x11AddSensorsToGroup\x12(.sensor_service.AddSensorsToGroupRequest\x1a).sensor_service.AddSensorsToGroupResponse\"\x00\x12y\n" +
+	"\x16RemoveSensorsFromGroup\x12-.sensor_service.RemoveSensorsFromGroupRequest\x1a..sensor_service.RemoveSensorsFromGroupResponse\"\x00BGZEgithub.com/skni-kod/iot-monitor-backend/internal/proto/sensor_serviceb\x06proto3"
 
 var (
 	file_sensor_service_proto_rawDescOnce sync.Once
@@ -1498,39 +2382,54 @@ func file_sensor_service_proto_rawDescGZIP() []byte {
 	return file_sensor_service_proto_rawDescData
 }
 
-var file_sensor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_sensor_service_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_sensor_service_proto_goTypes = []any{
-	(*SensorType)(nil),               // 0: sensor_service.SensorType
-	(*Sensor)(nil),                   // 1: sensor_service.Sensor
-	(*CreateSensorTypeRequest)(nil),  // 2: sensor_service.CreateSensorTypeRequest
-	(*CreateSensorTypeResponse)(nil), // 3: sensor_service.CreateSensorTypeResponse
-	(*GetSensorTypeRequest)(nil),     // 4: sensor_service.GetSensorTypeRequest
-	(*GetSensorTypeResponse)(nil),    // 5: sensor_service.GetSensorTypeResponse
-	(*ListSensorTypesRequest)(nil),   // 6: sensor_service.ListSensorTypesRequest
-	(*ListSensorTypesResponse)(nil),  // 7: sensor_service.ListSensorTypesResponse
-	(*CreateSensorRequest)(nil),      // 8: sensor_service.CreateSensorRequest
-	(*CreateSensorResponse)(nil),     // 9: sensor_service.CreateSensorResponse
-	(*GetSensorRequest)(nil),         // 10: sensor_service.GetSensorRequest
-	(*GetSensorResponse)(nil),        // 11: sensor_service.GetSensorResponse
-	(*ListSensorsRequest)(nil),       // 12: sensor_service.ListSensorsRequest
-	(*ListSensorsResponse)(nil),      // 13: sensor_service.ListSensorsResponse
-	(*UpdateSensorRequest)(nil),      // 14: sensor_service.UpdateSensorRequest
-	(*UpdateSensorResponse)(nil),     // 15: sensor_service.UpdateSensorResponse
-	(*DeleteSensorRequest)(nil),      // 16: sensor_service.DeleteSensorRequest
-	(*DeleteSensorResponse)(nil),     // 17: sensor_service.DeleteSensorResponse
-	(*SetSensorActiveRequest)(nil),   // 18: sensor_service.SetSensorActiveRequest
-	(*SetSensorActiveResponse)(nil),  // 19: sensor_service.SetSensorActiveResponse
-	(*UpdateSensorTypeRequest)(nil),  // 20: sensor_service.UpdateSensorTypeRequest
-	(*UpdateSensorTypeResponse)(nil), // 21: sensor_service.UpdateSensorTypeResponse
-	(*DeleteSensorTypeRequest)(nil),  // 22: sensor_service.DeleteSensorTypeRequest
-	(*DeleteSensorTypeResponse)(nil), // 23: sensor_service.DeleteSensorTypeResponse
-	(*timestamp.Timestamp)(nil),      // 24: google.protobuf.Timestamp
+	(*SensorType)(nil),                     // 0: sensor_service.SensorType
+	(*Sensor)(nil),                         // 1: sensor_service.Sensor
+	(*CreateSensorTypeRequest)(nil),        // 2: sensor_service.CreateSensorTypeRequest
+	(*CreateSensorTypeResponse)(nil),       // 3: sensor_service.CreateSensorTypeResponse
+	(*GetSensorTypeRequest)(nil),           // 4: sensor_service.GetSensorTypeRequest
+	(*GetSensorTypeResponse)(nil),          // 5: sensor_service.GetSensorTypeResponse
+	(*ListSensorTypesRequest)(nil),         // 6: sensor_service.ListSensorTypesRequest
+	(*ListSensorTypesResponse)(nil),        // 7: sensor_service.ListSensorTypesResponse
+	(*CreateSensorRequest)(nil),            // 8: sensor_service.CreateSensorRequest
+	(*CreateSensorResponse)(nil),           // 9: sensor_service.CreateSensorResponse
+	(*GetSensorRequest)(nil),               // 10: sensor_service.GetSensorRequest
+	(*GetSensorResponse)(nil),              // 11: sensor_service.GetSensorResponse
+	(*ListSensorsRequest)(nil),             // 12: sensor_service.ListSensorsRequest
+	(*ListSensorsResponse)(nil),            // 13: sensor_service.ListSensorsResponse
+	(*UpdateSensorRequest)(nil),            // 14: sensor_service.UpdateSensorRequest
+	(*UpdateSensorResponse)(nil),           // 15: sensor_service.UpdateSensorResponse
+	(*DeleteSensorRequest)(nil),            // 16: sensor_service.DeleteSensorRequest
+	(*DeleteSensorResponse)(nil),           // 17: sensor_service.DeleteSensorResponse
+	(*SetSensorActiveRequest)(nil),         // 18: sensor_service.SetSensorActiveRequest
+	(*SetSensorActiveResponse)(nil),        // 19: sensor_service.SetSensorActiveResponse
+	(*UpdateSensorTypeRequest)(nil),        // 20: sensor_service.UpdateSensorTypeRequest
+	(*UpdateSensorTypeResponse)(nil),       // 21: sensor_service.UpdateSensorTypeResponse
+	(*DeleteSensorTypeRequest)(nil),        // 22: sensor_service.DeleteSensorTypeRequest
+	(*DeleteSensorTypeResponse)(nil),       // 23: sensor_service.DeleteSensorTypeResponse
+	(*SensorGroup)(nil),                    // 24: sensor_service.SensorGroup
+	(*CreateSensorGroupRequest)(nil),       // 25: sensor_service.CreateSensorGroupRequest
+	(*CreateSensorGroupResponse)(nil),      // 26: sensor_service.CreateSensorGroupResponse
+	(*GetSensorGroupRequest)(nil),          // 27: sensor_service.GetSensorGroupRequest
+	(*GetSensorGroupResponse)(nil),         // 28: sensor_service.GetSensorGroupResponse
+	(*ListSensorGroupsRequest)(nil),        // 29: sensor_service.ListSensorGroupsRequest
+	(*ListSensorGroupsResponse)(nil),       // 30: sensor_service.ListSensorGroupsResponse
+	(*UpdateSensorGroupRequest)(nil),       // 31: sensor_service.UpdateSensorGroupRequest
+	(*UpdateSensorGroupResponse)(nil),      // 32: sensor_service.UpdateSensorGroupResponse
+	(*DeleteSensorGroupRequest)(nil),       // 33: sensor_service.DeleteSensorGroupRequest
+	(*DeleteSensorGroupResponse)(nil),      // 34: sensor_service.DeleteSensorGroupResponse
+	(*AddSensorsToGroupRequest)(nil),       // 35: sensor_service.AddSensorsToGroupRequest
+	(*AddSensorsToGroupResponse)(nil),      // 36: sensor_service.AddSensorsToGroupResponse
+	(*RemoveSensorsFromGroupRequest)(nil),  // 37: sensor_service.RemoveSensorsFromGroupRequest
+	(*RemoveSensorsFromGroupResponse)(nil), // 38: sensor_service.RemoveSensorsFromGroupResponse
+	(*timestamp.Timestamp)(nil),            // 39: google.protobuf.Timestamp
 }
 var file_sensor_service_proto_depIdxs = []int32{
-	24, // 0: sensor_service.SensorType.created_at:type_name -> google.protobuf.Timestamp
-	24, // 1: sensor_service.Sensor.last_updated:type_name -> google.protobuf.Timestamp
-	24, // 2: sensor_service.Sensor.created_at:type_name -> google.protobuf.Timestamp
-	24, // 3: sensor_service.Sensor.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 0: sensor_service.SensorType.created_at:type_name -> google.protobuf.Timestamp
+	39, // 1: sensor_service.Sensor.last_updated:type_name -> google.protobuf.Timestamp
+	39, // 2: sensor_service.Sensor.created_at:type_name -> google.protobuf.Timestamp
+	39, // 3: sensor_service.Sensor.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: sensor_service.Sensor.sensor_type:type_name -> sensor_service.SensorType
 	0,  // 5: sensor_service.CreateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
 	0,  // 6: sensor_service.GetSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
@@ -1541,33 +2440,56 @@ var file_sensor_service_proto_depIdxs = []int32{
 	1,  // 11: sensor_service.UpdateSensorResponse.sensor:type_name -> sensor_service.Sensor
 	1,  // 12: sensor_service.SetSensorActiveResponse.sensor:type_name -> sensor_service.Sensor
 	0,  // 13: sensor_service.UpdateSensorTypeResponse.sensor_type:type_name -> sensor_service.SensorType
-	2,  // 14: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
-	4,  // 15: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
-	6,  // 16: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
-	20, // 17: sensor_service.SensorService.UpdateSensorType:input_type -> sensor_service.UpdateSensorTypeRequest
-	22, // 18: sensor_service.SensorService.DeleteSensorType:input_type -> sensor_service.DeleteSensorTypeRequest
-	8,  // 19: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
-	10, // 20: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
-	12, // 21: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
-	14, // 22: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
-	16, // 23: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
-	18, // 24: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
-	3,  // 25: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
-	5,  // 26: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
-	7,  // 27: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
-	21, // 28: sensor_service.SensorService.UpdateSensorType:output_type -> sensor_service.UpdateSensorTypeResponse
-	23, // 29: sensor_service.SensorService.DeleteSensorType:output_type -> sensor_service.DeleteSensorTypeResponse
-	9,  // 30: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
-	11, // 31: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
-	13, // 32: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
-	15, // 33: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
-	17, // 34: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
-	19, // 35: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
-	25, // [25:36] is the sub-list for method output_type
-	14, // [14:25] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	39, // 14: sensor_service.SensorGroup.created_at:type_name -> google.protobuf.Timestamp
+	39, // 15: sensor_service.SensorGroup.updated_at:type_name -> google.protobuf.Timestamp
+	24, // 16: sensor_service.CreateSensorGroupResponse.group:type_name -> sensor_service.SensorGroup
+	24, // 17: sensor_service.GetSensorGroupResponse.group:type_name -> sensor_service.SensorGroup
+	1,  // 18: sensor_service.GetSensorGroupResponse.sensors:type_name -> sensor_service.Sensor
+	24, // 19: sensor_service.ListSensorGroupsResponse.groups:type_name -> sensor_service.SensorGroup
+	24, // 20: sensor_service.UpdateSensorGroupResponse.group:type_name -> sensor_service.SensorGroup
+	24, // 21: sensor_service.AddSensorsToGroupResponse.group:type_name -> sensor_service.SensorGroup
+	24, // 22: sensor_service.RemoveSensorsFromGroupResponse.group:type_name -> sensor_service.SensorGroup
+	2,  // 23: sensor_service.SensorService.CreateSensorType:input_type -> sensor_service.CreateSensorTypeRequest
+	4,  // 24: sensor_service.SensorService.GetSensorType:input_type -> sensor_service.GetSensorTypeRequest
+	6,  // 25: sensor_service.SensorService.ListSensorTypes:input_type -> sensor_service.ListSensorTypesRequest
+	20, // 26: sensor_service.SensorService.UpdateSensorType:input_type -> sensor_service.UpdateSensorTypeRequest
+	22, // 27: sensor_service.SensorService.DeleteSensorType:input_type -> sensor_service.DeleteSensorTypeRequest
+	8,  // 28: sensor_service.SensorService.CreateSensor:input_type -> sensor_service.CreateSensorRequest
+	10, // 29: sensor_service.SensorService.GetSensor:input_type -> sensor_service.GetSensorRequest
+	12, // 30: sensor_service.SensorService.ListSensors:input_type -> sensor_service.ListSensorsRequest
+	14, // 31: sensor_service.SensorService.UpdateSensor:input_type -> sensor_service.UpdateSensorRequest
+	16, // 32: sensor_service.SensorService.DeleteSensor:input_type -> sensor_service.DeleteSensorRequest
+	18, // 33: sensor_service.SensorService.SetSensorActive:input_type -> sensor_service.SetSensorActiveRequest
+	25, // 34: sensor_service.SensorService.CreateSensorGroup:input_type -> sensor_service.CreateSensorGroupRequest
+	27, // 35: sensor_service.SensorService.GetSensorGroup:input_type -> sensor_service.GetSensorGroupRequest
+	29, // 36: sensor_service.SensorService.ListSensorGroups:input_type -> sensor_service.ListSensorGroupsRequest
+	31, // 37: sensor_service.SensorService.UpdateSensorGroup:input_type -> sensor_service.UpdateSensorGroupRequest
+	33, // 38: sensor_service.SensorService.DeleteSensorGroup:input_type -> sensor_service.DeleteSensorGroupRequest
+	35, // 39: sensor_service.SensorService.AddSensorsToGroup:input_type -> sensor_service.AddSensorsToGroupRequest
+	37, // 40: sensor_service.SensorService.RemoveSensorsFromGroup:input_type -> sensor_service.RemoveSensorsFromGroupRequest
+	3,  // 41: sensor_service.SensorService.CreateSensorType:output_type -> sensor_service.CreateSensorTypeResponse
+	5,  // 42: sensor_service.SensorService.GetSensorType:output_type -> sensor_service.GetSensorTypeResponse
+	7,  // 43: sensor_service.SensorService.ListSensorTypes:output_type -> sensor_service.ListSensorTypesResponse
+	21, // 44: sensor_service.SensorService.UpdateSensorType:output_type -> sensor_service.UpdateSensorTypeResponse
+	23, // 45: sensor_service.SensorService.DeleteSensorType:output_type -> sensor_service.DeleteSensorTypeResponse
+	9,  // 46: sensor_service.SensorService.CreateSensor:output_type -> sensor_service.CreateSensorResponse
+	11, // 47: sensor_service.SensorService.GetSensor:output_type -> sensor_service.GetSensorResponse
+	13, // 48: sensor_service.SensorService.ListSensors:output_type -> sensor_service.ListSensorsResponse
+	15, // 49: sensor_service.SensorService.UpdateSensor:output_type -> sensor_service.UpdateSensorResponse
+	17, // 50: sensor_service.SensorService.DeleteSensor:output_type -> sensor_service.DeleteSensorResponse
+	19, // 51: sensor_service.SensorService.SetSensorActive:output_type -> sensor_service.SetSensorActiveResponse
+	26, // 52: sensor_service.SensorService.CreateSensorGroup:output_type -> sensor_service.CreateSensorGroupResponse
+	28, // 53: sensor_service.SensorService.GetSensorGroup:output_type -> sensor_service.GetSensorGroupResponse
+	30, // 54: sensor_service.SensorService.ListSensorGroups:output_type -> sensor_service.ListSensorGroupsResponse
+	32, // 55: sensor_service.SensorService.UpdateSensorGroup:output_type -> sensor_service.UpdateSensorGroupResponse
+	34, // 56: sensor_service.SensorService.DeleteSensorGroup:output_type -> sensor_service.DeleteSensorGroupResponse
+	36, // 57: sensor_service.SensorService.AddSensorsToGroup:output_type -> sensor_service.AddSensorsToGroupResponse
+	38, // 58: sensor_service.SensorService.RemoveSensorsFromGroup:output_type -> sensor_service.RemoveSensorsFromGroupResponse
+	41, // [41:59] is the sub-list for method output_type
+	23, // [23:41] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_sensor_service_proto_init() }
@@ -1581,7 +2503,7 @@ func file_sensor_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sensor_service_proto_rawDesc), len(file_sensor_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

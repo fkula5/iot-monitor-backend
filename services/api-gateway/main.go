@@ -137,8 +137,8 @@ func main() {
 
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
+	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	// Pass both dataClient and sensorClient to WebSocketHandler
 	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
 
 	apiRouter := chi.NewRouter()
@@ -147,7 +147,7 @@ func main() {
 
 	routes.SetupSensorRoutes(apiRouter, sensorHandler)
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
-
+	routes.SetupSensorGroupRoutes(apiRouter, sensorGroupHandler)
 	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)

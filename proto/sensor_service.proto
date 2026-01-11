@@ -19,6 +19,14 @@ service SensorService {
     rpc UpdateSensor(UpdateSensorRequest) returns (UpdateSensorResponse) {}
     rpc DeleteSensor(DeleteSensorRequest) returns (DeleteSensorResponse) {}
     rpc SetSensorActive(SetSensorActiveRequest) returns (SetSensorActiveResponse) {}
+
+    rpc CreateSensorGroup(CreateSensorGroupRequest) returns (CreateSensorGroupResponse) {}
+    rpc GetSensorGroup(GetSensorGroupRequest) returns (GetSensorGroupResponse) {}
+    rpc ListSensorGroups(ListSensorGroupsRequest) returns (ListSensorGroupsResponse) {}
+    rpc UpdateSensorGroup(UpdateSensorGroupRequest) returns (UpdateSensorGroupResponse) {}
+    rpc DeleteSensorGroup(DeleteSensorGroupRequest) returns (DeleteSensorGroupResponse) {}
+    rpc AddSensorsToGroup(AddSensorsToGroupRequest) returns (AddSensorsToGroupResponse) {}
+    rpc RemoveSensorsFromGroup(RemoveSensorsFromGroupRequest) returns (RemoveSensorsFromGroupResponse) {}
 }
 
 message SensorType {
@@ -150,3 +158,82 @@ message DeleteSensorTypeRequest {
 }
 
 message DeleteSensorTypeResponse {}
+
+message SensorGroup {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    string color = 4;
+    string icon = 5;
+    int64 user_id = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+    repeated int64 sensor_ids = 9;
+}
+
+message CreateSensorGroupRequest {
+    string name = 1;
+    string description = 2;
+    string color = 3;
+    string icon = 4;
+    int64 user_id = 5;
+    repeated int64 sensor_ids = 6;
+}
+
+message CreateSensorGroupResponse {
+    SensorGroup group = 1;
+}
+
+message GetSensorGroupRequest {
+    int64 id = 1;
+}
+
+message GetSensorGroupResponse {
+    SensorGroup group = 1;
+    repeated Sensor sensors = 2;
+}
+
+message ListSensorGroupsRequest {
+    int64 user_id = 1;
+}
+
+message ListSensorGroupsResponse {
+    repeated SensorGroup groups = 1;
+}
+
+message UpdateSensorGroupRequest {
+    int64 id = 1;
+    string name = 2;
+    string description = 3;
+    string color = 4;
+    string icon = 5;
+    repeated int64 sensor_ids = 6;
+}
+
+message UpdateSensorGroupResponse {
+    SensorGroup group = 1;
+}
+
+message DeleteSensorGroupRequest {
+    int64 id = 1;
+}
+
+message DeleteSensorGroupResponse {}
+
+message AddSensorsToGroupRequest {
+    int64 group_id = 1;
+    repeated int64 sensor_ids = 2;
+}
+
+message AddSensorsToGroupResponse {
+    SensorGroup group = 1;
+}
+
+message RemoveSensorsFromGroupRequest {
+    int64 group_id = 1;
+    repeated int64 sensor_ids = 2;
+}
+
+message RemoveSensorsFromGroupResponse {
+    SensorGroup group = 1;
+}

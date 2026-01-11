@@ -87,10 +87,12 @@ func main() {
 
 	sensorsStore := storage.NewSensorStorage(db)
 	sensorsTypeStore := storage.NewSensorTypeStorage(db)
+	sensorsGroupStore := storage.NewSensorGroupStorage(db)
 	sensorsService := services.NewSensorService(sensorsStore)
 	sensorsTypeService := services.NewSensorTypeService(sensorsTypeStore)
-	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService)
+	sensorsGroupService := services.NewSensorGroupService(sensorsGroupStore)
 
+	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService, sensorsGroupService)
 	logger.Info("Starting Sensor Service gRPC server on port", zap.String("port", grpcPort))
 	if err := grpcServer.Serve(lis); err != nil {
 		logger.Fatal("Failed to serve", zap.Error(err))

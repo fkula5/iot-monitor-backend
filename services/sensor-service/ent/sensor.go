@@ -46,9 +46,11 @@ type Sensor struct {
 type SensorEdges struct {
 	// The type of this sensor
 	Type *SensorType `json:"type,omitempty"`
+	// Groups this sensor belongs to
+	Groups []*SensorGroup `json:"groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TypeOrErr returns the Type value or an error if the edge
@@ -60,6 +62,15 @@ func (e SensorEdges) TypeOrErr() (*SensorType, error) {
 		return nil, &NotFoundError{label: sensortype.Label}
 	}
 	return nil, &NotLoadedError{edge: "type"}
+}
+
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e SensorEdges) GroupsOrErr() ([]*SensorGroup, error) {
+	if e.loadedTypes[1] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -178,6 +189,11 @@ func (s *Sensor) Value(name string) (ent.Value, error) {
 // QueryType queries the "type" edge of the Sensor entity.
 func (s *Sensor) QueryType() *SensorTypeQuery {
 	return NewSensorClient(s.config).QueryType(s)
+}
+
+// QueryGroups queries the "groups" edge of the Sensor entity.
+func (s *Sensor) QueryGroups() *SensorGroupQuery {
+	return NewSensorClient(s.config).QueryGroups(s)
 }
 
 // Update returns a builder for updating this Sensor.

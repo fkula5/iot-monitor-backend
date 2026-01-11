@@ -9,7 +9,7 @@ This project provides a comprehensive backend infrastructure for IoT device moni
 ### Core Services
 
 - **Authentication Service**: User management and JWT-based authentication
-- **Sensor Service**: Core service for managing sensors and sensor types
+- **Sensor Service**: Core service for managing sensors, sensor types, and sensor groups
 - **Data Processing Service**: Time-series data storage and retrieval using TimescaleDB
 - **API Gateway**: REST API interface for external clients with JWT authentication middleware and WebSocket support
 - **Data Generation Service**: Simulates IoT sensors for testing and development
@@ -37,6 +37,7 @@ flowchart TD
         Middleware["Middleware </br>- Logger</br>- RequestID</br>- Timeout</br>- Recoverer</br>- CORS</br>- JWT Auth"]
         SensorRoutes["Sensor Routes</br>- List Sensors</br>- Get Sensor</br>- Create Sensor</br>- Update Sensor</br>- Delete Sensor</br>- Set Sensor Active"]
         SensorTypeRoutes["Sensor Type Routes</br>- List Sensor Types</br>- Get Sensor Type</br>- Create Sensor Type</br>- Update Sensor Type</br>- Delete Sensor Type"]
+        SensorGroupRoutes["Sensor Group Routes</br>- List Groups</br>- Get Group</br>- Create Group</br>- Update Group</br>- Delete Group</br>- Add/Remove Sensors"]
         AuthRoutes["Auth Routes</br>- Register</br>- Login"]
         DataRoutes["Data Routes</br>- WebSocket Stream</br>- Latest Readings</br>- Historical Data"]
     end
@@ -63,15 +64,18 @@ flowchart TD
         GrpcServer["gRPC Server"]
         SensorServiceImpl["Sensor Service Implementation"]
         SensorTypeServiceImpl["Sensor Type Service Implementation"]
+        SensorGroupServiceImpl["Sensor Group Service Implementation"]
 
         subgraph "Service Layer"
             SensorService["Sensor Service"]
             SensorTypeService["Sensor Type Service"]
+            SensorGroupService["Sensor Group Service"]
         end
 
         subgraph "Storage Layer"
             SensorStorage["Sensor Storage"]
             SensorTypeStorage["Sensor Type Storage"]
+            SensorGroupStorage["Sensor Group Storage"]
             EntClient["Ent ORM Client"]
         end
     end
@@ -94,7 +98,7 @@ flowchart TD
     %% Database Server
     subgraph "PostgreSQL Server"
         AuthPostgresDB[(users DB)]
-        SensorsDB[(sensors DB)]
+        SensorsDB[(sensors DB</br>+ sensor_groups</br>+ sensor_group_sensors)]
         DataDB[("sensor_readings DB</br>(TimescaleDB)")]
     end
 
@@ -116,6 +120,7 @@ flowchart TD
     Middleware --> ApiRoutes
     ApiRoutes --> SensorRoutes
     ApiRoutes --> SensorTypeRoutes
+    ApiRoutes --> SensorGroupRoutes
     ApiRoutes --> AuthRoutes
     ApiRoutes --> DataRoutes
 
@@ -123,6 +128,7 @@ flowchart TD
     AuthRoutes -- "gRPC Client" --> AuthGrpcServer
     SensorRoutes -- "gRPC Client" --> GrpcServer
     SensorTypeRoutes -- "gRPC Client" --> GrpcServer
+    SensorGroupRoutes -- "gRPC Client" --> GrpcServer
     DataRoutes -- "gRPC Client" --> DataGrpcServer
 
     %% Auth Service internal connections
@@ -137,12 +143,16 @@ flowchart TD
     %% Sensor Service internal connections
     GrpcServer --> SensorServiceImpl
     GrpcServer --> SensorTypeServiceImpl
+    GrpcServer --> SensorGroupServiceImpl
     SensorServiceImpl --> SensorService
     SensorTypeServiceImpl --> SensorTypeService
+    SensorGroupServiceImpl --> SensorGroupService
     SensorService --> SensorStorage
     SensorTypeService --> SensorTypeStorage
+    SensorGroupService --> SensorGroupStorage
     SensorStorage --> EntClient
     SensorTypeStorage --> EntClient
+    SensorGroupStorage --> EntClient
     EntClient --> SensorsDB
 
     %% Data Processing Service internal connections
@@ -169,9 +179,9 @@ flowchart TD
 
     %% Apply styles
     class WebClient,MobileClient client
-    class ChiRouter,ApiRoutes,Middleware,SensorRoutes,SensorTypeRoutes,AuthRoutes,DataRoutes apiGateway
+    class ChiRouter,ApiRoutes,Middleware,SensorRoutes,SensorTypeRoutes,SensorGroupRoutes,AuthRoutes,DataRoutes apiGateway
     class AuthGrpcServer,AuthServiceImpl,AuthService,JWTService,PasswordService,UserStorage,AuthEntClient authService
-    class GrpcServer,SensorServiceImpl,SensorTypeServiceImpl,SensorService,SensorTypeService,SensorStorage,SensorTypeStorage,EntClient sensorService
+    class GrpcServer,SensorServiceImpl,SensorTypeServiceImpl,SensorGroupServiceImpl,SensorService,SensorTypeService,SensorGroupService,SensorStorage,SensorTypeStorage,SensorGroupStorage,EntClient sensorService
     class DataGrpcServer,DataServiceImpl,DataService,StreamManager,TimescaleStorage dataService
     class Generator,ValueGenerator dataGeneration
     class AuthPostgresDB,SensorsDB,DataDB database
@@ -192,12 +202,22 @@ flowchart TD
 - Enable/disable sensors for monitoring
 - Associate sensors with sensor types
 - Track sensor locations and descriptions
+- **NEW:** Organize sensors into groups
 
 ### Sensor Type Management
 
 - Define sensor types with specific properties (model, manufacturer, unit)
 - Set value ranges (min/max) for each sensor type
 - Full CRUD operations on sensor types
+
+### Sensor Group Management
+
+- **Create custom groups** to organize sensors by location, type, or any criteria
+- **Assign multiple sensors** to multiple groups (many-to-many relationship)
+- **Visual customization** with colors and icons
+- **Add/remove sensors** from groups dynamically
+- **Group statistics** and sensor count tracking
+- **Search and filter** groups by name or description
 
 ### Real-Time Data Streaming
 
@@ -262,7 +282,7 @@ flowchart TD
 │       └── data_service        # Data processing service protobuf
 ├── proto              # Protocol buffer definition files
 │   ├── auth.proto             # Auth service definitions
-│   ├── sensor_service.proto   # Sensor service definitions
+│   ├── sensor_service.proto   # Sensor service definitions (includes groups)
 │   └── data_service.proto     # Data processing service definitions
 ├── services           # Microservices
 │   ├── api-gateway    # REST API gateway service
@@ -270,6 +290,7 @@ flowchart TD
 │   │   │   ├── auth.go        # Authentication endpoints
 │   │   │   ├── sensor.go      # Sensor endpoints
 │   │   │   ├── sensortype.go  # Sensor type endpoints
+│   │   │   ├── sensorgroup.go # Sensor group endpoints
 │   │   │   └── websocket.go   # WebSocket and data endpoints
 │   │   ├── middleware # HTTP middleware
 │   │   │   └── jwt.go         # JWT authentication middleware
@@ -277,6 +298,7 @@ flowchart TD
 │   │   │   ├── auth.go        # Auth routes
 │   │   │   ├── sensor.go      # Sensor routes
 │   │   │   ├── sensortype.go  # Sensor type routes
+│   │   │   ├── sensorgroup.go # Sensor group routes
 │   │   │   └── data.go        # Data streaming routes
 │   │   ├── docs       # Swagger documentation
 │   │   └── main.go            # Gateway entry point
@@ -306,15 +328,18 @@ flowchart TD
 │       ├── ent        # Ent entity definitions
 │       │   └── schema         # Database schemas
 │       │       ├── sensor.go       # Sensor entity
-│       │       └── sensortype.go   # Sensor type entity
+│       │       ├── sensortype.go   # Sensor type entity
+│       │       └── sensorgroup.go  # Sensor group entity
 │       ├── handlers   # gRPC request handlers
 │       │   └── grpc.go        # Sensor gRPC handlers
 │       ├── services   # Business logic
 │       │   ├── sensor.go      # Sensor service
-│       │   └── sensortype.go  # Sensor type service
+│       │   ├── sensortype.go  # Sensor type service
+│       │   └── sensorgroup.go # Sensor group service
 │       ├── storage    # Data persistence
 │       │   ├── sensor.go      # Sensor storage
-│       │   └── sensortype.go  # Sensor type storage
+│       │   ├── sensortype.go  # Sensor type storage
+│       │   └── sensorgroup.go # Sensor group storage
 │       └── main.go            # Sensor service entry point
 ├── init-db.sh         # Database initialization script
 ├── docker-compose.yml # Docker compose configuration
@@ -404,8 +429,13 @@ flowchart TD
    CREATE EXTENSION IF NOT EXISTS timescaledb;
    ```
 
-3. The Ent ORM will automatically create the necessary tables when each service starts.
-4. TimescaleDB hypertables are created by the init-db.sh script (for Docker) or manually for local setup.
+3. The Ent ORM will automatically create the necessary tables when each service starts:
+   - `users` - user accounts
+   - `sensors` - sensor devices
+   - `sensor_types` - sensor type definitions
+   - `sensor_groups` - sensor groups
+   - `sensor_group_sensors` - many-to-many relationship table
+   - `sensor_readings` - time-series data (TimescaleDB hypertable)
 
 ### Compilation
 
@@ -554,6 +584,48 @@ Start the services in the following order:
 - `PUT /api/sensor-types/{id}` - Update sensor type
 - `DELETE /api/sensor-types/{id}` - Delete sensor type
 
+### Sensor Group Endpoints
+
+**Base URL:** `http://localhost:8080/api/sensor-groups`
+
+**Note:** All sensor group endpoints require JWT authentication via `Authorization: Bearer <token>` header
+
+- `GET /api/sensor-groups` - List all sensor groups
+- `GET /api/sensor-groups/{id}` - Get sensor group by ID with sensors
+- `POST /api/sensor-groups` - Create a new sensor group
+  ```json
+  {
+    "name": "Temperature Sensors",
+    "description": "All temperature monitoring sensors",
+    "color": "#3B82F6",
+    "icon": "thermometer",
+    "sensor_ids": [1, 2, 3]
+  }
+  ```
+- `PUT /api/sensor-groups/{id}` - Update sensor group
+  ```json
+  {
+    "name": "Updated Group Name",
+    "description": "Updated description",
+    "color": "#10B981",
+    "icon": "folder",
+    "sensor_ids": [1, 2, 3, 4]
+  }
+  ```
+- `DELETE /api/sensor-groups/{id}` - Delete sensor group
+- `POST /api/sensor-groups/{id}/sensors` - Add sensors to group
+  ```json
+  {
+    "sensor_ids": [5, 6, 7]
+  }
+  ```
+- `DELETE /api/sensor-groups/{id}/sensors` - Remove sensors from group
+  ```json
+  {
+    "sensor_ids": [1, 2]
+  }
+  ```
+
 ### Data Endpoints
 
 **Base URL:** `http://localhost:8080/api/data`
@@ -634,6 +706,25 @@ go generate ./services/sensor-service/ent
 
 2. Sensors are automatically created as active and will be included in data generation.
 
+### Creating Sensor Groups
+
+1. Create a group to organize sensors:
+
+   ```json
+   {
+     "name": "Ground Floor Sensors",
+     "description": "All sensors on the ground floor",
+     "color": "#3B82F6",
+     "icon": "home",
+     "sensor_ids": [1, 2, 3, 4]
+   }
+   ```
+
+2. Groups can be used to:
+   - Organize sensors by location (e.g., "Kitchen", "Bedroom")
+   - Group by type (e.g., "Temperature Sensors", "Motion Detectors")
+   - Create custom categories (e.g., "Critical Sensors", "Backup Sensors")
+
 ## Architecture Decisions
 
 ### Microservice Communication
@@ -655,6 +746,14 @@ go generate ./services/sensor-service/ent
 - Automatic data partitioning by time for optimal query performance
 - Ent ORM provides type-safe database operations
 - Schema migrations are handled automatically by Ent
+- Many-to-many relationships for sensor groups using junction tables
+
+### Sensor Group Architecture
+
+- **Many-to-Many Relationship**: Sensors can belong to multiple groups, and groups can contain multiple sensors
+- **Visual Organization**: Each group has a color and icon for easy identification
+- **Flexible Categorization**: Groups can be created based on any criteria (location, type, priority, etc.)
+- **Non-Destructive**: Deleting a group does not affect the sensors in it
 
 ### Data Generation
 
@@ -670,10 +769,61 @@ The data generation service can be used for testing the system:
 
 1. Create sensor types with appropriate ranges
 2. Create sensors associated with those types
-3. Set sensors to active
-4. The data generator will automatically start producing values every minute
-5. Connect to the WebSocket endpoint to receive real-time updates
-6. Use the API endpoints to query historical data
+3. (Optional) Create groups to organize sensors
+4. Set sensors to active
+5. The data generator will automatically start producing values every minute
+6. Connect to the WebSocket endpoint to receive real-time updates
+7. Use the API endpoints to query historical data
+
+## Use Cases for Sensor Groups
+
+### Location-Based Grouping
+
+```json
+{
+  "name": "Kitchen Sensors",
+  "description": "All sensors in the kitchen area",
+  "color": "#F59E0B",
+  "icon": "home",
+  "sensor_ids": [1, 2, 3]
+}
+```
+
+### Type-Based Grouping
+
+```json
+{
+  "name": "Temperature Monitors",
+  "description": "All temperature sensors across the building",
+  "color": "#EF4444",
+  "icon": "thermometer",
+  "sensor_ids": [1, 5, 9, 13]
+}
+```
+
+### Priority-Based Grouping
+
+```json
+{
+  "name": "Critical Infrastructure",
+  "description": "Mission-critical sensors requiring immediate attention",
+  "color": "#DC2626",
+  "icon": "alert-triangle",
+  "sensor_ids": [2, 7, 11]
+}
+```
+
+### Project-Based Grouping
+
+```json
+{
+  "name": "Smart Home Project",
+  "description": "Sensors for the smart home automation project",
+  "color": "#8B5CF6",
+  "icon": "star",
+  "sensor_ids": [1, 2, 3, 4, 5]
+}
+```
 
 ## Production Deployment
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/schema"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -34,6 +35,26 @@ func init() {
 	sensor.DefaultUpdatedAt = sensorDescUpdatedAt.Default.(func() time.Time)
 	// sensor.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	sensor.UpdateDefaultUpdatedAt = sensorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	sensorgroupFields := schema.SensorGroup{}.Fields()
+	_ = sensorgroupFields
+	// sensorgroupDescName is the schema descriptor for name field.
+	sensorgroupDescName := sensorgroupFields[0].Descriptor()
+	// sensorgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	sensorgroup.NameValidator = sensorgroupDescName.Validators[0].(func(string) error)
+	// sensorgroupDescColor is the schema descriptor for color field.
+	sensorgroupDescColor := sensorgroupFields[2].Descriptor()
+	// sensorgroup.DefaultColor holds the default value on creation for the color field.
+	sensorgroup.DefaultColor = sensorgroupDescColor.Default.(string)
+	// sensorgroupDescCreatedAt is the schema descriptor for created_at field.
+	sensorgroupDescCreatedAt := sensorgroupFields[5].Descriptor()
+	// sensorgroup.DefaultCreatedAt holds the default value on creation for the created_at field.
+	sensorgroup.DefaultCreatedAt = sensorgroupDescCreatedAt.Default.(func() time.Time)
+	// sensorgroupDescUpdatedAt is the schema descriptor for updated_at field.
+	sensorgroupDescUpdatedAt := sensorgroupFields[6].Descriptor()
+	// sensorgroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	sensorgroup.DefaultUpdatedAt = sensorgroupDescUpdatedAt.Default.(func() time.Time)
+	// sensorgroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	sensorgroup.UpdateDefaultUpdatedAt = sensorgroupDescUpdatedAt.UpdateDefault.(func() time.Time)
 	sensortypeFields := schema.SensorType{}.Fields()
 	_ = sensortypeFields
 	// sensortypeDescName is the schema descriptor for name field.
