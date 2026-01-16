@@ -215,7 +215,7 @@ func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSen
 	}, nil
 }
 
-func (h *SensorsGrpcHandler) CreateGroup(ctx context.Context, req *pb.CreateSensorGroupRequest) (*pb.CreateSensorGroupResponse, error) {
+func (h *SensorsGrpcHandler) CreateSensorGroup(ctx context.Context, req *pb.CreateSensorGroupRequest) (*pb.CreateSensorGroupResponse, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "Group name is required")
 	}
@@ -239,7 +239,7 @@ func (h *SensorsGrpcHandler) CreateGroup(ctx context.Context, req *pb.CreateSens
 	}, nil
 }
 
-func (h *SensorsGrpcHandler) GetGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
+func (h *SensorsGrpcHandler) GetSensorGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
 	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "sensor group not found")
@@ -298,7 +298,7 @@ func (h *SensorsGrpcHandler) UpdateSensorGroup(ctx context.Context, req *pb.Upda
 	}, nil
 }
 
-func (h *SensorsGrpcHandler) DeleteGroup(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
+func (h *SensorsGrpcHandler) DeleteSensorGroupZ(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
 	if req.Id <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
 	}
