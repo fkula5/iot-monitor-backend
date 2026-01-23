@@ -298,7 +298,7 @@ func (h *SensorsGrpcHandler) UpdateSensorGroup(ctx context.Context, req *pb.Upda
 	}, nil
 }
 
-func (h *SensorsGrpcHandler) DeleteSensorGroupZ(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
+func (h *SensorsGrpcHandler) DeleteSensorGroup(ctx context.Context, req *pb.DeleteSensorGroupRequest) (*pb.DeleteSensorGroupResponse, error) {
 	if req.Id <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
 	}
