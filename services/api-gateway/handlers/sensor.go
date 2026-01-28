@@ -76,60 +76,23 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
 	if !ok {
-		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{UserId: int64(claims.UserId)})
 	if err != nil {
-		http.Error(w, "Failed to fetch sensors: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to fetch sensors", http.StatusInternalServerError)
 		return
 	}
 
 	sensorResponses := make([]SensorResponse, 0, len(res.Sensors))
-	for _, sensor := range res.Sensors {
-		sensorWithType := SensorResponse{
-			ID:          sensor.Id,
-			Name:        sensor.Name,
-			Location:    sensor.Location,
-			Description: sensor.Description,
-			Active:      sensor.Active,
-			CreatedAt:   sensor.CreatedAt.AsTime(),
-			UpdatedAt:   sensor.UpdatedAt.AsTime(),
-		}
-
-		if sensor.LastUpdated != nil {
-			t := sensor.LastUpdated.AsTime()
-			sensorWithType.LastUpdated = &t
-		}
-
-		if sensor.SensorTypeId > 0 {
-			typeRes, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{
-				Id: sensor.SensorTypeId,
-			})
-			if err == nil && typeRes.SensorType != nil {
-				sensorWithType.SensorType = &SensorTypeResponse{
-					ID:           typeRes.SensorType.Id,
-					Name:         typeRes.SensorType.Name,
-					Model:        typeRes.SensorType.Model,
-					Manufacturer: typeRes.SensorType.Manufacturer,
-					Description:  typeRes.SensorType.Description,
-					Unit:         typeRes.SensorType.Unit,
-					MinValue:     typeRes.SensorType.MinValue,
-					MaxValue:     typeRes.SensorType.MaxValue,
-				}
-			}
-		}
-
-		sensorResponses = append(sensorResponses, sensorWithType)
+	for _, s := range res.Sensors {
+		sensorResponses = append(sensorResponses, h.mapToSensorResponse(ctx, s))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(sensorResponses)
-	if err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	json.NewEncoder(w).Encode(sensorResponses)
 }
 
 // @Summary GetSensor retrieves a sensor by ID.
@@ -166,12 +129,11 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	response := h.mapToSensorResponse(ctx, res.Sensor)
 
-	err = json.NewEncoder(w).Encode(res.Sensor)
-	if err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-		return
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
 
@@ -416,4 +378,42 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) SensorResponse {
+	response := SensorResponse{
+		ID:          s.Id,
+		Name:        s.Name,
+		Location:    s.Location,
+		Description: s.Description,
+		Active:      s.Active,
+		CreatedAt:   s.CreatedAt.AsTime(),
+		UpdatedAt:   s.UpdatedAt.AsTime(),
+	}
+
+	if s.LastUpdated != nil {
+		t := s.LastUpdated.AsTime()
+		response.LastUpdated = &t
+	}
+
+	// Fetch SensorType details if ID exists
+	if s.SensorTypeId > 0 {
+		typeRes, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{
+			Id: s.SensorTypeId,
+		})
+		if err == nil && typeRes.SensorType != nil {
+			response.SensorType = &SensorTypeResponse{
+				ID:           typeRes.SensorType.Id,
+				Name:         typeRes.SensorType.Name,
+				Model:        typeRes.SensorType.Model,
+				Manufacturer: typeRes.SensorType.Manufacturer,
+				Description:  typeRes.SensorType.Description,
+				Unit:         typeRes.SensorType.Unit,
+				MinValue:     typeRes.SensorType.MinValue,
+				MaxValue:     typeRes.SensorType.MaxValue,
+			}
+		}
+	}
+
+	return response
 }
