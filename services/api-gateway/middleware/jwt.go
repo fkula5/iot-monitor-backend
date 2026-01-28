@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/skni-kod/iot-monitor-backend/internal/auth"
 )
@@ -49,6 +50,11 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		claims, err := m.jwtService.ValidateToken(token)
 		if err != nil {
 			http.Error(w, "Invalid or expired token: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+			http.Error(w, "Token expired", http.StatusUnauthorized)
 			return
 		}
 
