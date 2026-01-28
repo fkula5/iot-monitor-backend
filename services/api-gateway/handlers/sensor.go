@@ -396,7 +396,6 @@ func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) S
 		response.LastUpdated = &t
 	}
 
-	// Fetch SensorType details if ID exists
 	if s.SensorTypeId > 0 {
 		typeRes, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{
 			Id: s.SensorTypeId,
