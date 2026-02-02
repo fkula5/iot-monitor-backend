@@ -258,7 +258,6 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(res.DataPoints)
 }
 
-// NEW: Get latest reading for multiple sensors (batch)
 // @Summary Get latest readings for multiple sensors
 // @Description Fetches the most recent reading for each specified sensor
 // @Tags Data
