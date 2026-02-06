@@ -13,5 +13,7 @@ func SetupDataRoutes(r chi.Router, handler *handlers.WebSocketHandler) {
 		r.Get("/sensors/{sensor_id}/latest", handler.GetSensorLatestReadings)
 		r.Get("/sensors/{sensor_id}/readings", handler.GetHistoricalReadings)
 		r.Get("/ws/test", handler.WsHandler)
+		r.Post("/readings", handler.StoreReading)
 	})
+
 }
