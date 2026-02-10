@@ -481,6 +481,203 @@ paths:
       summary: Add sensors to group
       tags:
       - SensorGroups
+  /api/sensor-types:
+    get:
+      description: Get a list of all sensor types
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List Sensor Types
+      tags:
+      - SensorTypes
+    post:
+      consumes:
+      - application/json
+      description: Create a new sensor type
+      parameters:
+      - description: Sensor Type Data
+        in: body
+        name: sensorType
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create Sensor Type
+      tags:
+      - SensorTypes
+  /api/sensor-types/{id}:
+    delete:
+      description: Delete a sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Sensor Type
+      tags:
+      - SensorTypes
+    get:
+      description: Get details of a specific sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get Sensor Type
+      tags:
+      - SensorTypes
+    put:
+      consumes:
+      - application/json
+      description: Update an existing sensor type by ID
+      parameters:
+      - description: Sensor Type ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Sensor Type Data
+        in: body
+        name: sensorType
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update Sensor Type
+      tags:
+      - SensorTypes
   /api/sensors:
     get:
       description: Fetches all sensors from the Sensor Service.
@@ -689,203 +886,6 @@ paths:
       summary: SetSensorActive sets a sensor as active.
       tags:
       - Sensors
-  /api/sensortypes:
-    get:
-      description: Get a list of all sensor types
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: List Sensor Types
-      tags:
-      - SensorTypes
-    post:
-      consumes:
-      - application/json
-      description: Create a new sensor type
-      parameters:
-      - description: Sensor Type Data
-        in: body
-        name: sensorType
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Create Sensor Type
-      tags:
-      - SensorTypes
-  /api/sensortypes/{id}:
-    delete:
-      description: Delete a sensor type by ID
-      parameters:
-      - description: Sensor Type ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Delete Sensor Type
-      tags:
-      - SensorTypes
-    get:
-      description: Get details of a specific sensor type by ID
-      parameters:
-      - description: Sensor Type ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Get Sensor Type
-      tags:
-      - SensorTypes
-    put:
-      consumes:
-      - application/json
-      description: Update an existing sensor type by ID
-      parameters:
-      - description: Sensor Type ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Sensor Type Data
-        in: body
-        name: sensorType
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - ApiKeyAuth: []
-      summary: Update Sensor Type
-      tags:
-      - SensorTypes
   /auth/login:
     post:
       consumes:
