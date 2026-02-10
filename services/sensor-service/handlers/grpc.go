@@ -152,6 +152,58 @@ func (h *SensorsGrpcHandler) ListSensorTypes(ctx context.Context, req *pb.ListSe
 	}, nil
 }
 
+func (h *SensorsGrpcHandler) DeleteSensorType(ctx context.Context, req *pb.DeleteSensorTypeRequest) (*pb.DeleteSensorTypeResponse, error) {
+	if req.Id <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "sensor type id must be a positive integer")
+	}
+
+	_, err := h.sensorsTypeService.GetSensorType(ctx, int(req.Id))
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "sensor type not found")
+	}
+
+	err = h.sensorsTypeService.DeleteSensorType(ctx, int(req.Id))
+	if err != nil {
+		logger.Error("Failed to delete sensor type", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to delete sensor type")
+	}
+
+	return &pb.DeleteSensorTypeResponse{}, nil
+}
+
+func (h *SensorsGrpcHandler) UpdateSensorType(ctx context.Context, req *pb.UpdateSensorTypeRequest) (*pb.UpdateSensorTypeResponse, error) {
+	if req.Id <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "sensor type id must be a positive integer")
+	}
+
+	existingST, err := h.sensorsTypeService.GetSensorType(ctx, int(req.Id))
+	if err != nil {
+		return nil, status.Error(codes.NotFound, "sensor type not found")
+	}
+
+	if req.Name == "" || req.Model == "" {
+		return nil, status.Error(codes.InvalidArgument, "name and model are required fields")
+	}
+
+	existingST.Name = req.Name
+	existingST.Model = req.Model
+	existingST.Manufacturer = req.Manufacturer
+	existingST.Description = req.Description
+	existingST.Unit = req.Unit
+	existingST.MinValue = float64(req.MinValue)
+	existingST.MaxValue = float64(req.MaxValue)
+
+	updatedST, err := h.sensorsTypeService.UpdateSensorType(ctx, int(req.Id), existingST)
+	if err != nil {
+		logger.Error("Failed to update sensor type", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to update sensor type")
+	}
+
+	return &pb.UpdateSensorTypeResponse{
+		SensorType: convertSensorTypeToProto(updatedST),
+	}, nil
+}
+
 // ListSensors implements api.SensorServiceServer.
 func (h *SensorsGrpcHandler) ListSensors(ctx context.Context, req *pb.ListSensorsRequest) (*pb.ListSensorsResponse, error) {
 	sensors, err := h.sensorsService.ListSensors(ctx, req.UserId)
