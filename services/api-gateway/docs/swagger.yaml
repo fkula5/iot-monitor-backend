@@ -33,6 +33,15 @@ definitions:
       sensor_type_id:
         type: integer
     type: object
+  handlers.StoreReadingRequest:
+    properties:
+      sensor_id:
+        type: integer
+      timestamp:
+        type: string
+      value:
+        type: number
+    type: object
   handlers.UpdateGroupRequest:
     properties:
       color:
@@ -73,6 +82,30 @@ info:
   title: IoT Monitor API
   version: "1.0"
 paths:
+  /api/data/readings:
+    post:
+      consumes:
+      - application/json
+      description: Sends a sensor reading to the data processing service
+      parameters:
+      - description: Sensor Reading
+        in: body
+        name: reading
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.StoreReadingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Store a new sensor reading
+      tags:
+      - Data
   /api/data/readings/latest:
     get:
       description: Fetches the most recent reading for each specified sensor
@@ -656,101 +689,7 @@ paths:
       summary: SetSensorActive sets a sensor as active.
       tags:
       - Sensors
-  /auth/login:
-    post:
-      consumes:
-      - application/json
-      description: Authenticates a user with email and password.
-      parameters:
-      - description: User credentials
-        in: body
-        name: credentials
-        required: true
-        schema:
-          properties:
-            email:
-              type: string
-            password:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Authentication successful
-          schema:
-            properties:
-              expires_at:
-                type: string
-              token:
-                type: string
-              user:
-                type: object
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Login authenticates a user and returns a token.
-      tags:
-      - Auth
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Registers a new user with email, username, and password.
-      parameters:
-      - description: User registration data
-        in: body
-        name: user
-        required: true
-        schema:
-          properties:
-            email:
-              type: string
-            first_name:
-              type: string
-            last_name:
-              type: string
-            password:
-              type: string
-            username:
-              type: string
-          type: object
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Registration successful
-          schema:
-            properties:
-              expires_at:
-                type: string
-              token:
-                type: string
-              user:
-                type: object
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Register creates a new user account.
-      tags:
-      - Auth
-  /sensortypes:
+  /api/sensortypes:
     get:
       description: Get a list of all sensor types
       produces:
@@ -816,7 +755,7 @@ paths:
       summary: Create Sensor Type
       tags:
       - SensorTypes
-  /sensortypes/{id}:
+  /api/sensortypes/{id}:
     delete:
       description: Delete a sensor type by ID
       parameters:
@@ -947,6 +886,100 @@ paths:
       summary: Update Sensor Type
       tags:
       - SensorTypes
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with email and password.
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            properties:
+              expires_at:
+                type: string
+              token:
+                type: string
+              user:
+                type: object
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Login authenticates a user and returns a token.
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with email, username, and password.
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+            first_name:
+              type: string
+            last_name:
+              type: string
+            password:
+              type: string
+            username:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registration successful
+          schema:
+            properties:
+              expires_at:
+                type: string
+              token:
+                type: string
+              user:
+                type: object
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Register creates a new user account.
+      tags:
+      - Auth
 securityDefinitions:
   ApiKeyAuth:
     description: Wprowadź token JWT w formacie 'Bearer {token}'.
