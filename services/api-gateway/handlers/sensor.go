@@ -47,14 +47,15 @@ type SensorResponse struct {
 }
 
 type SensorTypeResponse struct {
-	ID           int64   `json:"id"`
-	Name         string  `json:"name"`
-	Model        string  `json:"model"`
-	Manufacturer string  `json:"manufacturer,omitempty"`
-	Description  string  `json:"description,omitempty"`
-	Unit         string  `json:"unit,omitempty"`
-	MinValue     float32 `json:"min_value,omitempty"`
-	MaxValue     float32 `json:"max_value,omitempty"`
+	ID           int64     `json:"id"`
+	Name         string    `json:"name"`
+	Model        string    `json:"model"`
+	Manufacturer string    `json:"manufacturer,omitempty"`
+	Description  string    `json:"description,omitempty"`
+	Unit         string    `json:"unit,omitempty"`
+	MinValue     float32   `json:"min_value,omitempty"`
+	MaxValue     float32   `json:"max_value,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
@@ -66,7 +67,7 @@ func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
 // @Tags Sensors
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} string "List of sensors"
+// @Success 200 {array} SensorResponse "List of sensors"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/sensors [get]
@@ -101,7 +102,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path int true "Sensor ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} string "Sensor details"
+// @Success 200 {object} SensorResponse "Sensor details"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {string} string "Not Found"
@@ -410,6 +411,7 @@ func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) S
 				Unit:         typeRes.SensorType.Unit,
 				MinValue:     typeRes.SensorType.MinValue,
 				MaxValue:     typeRes.SensorType.MaxValue,
+				CreatedAt:    typeRes.SensorType.CreatedAt.AsTime(),
 			}
 		}
 	}

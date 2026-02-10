@@ -27,7 +27,7 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Tags SensorTypes
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} string
+// @Success 200 {array} SensorTypeResponse "List of sensor types"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /api/sensor-types [get]
@@ -41,8 +41,23 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	sensorTypeResponses := make([]SensorTypeResponse, 0, len(res.SensorTypes))
+	for _, st := range res.SensorTypes {
+		sensorTypeResponses = append(sensorTypeResponses, SensorTypeResponse{
+			ID:           st.Id,
+			Name:         st.Name,
+			Model:        st.Model,
+			Manufacturer: st.Manufacturer,
+			Description:  st.Description,
+			Unit:         st.Unit,
+			MinValue:     st.MinValue,
+			MaxValue:     st.MaxValue,
+			CreatedAt:    st.CreatedAt.AsTime(),
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res.SensorTypes); err != nil {
+	if err := json.NewEncoder(w).Encode(sensorTypeResponses); err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -53,7 +68,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param id path int true "Sensor Type ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} SensorTypeResponse "Sensor type details"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -81,8 +96,20 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	sensorType := SensorTypeResponse{
+		ID:           res.SensorType.Id,
+		Name:         res.SensorType.Name,
+		Model:        res.SensorType.Model,
+		Manufacturer: res.SensorType.Manufacturer,
+		Description:  res.SensorType.Description,
+		Unit:         res.SensorType.Unit,
+		MinValue:     res.SensorType.MinValue,
+		MaxValue:     res.SensorType.MaxValue,
+		CreatedAt:    res.SensorType.CreatedAt.AsTime(),
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res.SensorType); err != nil {
+	if err := json.NewEncoder(w).Encode(sensorType); err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 	}
 }

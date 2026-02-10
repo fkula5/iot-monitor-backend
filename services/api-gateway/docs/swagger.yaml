@@ -33,6 +33,48 @@ definitions:
       sensor_type_id:
         type: integer
     type: object
+  handlers.SensorResponse:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      last_updated:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      sensor_type:
+        $ref: '#/definitions/handlers.SensorTypeResponse'
+      updated_at:
+        type: string
+    type: object
+  handlers.SensorTypeResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      manufacturer:
+        type: string
+      max_value:
+        type: number
+      min_value:
+        type: number
+      model:
+        type: string
+      name:
+        type: string
+      unit:
+        type: string
+    type: object
   handlers.StoreReadingRequest:
     properties:
       sensor_id:
@@ -488,10 +530,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of sensor types
           schema:
             items:
-              type: string
+              $ref: '#/definitions/handlers.SensorTypeResponse'
             type: array
         "401":
           description: Unauthorized
@@ -598,9 +640,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Sensor type details
           schema:
-            type: string
+            $ref: '#/definitions/handlers.SensorTypeResponse'
         "400":
           description: Bad Request
           schema:
@@ -688,7 +730,7 @@ paths:
           description: List of sensors
           schema:
             items:
-              type: string
+              $ref: '#/definitions/handlers.SensorResponse'
             type: array
         "401":
           description: Unauthorized
@@ -787,7 +829,7 @@ paths:
         "200":
           description: Sensor details
           schema:
-            type: string
+            $ref: '#/definitions/handlers.SensorResponse'
         "400":
           description: Bad Request
           schema:

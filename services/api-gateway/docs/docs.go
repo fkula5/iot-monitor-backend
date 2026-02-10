@@ -656,11 +656,11 @@ const docTemplate = `{
                 "summary": "List Sensor Types",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of sensor types",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/handlers.SensorTypeResponse"
                             }
                         }
                     },
@@ -769,9 +769,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Sensor type details",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.SensorTypeResponse"
                         }
                     },
                     "400": {
@@ -967,7 +967,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/handlers.SensorResponse"
                             }
                         }
                     },
@@ -1069,7 +1069,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Sensor details",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.SensorResponse"
                         }
                     },
                     "400": {
@@ -1467,6 +1467,70 @@ const docTemplate = `{
                 },
                 "sensor_type_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.SensorResponse": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor_type": {
+                    "$ref": "#/definitions/handlers.SensorTypeResponse"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.SensorTypeResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "manufacturer": {
+                    "type": "string"
+                },
+                "max_value": {
+                    "type": "number"
+                },
+                "min_value": {
+                    "type": "number"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
                 }
             }
         },
