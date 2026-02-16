@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type AuthHandler struct {
@@ -152,4 +153,76 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+// @Summary Get User
+// @Description Get current user profile
+// @Tags Auth
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} object "User Profile"
+// @Router /auth/user [get]
+func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := h.Client.GetUser(ctx, &auth.GetUserRequest{
+		Id: int32(claims.UserId),
+	})
+	if err != nil {
+		http.Error(w, "Failed to fetch user profile", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+// @Summary Update Profile
+// @Description Update current user profile
+// @Tags Auth
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param user body object{first_name=string,last_name=string} true "Update data"
+// @Success 200 {object} object "Updated User"
+// @Router /auth/user [put]
+func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.Client.UpdateUser(ctx, &auth.UpdateUserRequest{
+		Id:        int32(claims.UserId),
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+	})
+	if err != nil {
+		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }

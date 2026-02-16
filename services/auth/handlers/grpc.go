@@ -99,6 +99,44 @@ func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest)
 	}, nil
 }
 
+func (h *AuthGrpcHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
+	if req.Id == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	user, err := h.authService.GetUserByID(ctx, int(req.Id))
+	if err != nil {
+		logger.Error("Failed to get user", zap.Error(err))
+		return nil, status.Error(codes.NotFound, "user not found")
+	}
+
+	return &pb.UserResponse{
+		User: convertEntUserToProto(user),
+	}, nil
+}
+
+func (h *AuthGrpcHandler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+	if req.Id == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	updateData := &services.UpdateRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+	}
+
+	user, err := h.authService.Update(ctx, int(req.Id), updateData)
+
+	if err != nil {
+		logger.Error("Failed to update user", zap.Error(err))
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.UserResponse{
+		User: convertEntUserToProto(user),
+	}, nil
+}
+
 func convertUserToProto(userInfo *services.UserInfo) *pb.User {
 	if userInfo == nil {
 		return nil
