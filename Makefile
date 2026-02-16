@@ -16,7 +16,7 @@ generate-proto:
 REBUILD_SERVICES = auth-service sensor-service api-gateway data-generation-service data-processing-service
 
 up:
-	docker-compose up --build $(REBUILD_SERVICES)
+	docker compose up --build $(REBUILD_SERVICES)
 
 build:
 	mkdir -p $(BIN_DIR)
