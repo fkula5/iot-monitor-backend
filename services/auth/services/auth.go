@@ -17,6 +17,11 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
+type UpdateRequest struct {
+	FirstName string `json:"first_name,omitempty" validate:"max=100"`
+	LastName  string `json:"last_name,omitempty" validate:"max=100"`
+}
+
 type RegisterRequest struct {
 	Email     string `json:"email" validate:"required,email"`
 	Username  string `json:"username" validate:"required,min=3,max=50"`
@@ -44,6 +49,7 @@ type IAuthService interface {
 	Register(ctx context.Context, req *RegisterRequest) (*AuthResponse, error)
 	ValidateToken(ctx context.Context, token string) (*ent.User, error)
 	GetUserByID(ctx context.Context, userID int) (*ent.User, error)
+	Update(ctx context.Context, userID int, req *UpdateRequest) (*ent.User, error)
 }
 
 type AuthService struct {
@@ -62,7 +68,11 @@ func NewAuthService(userStorage storage.IUserStorage) IAuthService {
 
 // GetUserByID implements IAuthService.
 func (s *AuthService) GetUserByID(ctx context.Context, userID int) (*ent.User, error) {
-	panic("unimplemented")
+	user, err := s.userStorage.Get(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+	return user, nil
 }
 
 // Login implements IAuthService.
@@ -175,4 +185,21 @@ func (s *AuthService) Register(ctx context.Context, req *RegisterRequest) (*Auth
 			LastName:  createdUser.LastName,
 		},
 	}, nil
+}
+
+func (s *AuthService) Update(ctx context.Context, userID int, req *UpdateRequest) (*ent.User, error) {
+	existingUser, err := s.userStorage.Get(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	existingUser.FirstName = req.FirstName
+	existingUser.LastName = req.LastName
+
+	updatedUser, err := s.userStorage.Update(ctx, existingUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return updatedUser, nil
 }

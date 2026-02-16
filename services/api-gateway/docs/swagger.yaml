@@ -1022,6 +1022,49 @@ paths:
       summary: Register creates a new user account.
       tags:
       - Auth
+  /auth/user:
+    get:
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User Profile
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get User
+      tags:
+      - Auth
+    put:
+      consumes:
+      - application/json
+      description: Update current user profile
+      parameters:
+      - description: Update data
+        in: body
+        name: user
+        required: true
+        schema:
+          properties:
+            first_name:
+              type: string
+            last_name:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated User
+          schema:
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update Profile
+      tags:
+      - Auth
 securityDefinitions:
   ApiKeyAuth:
     description: Wprowadź token JWT w formacie 'Bearer {token}'.
