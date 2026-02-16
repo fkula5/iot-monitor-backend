@@ -42,6 +42,23 @@ var (
 			},
 		},
 	}
+	// SensorGroupsColumns holds the columns for the "sensor_groups" table.
+	SensorGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "color", Type: field.TypeString, Nullable: true, Default: "#3B82F6"},
+		{Name: "icon", Type: field.TypeString, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SensorGroupsTable holds the schema information for the "sensor_groups" table.
+	SensorGroupsTable = &schema.Table{
+		Name:       "sensor_groups",
+		Columns:    SensorGroupsColumns,
+		PrimaryKey: []*schema.Column{SensorGroupsColumns[0]},
+	}
 	// SensorTypesColumns holds the columns for the "sensor_types" table.
 	SensorTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -60,14 +77,43 @@ var (
 		Columns:    SensorTypesColumns,
 		PrimaryKey: []*schema.Column{SensorTypesColumns[0]},
 	}
+	// SensorGroupSensorsColumns holds the columns for the "sensor_group_sensors" table.
+	SensorGroupSensorsColumns = []*schema.Column{
+		{Name: "sensor_group_id", Type: field.TypeInt},
+		{Name: "sensor_id", Type: field.TypeInt},
+	}
+	// SensorGroupSensorsTable holds the schema information for the "sensor_group_sensors" table.
+	SensorGroupSensorsTable = &schema.Table{
+		Name:       "sensor_group_sensors",
+		Columns:    SensorGroupSensorsColumns,
+		PrimaryKey: []*schema.Column{SensorGroupSensorsColumns[0], SensorGroupSensorsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "sensor_group_sensors_sensor_group_id",
+				Columns:    []*schema.Column{SensorGroupSensorsColumns[0]},
+				RefColumns: []*schema.Column{SensorGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "sensor_group_sensors_sensor_id",
+				Columns:    []*schema.Column{SensorGroupSensorsColumns[1]},
+				RefColumns: []*schema.Column{SensorsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		SensorsTable,
+		SensorGroupsTable,
 		SensorTypesTable,
+		SensorGroupSensorsTable,
 	}
 )
 
 func init() {
 	SensorsTable.ForeignKeys[0].RefTable = SensorTypesTable
 	SensorsTable.ForeignKeys[1].RefTable = SensorTypesTable
+	SensorGroupSensorsTable.ForeignKeys[0].RefTable = SensorGroupsTable
+	SensorGroupSensorsTable.ForeignKeys[1].RefTable = SensorsTable
 }

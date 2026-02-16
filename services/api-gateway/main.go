@@ -9,6 +9,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -16,10 +21,6 @@ import (
 	_ "github.com/skni-kod/iot-monitor-backend/services/api-gateway/docs"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/api-gateway/routes"
-	httpSwagger "github.com/swaggo/http-swagger/v2"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func NewGrpcClient(addr string) (*grpc.ClientConn, error) {
@@ -136,8 +137,8 @@ func main() {
 
 	sensorHandler := handlers.NewSensorHandler(sensorClient)
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
+	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	// Pass both dataClient and sensorClient to WebSocketHandler
 	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
 
 	apiRouter := chi.NewRouter()
@@ -146,7 +147,7 @@ func main() {
 
 	routes.SetupSensorRoutes(apiRouter, sensorHandler)
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
-
+	routes.SetupSensorGroupRoutes(apiRouter, sensorGroupHandler)
 	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)

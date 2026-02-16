@@ -32,6 +32,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
+	// EdgeGroups holds the string denoting the groups edge name in mutations.
+	EdgeGroups = "groups"
 	// Table holds the table name of the sensor in the database.
 	Table = "sensors"
 	// TypeTable is the table that holds the type relation/edge.
@@ -41,6 +43,11 @@ const (
 	TypeInverseTable = "sensor_types"
 	// TypeColumn is the table column denoting the type relation/edge.
 	TypeColumn = "sensor_type"
+	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
+	GroupsTable = "sensor_group_sensors"
+	// GroupsInverseTable is the table name for the SensorGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "sensorgroup" package.
+	GroupsInverseTable = "sensor_groups"
 )
 
 // Columns holds all SQL columns for sensor fields.
@@ -62,6 +69,12 @@ var ForeignKeys = []string{
 	"sensor_type",
 	"sensor_type_sensors",
 }
+
+var (
+	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
+	// primary key for the groups relation (M2M).
+	GroupsPrimaryKey = []string{"sensor_group_id", "sensor_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -145,10 +158,31 @@ func ByTypeField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTypeStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByGroupsCount orders the results by groups count.
+func ByGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGroupsStep(), opts...)
+	}
+}
+
+// ByGroups orders the results by groups terms.
+func ByGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTypeStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TypeInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
+	)
+}
+func newGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, GroupsTable, GroupsPrimaryKey...),
 	)
 }

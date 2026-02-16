@@ -12,13 +12,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
-	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
+	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
 var upgrader = websocket.Upgrader{
@@ -56,6 +57,12 @@ type ReadingMessage struct {
 type SubscribeMessage struct {
 	Type      string  `json:"type"`
 	SensorIDs []int64 `json:"sensor_ids"`
+}
+
+type StoreReadingRequest struct {
+	SensorID  int64     `json:"sensor_id"`
+	Value     float32   `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // @Summary Stream sensor readings via WebSocket
@@ -257,7 +264,6 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(res.DataPoints)
 }
 
-// NEW: Get latest reading for multiple sensors (batch)
 // @Summary Get latest readings for multiple sensors
 // @Description Fetches the most recent reading for each specified sensor
 // @Tags Data
@@ -358,4 +364,44 @@ func (h *WebSocketHandler) WsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+}
+
+// @Summary Store a new sensor reading
+// @Description Sends a sensor reading to the data processing service
+// @Tags Data
+// @Accept json
+// @Produce json
+// @Param reading body StoreReadingRequest true "Sensor Reading"
+// @Success 200 {object} map[string]string
+// @Router /api/data/readings [post]
+func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) {
+	var req StoreReadingRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Domyślny timestamp, jeśli nie podano
+	if req.Timestamp.IsZero() {
+		req.Timestamp = time.Now()
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	// Wywołanie usługi gRPC data-processing
+	_, err := h.dataClient.StoreReading(ctx, &pb_data.StoreReadingRequest{
+		SensorId:  req.SensorID,
+		Value:     req.Value,
+		Timestamp: timestamppb.New(req.Timestamp),
+	})
+
+	if err != nil {
+		logger.Error("Failed to store reading via gRPC", zap.Error(err))
+		http.Error(w, "Failed to store reading", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }

@@ -3,15 +3,16 @@ package handlers
 import (
 	"context"
 
-	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
-	"github.com/skni-kod/iot-monitor-backend/services/auth/ent"
-	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/ent"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
 )
 
 type AuthGrpcHandler struct {

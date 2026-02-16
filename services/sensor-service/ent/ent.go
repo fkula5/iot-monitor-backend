@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensor"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensorgroup"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent/sensortype"
 )
 
@@ -74,8 +75,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			sensor.Table:     sensor.ValidColumn,
-			sensortype.Table: sensortype.ValidColumn,
+			sensor.Table:      sensor.ValidColumn,
+			sensorgroup.Table: sensorgroup.ValidColumn,
+			sensortype.Table:  sensortype.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

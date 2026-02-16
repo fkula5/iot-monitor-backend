@@ -1,36 +1,110 @@
-version: "2"
-
-linters:
-  default: standard
-  settings:
-    errcheck:
-      check-type-assertions: false
-      check-blank: false
-      exclude-functions:
-        - (*net/http.ResponseWriter).Write
-        - (ent.Client).Close
-
-formatters:
-  enable:
-    - gci
-    - gofmt
-    - gofumpt
-    - goimports
-    - golines
-
-issues:
-  max-issues-per-linter: 50
-  max-same-issues: 3
-  new: false
-  fix: false
-  uniq-by-line: true
-  whole-files: false
-
 run:
-  timeout: "1m"
+  timeout: 5m
   issues-exit-code: 1
   tests: true
-  allow-parallel-runners: false
-  allow-serial-runners: false
-  go: "1.17"
-  relative-path-mode: wd
+  go: "1.24"
+
+linters:
+  disable-all: true
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    # - unused
+
+    # Additional recommended linters
+    - gofmt
+    - goimports
+    - misspell
+    - revive
+    - unconvert
+    - unparam
+
+    # Optional: Enable for stricter checks
+    # - gci          # Import ordering
+    # - gofumpt      # Stricter gofmt
+    # - shadow       # Shadow variable detection
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+    exclude-functions:
+      - "(net/http.ResponseWriter).Write"
+      - "(*database/sql.DB).Close"
+      - "(*database/sql.Rows).Close"
+      - "(*google.golang.org/grpc.ClientConn).Close"
+      - "(*encoding/json.Encoder).Encode"
+      - "github.com/skni-kod/iot-monitor-backend/pkg/logger.Sync"
+      - "github.com/go-chi/chi/v5.Walk"
+      - "(*github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent.Tx).Rollback"
+
+  govet:
+    # Note: check-shadowing is deprecated, use 'shadow' linter instead
+    enable:
+      - assign
+      - atomic
+      - bools
+      - buildtag
+      - composites
+      - copylocks
+      - errorsas
+      - httpresponse
+      - loopclosure
+      - lostcancel
+      - nilfunc
+      - printf
+      - shift
+      - stdmethods
+      - structtag
+      - tests
+      - unmarshal
+      - unreachable
+      - unsafeptr
+      - unusedresult
+
+  goimports:
+    local-prefixes: github.com/skni-kod/iot-monitor-backend
+
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+        disabled: true # Disable if you don't want to require comments on all exports
+
+issues:
+  max-issues-per-linter: 0 # 0 = unlimited
+  max-same-issues: 0 # 0 = unlimited
+  new: false # Report all issues, not just new ones
+  fix: true # Auto-fix issues when possible
+  exclude-rules:
+    # Exclude some linters from running on test files
+    - path: _test\.go
+      linters:
+        - errcheck
+        - unparam
+
+    # Exclude generated files
+    - path: '\.pb\.go$'
+      linters:
+        - all
+
+    - path: "ent/"
+      linters:
+        - all
+
+    # Exclude common false positives
+    - linters:
+        - errcheck
+      text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print(f|ln)?|os\\.(Un)?Setenv). is not checked"
+
+output:
+  formats:
+    - format: colored-line-number
+      path: stdout
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true

@@ -6,13 +6,14 @@ import (
 	"net"
 	"os"
 
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/services"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/storage"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 )
 
 func getEnvOrFail(key string) string {
@@ -86,10 +87,12 @@ func main() {
 
 	sensorsStore := storage.NewSensorStorage(db)
 	sensorsTypeStore := storage.NewSensorTypeStorage(db)
+	sensorsGroupStore := storage.NewSensorGroupStorage(db)
 	sensorsService := services.NewSensorService(sensorsStore)
 	sensorsTypeService := services.NewSensorTypeService(sensorsTypeStore)
-	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService)
+	sensorsGroupService := services.NewSensorGroupService(sensorsGroupStore)
 
+	handlers.NewGrpcHandler(grpcServer, sensorsService, sensorsTypeService, sensorsGroupService)
 	logger.Info("Starting Sensor Service gRPC server on port", zap.String("port", grpcPort))
 	if err := grpcServer.Serve(lis); err != nil {
 		logger.Fatal("Failed to serve", zap.Error(err))
