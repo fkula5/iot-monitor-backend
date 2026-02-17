@@ -1436,7 +1436,7 @@ const docTemplate = `{
                     "200": {
                         "description": "User Profile",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/handlers.UserResponse"
                         }
                     }
                 }
@@ -1481,7 +1481,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Updated User",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/handlers.UserResponse"
                         }
                     }
                 }
@@ -1658,6 +1658,26 @@ const docTemplate = `{
                 },
                 "sensor_type_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }

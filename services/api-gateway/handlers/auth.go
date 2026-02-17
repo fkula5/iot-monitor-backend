@@ -18,6 +18,14 @@ func NewAuthHandler(client auth.AuthServiceClient) *AuthHandler {
 	return &AuthHandler{Client: client}
 }
 
+type UserResponse struct {
+	ID        int32  `json:"id"`
+	Email     string `json:"email"`
+	Username  string `json:"username"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
+
 // @Summary Login authenticates a user and returns a token.
 // @Description Authenticates a user with email and password.
 // @Tags Auth
@@ -70,7 +78,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"token":      res.Token,
 		"expires_at": res.ExpiresAt.AsTime(),
-		"user":       res.User,
+		"user":       mapUserToResponse(res.User),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -143,7 +151,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"token":      res.Token,
 		"expires_at": res.ExpiresAt.AsTime(),
-		"user":       res.User,
+		"user":       mapUserToResponse(res.User),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -160,7 +168,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 // @Tags Auth
 // @Security ApiKeyAuth
 // @Produce json
-// @Success 200 {object} object "User Profile"
+// @Success 200 {object} UserResponse "User Profile"
 // @Router /auth/user [get]
 func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -172,7 +180,7 @@ func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Client.GetUser(ctx, &auth.GetUserRequest{
+	resp, err := h.Client.GetUser(ctx, &auth.GetUserRequest{
 		Id: int32(claims.UserId),
 	})
 	if err != nil {
@@ -180,8 +188,15 @@ func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if resp.User == nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	response := mapUserToResponse(resp.User)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Update Profile
@@ -191,7 +206,7 @@ func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param user body object{first_name=string,last_name=string} true "Update data"
-// @Success 200 {object} object "Updated User"
+// @Success 200 {object} UserResponse "Updated User"
 // @Router /auth/user [put]
 func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -213,7 +228,7 @@ func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Client.UpdateUser(ctx, &auth.UpdateUserRequest{
+	resp, err := h.Client.UpdateUser(ctx, &auth.UpdateUserRequest{
 		Id:        int32(claims.UserId),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -223,6 +238,23 @@ func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if resp.User == nil {
+		http.Error(w, "Failed to retrieve updated user data", http.StatusInternalServerError)
+		return
+	}
+
+	response := mapUserToResponse(resp.User)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(response)
+}
+
+func mapUserToResponse(u *auth.User) UserResponse {
+	return UserResponse{
+		ID:        u.Id,
+		Email:     u.Email,
+		Username:  u.Username,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+	}
 }

@@ -112,6 +112,19 @@ definitions:
       sensor_type_id:
         type: integer
     type: object
+  handlers.UserResponse:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      username:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -1031,7 +1044,7 @@ paths:
         "200":
           description: User Profile
           schema:
-            type: object
+            $ref: '#/definitions/handlers.UserResponse'
       security:
       - ApiKeyAuth: []
       summary: Get User
@@ -1059,7 +1072,7 @@ paths:
         "200":
           description: Updated User
           schema:
-            type: object
+            $ref: '#/definitions/handlers.UserResponse'
       security:
       - ApiKeyAuth: []
       summary: Update Profile
