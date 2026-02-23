@@ -292,7 +292,7 @@ func (h *SensorsGrpcHandler) CreateSensorGroup(ctx context.Context, req *pb.Crea
 }
 
 func (h *SensorsGrpcHandler) GetSensorGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
-	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
+	group, err := h.sensorsGroupService.Get(ctx, int(req.Id))
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "sensor group not found")
 	}

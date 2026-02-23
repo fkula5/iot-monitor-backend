@@ -12,7 +12,6 @@ import (
 type ISensorGroupStorage interface {
 	Create(ctx context.Context, group *ent.SensorGroup, sensorIDs []int64) (*ent.SensorGroup, error)
 	Get(ctx context.Context, id int) (*ent.SensorGroup, error)
-	GetWithSensors(ctx context.Context, id int) (*ent.SensorGroup, error)
 	List(ctx context.Context, userID int64) ([]*ent.SensorGroup, error)
 	Update(ctx context.Context, id int, group *ent.SensorGroup) (*ent.SensorGroup, error)
 	Delete(ctx context.Context, id int) error
@@ -66,26 +65,24 @@ func (s *SensorGroupStorage) Create(ctx context.Context, groupData *ent.SensorGr
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return s.GetWithSensors(ctx, group.ID)
+	return s.Get(ctx, group.ID)
 }
 
 func (s *SensorGroupStorage) Get(ctx context.Context, id int) (*ent.SensorGroup, error) {
 	return s.client.SensorGroup.Query().
 		Where(sensorgroup.ID(id)).
-		Only(ctx)
-}
-
-func (s *SensorGroupStorage) GetWithSensors(ctx context.Context, id int) (*ent.SensorGroup, error) {
-	return s.client.SensorGroup.Query().
-		Where(sensorgroup.ID(id)).
-		WithSensors().
+		WithSensors(func(q *ent.SensorQuery) {
+			q.WithType()
+		}).
 		Only(ctx)
 }
 
 func (s *SensorGroupStorage) List(ctx context.Context, userID int64) ([]*ent.SensorGroup, error) {
 	return s.client.SensorGroup.Query().
 		Where(sensorgroup.UserID(userID)).
-		WithSensors().
+		WithSensors(func(q *ent.SensorQuery) {
+			q.Select(sensor.FieldID)
+		}).
 		All(ctx)
 }
 
@@ -100,7 +97,7 @@ func (s *SensorGroupStorage) Update(ctx context.Context, id int, groupData *ent.
 		return nil, fmt.Errorf("failed to update sensor group: %w", err)
 	}
 
-	return s.GetWithSensors(ctx, id)
+	return s.Get(ctx, id)
 }
 
 func (s *SensorGroupStorage) Delete(ctx context.Context, id int) error {
@@ -130,7 +127,7 @@ func (s *SensorGroupStorage) AddSensors(ctx context.Context, groupID int, sensor
 		return nil, fmt.Errorf("failed to add sensors to group: %w", err)
 	}
 
-	return s.GetWithSensors(ctx, groupID)
+	return s.Get(ctx, groupID)
 }
 
 func (s *SensorGroupStorage) RemoveSensors(ctx context.Context, groupID int, sensorIDs []int64) (*ent.SensorGroup, error) {
@@ -146,7 +143,7 @@ func (s *SensorGroupStorage) RemoveSensors(ctx context.Context, groupID int, sen
 		return nil, fmt.Errorf("failed to remove sensors from group: %w", err)
 	}
 
-	return s.GetWithSensors(ctx, groupID)
+	return s.Get(ctx, groupID)
 }
 
 func (s *SensorGroupStorage) GetGroupsForSensor(ctx context.Context, sensorID int) ([]*ent.SensorGroup, error) {

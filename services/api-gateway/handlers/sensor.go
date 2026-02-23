@@ -12,50 +12,12 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type SensorHandler struct {
 	client pb.SensorServiceClient
-}
-
-type CreateSensorRequest struct {
-	Name         string `json:"name"`
-	Location     string `json:"location"`
-	Description  string `json:"description"`
-	SensorTypeId int64  `json:"sensor_type_id"`
-}
-
-type UpdateSensorRequest struct {
-	Name         *string `json:"name,omitempty"`
-	Location     *string `json:"location,omitempty"`
-	Description  *string `json:"description,omitempty"`
-	SensorTypeId *int64  `json:"sensor_type_id,omitempty"`
-	Active       *bool   `json:"active,omitempty"`
-}
-
-type SensorResponse struct {
-	ID          int64               `json:"id"`
-	Name        string              `json:"name"`
-	Location    string              `json:"location"`
-	Description string              `json:"description"`
-	Active      bool                `json:"active"`
-	LastUpdated *time.Time          `json:"last_updated,omitempty"`
-	CreatedAt   time.Time           `json:"created_at"`
-	UpdatedAt   time.Time           `json:"updated_at"`
-	SensorType  *SensorTypeResponse `json:"sensor_type,omitempty"`
-}
-
-type SensorTypeResponse struct {
-	ID           int64     `json:"id"`
-	Name         string    `json:"name"`
-	Model        string    `json:"model"`
-	Manufacturer string    `json:"manufacturer,omitempty"`
-	Description  string    `json:"description,omitempty"`
-	Unit         string    `json:"unit,omitempty"`
-	MinValue     float32   `json:"min_value,omitempty"`
-	MaxValue     float32   `json:"max_value,omitempty"`
-	CreatedAt    time.Time `json:"created_at"`
 }
 
 func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
@@ -87,7 +49,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sensorResponses := make([]SensorResponse, 0, len(res.Sensors))
+	sensorResponses := make([]types.SensorResponse, 0, len(res.Sensors))
 	for _, s := range res.Sensors {
 		sensorResponses = append(sensorResponses, h.mapToSensorResponse(ctx, s))
 	}
@@ -200,7 +162,7 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 
 	userId := claims.UserId
 
-	var req CreateSensorRequest
+	var req types.CreateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
@@ -264,7 +226,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req UpdateSensorRequest
+	var req types.UpdateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
@@ -381,8 +343,8 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) SensorResponse {
-	response := SensorResponse{
+func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) types.SensorResponse {
+	response := types.SensorResponse{
 		ID:          s.Id,
 		Name:        s.Name,
 		Location:    s.Location,
@@ -402,7 +364,7 @@ func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) S
 			Id: s.SensorTypeId,
 		})
 		if err == nil && typeRes.SensorType != nil {
-			response.SensorType = &SensorTypeResponse{
+			response.SensorType = &types.SensorTypeResponse{
 				ID:           typeRes.SensorType.Id,
 				Name:         typeRes.SensorType.Name,
 				Model:        typeRes.SensorType.Model,

@@ -10,8 +10,7 @@ import (
 
 type ISensorGroupService interface {
 	CreateGroup(ctx context.Context, group *ent.SensorGroup, sensorIDs []int64) (*ent.SensorGroup, error)
-	GetGroup(ctx context.Context, id int) (*ent.SensorGroup, error)
-	GetGroupWithSensors(ctx context.Context, id int) (*ent.SensorGroup, error)
+	Get(ctx context.Context, id int) (*ent.SensorGroup, error)
 	ListGroups(ctx context.Context, userID int64) ([]*ent.SensorGroup, error)
 	UpdateGroup(ctx context.Context, id int, group *ent.SensorGroup) (*ent.SensorGroup, error)
 	DeleteGroup(ctx context.Context, id int) error
@@ -40,12 +39,8 @@ func (s *SensorGroupService) CreateGroup(ctx context.Context, group *ent.SensorG
 	return s.store.Create(ctx, group, sensorIDs)
 }
 
-func (s *SensorGroupService) GetGroup(ctx context.Context, id int) (*ent.SensorGroup, error) {
+func (s *SensorGroupService) Get(ctx context.Context, id int) (*ent.SensorGroup, error) {
 	return s.store.Get(ctx, id)
-}
-
-func (s *SensorGroupService) GetGroupWithSensors(ctx context.Context, id int) (*ent.SensorGroup, error) {
-	return s.store.GetWithSensors(ctx, id)
 }
 
 func (s *SensorGroupService) ListGroups(ctx context.Context, userID int64) ([]*ent.SensorGroup, error) {
