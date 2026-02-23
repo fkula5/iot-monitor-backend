@@ -152,9 +152,11 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	response := types.MapSensorGroupFromProto(res.Group, nil)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(res.Group)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Update sensor group
