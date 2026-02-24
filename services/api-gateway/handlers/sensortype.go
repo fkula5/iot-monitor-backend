@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 )
 
 type SensorTypeHandler struct {
@@ -41,9 +42,9 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	sensorTypeResponses := make([]SensorTypeResponse, 0, len(res.SensorTypes))
+	sensorTypeResponses := make([]types.SensorTypeResponse, 0, len(res.SensorTypes))
 	for _, st := range res.SensorTypes {
-		sensorTypeResponses = append(sensorTypeResponses, SensorTypeResponse{
+		sensorTypeResponses = append(sensorTypeResponses, types.SensorTypeResponse{
 			ID:           st.Id,
 			Name:         st.Name,
 			Model:        st.Model,
@@ -96,7 +97,7 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	sensorType := SensorTypeResponse{
+	sensorType := types.SensorTypeResponse{
 		ID:           res.SensorType.Id,
 		Name:         res.SensorType.Name,
 		Model:        res.SensorType.Model,

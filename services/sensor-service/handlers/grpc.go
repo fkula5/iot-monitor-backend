@@ -292,7 +292,7 @@ func (h *SensorsGrpcHandler) CreateSensorGroup(ctx context.Context, req *pb.Crea
 }
 
 func (h *SensorsGrpcHandler) GetSensorGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
-	group, err := h.sensorsGroupService.GetGroupWithSensors(ctx, int(req.Id))
+	group, err := h.sensorsGroupService.Get(ctx, int(req.Id))
 	if err != nil {
 		return nil, status.Error(codes.NotFound, "sensor group not found")
 	}
@@ -317,9 +317,19 @@ func (h *SensorsGrpcHandler) ListSensorGroups(ctx context.Context, req *pb.ListS
 		return nil, status.Error(codes.Internal, "failed to list sensor groups")
 	}
 
-	var protoGroups []*pb.SensorGroup
+	var protoGroups []*pb.SensorGroupWithSensors
 	for _, g := range groups {
-		protoGroups = append(protoGroups, convertSensorGroupToProto(g))
+		var protoSensors []*pb.Sensor
+		if g.Edges.Sensors != nil {
+			for _, s := range g.Edges.Sensors {
+				protoSensors = append(protoSensors, convertSensorToProto(s))
+			}
+		}
+
+		protoGroups = append(protoGroups, &pb.SensorGroupWithSensors{
+			Group:   convertSensorGroupToProto(g),
+			Sensors: protoSensors,
+		})
 	}
 
 	return &pb.ListSensorGroupsResponse{
@@ -339,7 +349,7 @@ func (h *SensorsGrpcHandler) UpdateSensorGroup(ctx context.Context, req *pb.Upda
 		Icon:        req.Icon,
 	}
 
-	updatedGroup, err := h.sensorsGroupService.UpdateGroup(ctx, int(req.Id), groupUpdate)
+	updatedGroup, err := h.sensorsGroupService.UpdateGroup(ctx, int(req.Id), groupUpdate, req.SensorIds)
 	if err != nil {
 		logger.Error("Failed to update sensor group", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to update sensor group")
@@ -418,8 +428,11 @@ func convertSensorGroupToProto(g *ent.SensorGroup) *pb.SensorGroup {
 		UpdatedAt:   timestamppb.New(g.UpdatedAt),
 	}
 
+	// Mapowanie sensorów z krawędzi Ent
 	if g.Edges.Sensors != nil {
 		var sensorIds []int64
+		// Jeśli dodasz pole 'sensors' do proto SensorGroup, tutaj powinieneś
+		// również wywołać convertSensorToProto dla każdego sensora.
 		for _, s := range g.Edges.Sensors {
 			sensorIds = append(sensorIds, int64(s.ID))
 		}
