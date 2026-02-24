@@ -51,7 +51,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 
 	sensorResponses := make([]types.SensorResponse, 0, len(res.Sensors))
 	for _, s := range res.Sensors {
-		sensorResponses = append(sensorResponses, h.mapToSensorResponse(ctx, s))
+		sensorResponses = append(sensorResponses, types.MapSensorFromProto(s))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -92,7 +92,7 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := h.mapToSensorResponse(ctx, res.Sensor)
+	response := types.MapSensorFromProto(res.Sensor)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -341,42 +341,4 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *SensorHandler) mapToSensorResponse(ctx context.Context, s *pb.Sensor) types.SensorResponse {
-	response := types.SensorResponse{
-		ID:          s.Id,
-		Name:        s.Name,
-		Location:    s.Location,
-		Description: s.Description,
-		Active:      s.Active,
-		CreatedAt:   s.CreatedAt.AsTime(),
-		UpdatedAt:   s.UpdatedAt.AsTime(),
-	}
-
-	if s.LastUpdated != nil {
-		t := s.LastUpdated.AsTime()
-		response.LastUpdated = &t
-	}
-
-	if s.SensorTypeId > 0 {
-		typeRes, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{
-			Id: s.SensorTypeId,
-		})
-		if err == nil && typeRes.SensorType != nil {
-			response.SensorType = &types.SensorTypeResponse{
-				ID:           typeRes.SensorType.Id,
-				Name:         typeRes.SensorType.Name,
-				Model:        typeRes.SensorType.Model,
-				Manufacturer: typeRes.SensorType.Manufacturer,
-				Description:  typeRes.SensorType.Description,
-				Unit:         typeRes.SensorType.Unit,
-				MinValue:     typeRes.SensorType.MinValue,
-				MaxValue:     typeRes.SensorType.MaxValue,
-				CreatedAt:    typeRes.SensorType.CreatedAt.AsTime(),
-			}
-		}
-	}
-
-	return response
 }

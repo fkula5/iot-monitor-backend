@@ -2,6 +2,8 @@ package types
 
 import (
 	"time"
+
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 )
 
 type CreateSensorRequest struct {
@@ -41,4 +43,41 @@ type SensorTypeResponse struct {
 	MinValue     float32   `json:"min_value,omitempty"`
 	MaxValue     float32   `json:"max_value,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
+}
+
+func MapSensorFromProto(s *pb.Sensor) SensorResponse {
+	response := SensorResponse{
+		ID:          s.Id,
+		Name:        s.Name,
+		Location:    s.Location,
+		Description: s.Description,
+		Active:      s.Active,
+		CreatedAt:   s.CreatedAt.AsTime(),
+		UpdatedAt:   s.UpdatedAt.AsTime(),
+	}
+
+	if s.LastUpdated != nil {
+		t := s.LastUpdated.AsTime()
+		response.LastUpdated = &t
+	}
+
+	if s.SensorType != nil {
+		response.SensorType = &SensorTypeResponse{
+			ID:           s.SensorType.Id,
+			Name:         s.SensorType.Name,
+			Model:        s.SensorType.Model,
+			Manufacturer: s.SensorType.Manufacturer,
+			Description:  s.SensorType.Description,
+			Unit:         s.SensorType.Unit,
+			MinValue:     s.SensorType.MinValue,
+			MaxValue:     s.SensorType.MaxValue,
+			CreatedAt:    s.SensorType.CreatedAt.AsTime(),
+		}
+	} else if s.SensorTypeId > 0 {
+		response.SensorType = &SensorTypeResponse{
+			ID: s.SensorTypeId,
+		}
+	}
+
+	return response
 }

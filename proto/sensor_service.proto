@@ -197,8 +197,13 @@ message ListSensorGroupsRequest {
     int64 user_id = 1;
 }
 
+message SensorGroupWithSensors {
+    SensorGroup group = 1;
+    repeated Sensor sensors = 2;
+}
+
 message ListSensorGroupsResponse {
-    repeated SensorGroup groups = 1;
+    repeated SensorGroupWithSensors groups = 1; // Zmiana z repeated SensorGroup
 }
 
 message UpdateSensorGroupRequest {

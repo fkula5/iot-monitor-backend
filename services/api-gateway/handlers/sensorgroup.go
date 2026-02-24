@@ -52,8 +52,13 @@ func (h *SensorGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) 
 	}
 
 	groupResponses := make([]types.SensorGroupResponse, 0, len(res.Groups))
-	for _, group := range res.Groups {
-		groupResponses = append(groupResponses, types.MapSensorGroupFromProto(group, nil))
+	for _, item := range res.Groups {
+		mappedSensors := make([]types.SensorResponse, 0, len(item.Sensors))
+		for _, s := range item.Sensors {
+			mappedSensors = append(mappedSensors, types.MapSensorFromProto(s))
+		}
+
+		groupResponses = append(groupResponses, types.MapSensorGroupFromProto(item.Group, mappedSensors))
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -94,13 +99,12 @@ func (h *SensorGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := &types.SensorGroupResponse{
-		Name:        res.Group.Name,
-		Description: res.Group.Description,
-		Color:       res.Group.Color,
-		Icon:        res.Group.Icon,
-		CreatedAt:   res.Group.CreatedAt.AsTime(),
+	mappedSensors := make([]types.SensorResponse, 0, len(res.Sensors))
+	for _, s := range res.Sensors {
+		mappedSensors = append(mappedSensors, types.MapSensorFromProto(s))
 	}
+
+	response := types.MapSensorGroupFromProto(res.Group, mappedSensors)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)

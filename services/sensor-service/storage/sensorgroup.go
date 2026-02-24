@@ -14,7 +14,7 @@ type ISensorGroupStorage interface {
 	Create(ctx context.Context, group *ent.SensorGroup, sensorIDs []int64) (*ent.SensorGroup, error)
 	Get(ctx context.Context, id int) (*ent.SensorGroup, error)
 	List(ctx context.Context, userID int64) ([]*ent.SensorGroup, error)
-	Update(ctx context.Context, id int, group *ent.SensorGroup) (*ent.SensorGroup, error)
+	Update(ctx context.Context, id int, group *ent.SensorGroup, sensorIDs []int64) (*ent.SensorGroup, error)
 	Delete(ctx context.Context, id int) error
 	AddSensors(ctx context.Context, groupID int, sensorIDs []int64) (*ent.SensorGroup, error)
 	RemoveSensors(ctx context.Context, groupID int, sensorIDs []int64) (*ent.SensorGroup, error)
@@ -68,17 +68,28 @@ func (s *SensorGroupStorage) List(ctx context.Context, userID int64) ([]*ent.Sen
 	return s.client.SensorGroup.Query().
 		Where(sensorgroup.UserID(userID)).
 		WithSensors(func(q *ent.SensorQuery) {
-			q.Select(sensor.FieldID)
+			q.WithType()
 		}).
 		All(ctx)
 }
 
-func (s *SensorGroupStorage) Update(ctx context.Context, id int, groupData *ent.SensorGroup) (*ent.SensorGroup, error) {
+func (s *SensorGroupStorage) Update(ctx context.Context, id int, groupData *ent.SensorGroup, sensorIDs []int64) (*ent.SensorGroup, error) {
 	update := s.client.SensorGroup.UpdateOneID(id).
 		SetName(groupData.Name).
 		SetNillableDescription(&groupData.Description).
 		SetNillableColor(&groupData.Color).
 		SetNillableIcon(&groupData.Icon)
+
+	if sensorIDs != nil {
+		update.ClearSensors()
+		if len(sensorIDs) > 0 {
+			intIDs := make([]int, len(sensorIDs))
+			for i, sid := range sensorIDs {
+				intIDs[i] = int(sid)
+			}
+			update.AddSensorIDs(intIDs...)
+		}
+	}
 
 	if _, err := update.Save(ctx); err != nil {
 		return nil, fmt.Errorf("failed to update sensor group: %w", err)
