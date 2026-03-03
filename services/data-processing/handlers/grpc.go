@@ -5,10 +5,14 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/rabbitmq/amqp091-go"
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -22,13 +26,17 @@ type DataGrpcHandler struct {
 	sensorClient  pb_sensor.SensorServiceClient
 	subscribers   map[string]chan *pb_data.ReadingUpdate
 	subscribersMu sync.RWMutex
+	channel       *amqp091.Channel
+	queue         amqp091.Queue
 }
 
-func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorClient pb_sensor.SensorServiceClient) {
+func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorClient pb_sensor.SensorServiceClient, channel *amqp091.Channel, queue amqp091.Queue) {
 	handler := &DataGrpcHandler{
 		store:        store,
 		sensorClient: sensorClient,
 		subscribers:  make(map[string]chan *pb_data.ReadingUpdate),
+		channel:      channel,
+		queue:        queue,
 	}
 	pb_data.RegisterDataServiceServer(s, handler)
 }
@@ -59,6 +67,24 @@ func (h *DataGrpcHandler) StoreReading(ctx context.Context, req *pb_data.StoreRe
 		}
 
 		h.broadcastUpdate(update)
+		body, err := json.Marshal(update)
+		if err != nil {
+			logger.Error("Failed to marshal update", zap.Error(err))
+		} else {
+			err = h.channel.Publish(
+				"readings_exchange",
+				"",
+				false,
+				false,
+				amqp091.Publishing{
+					ContentType: "application/json",
+					Body:        body,
+				},
+			)
+			if err != nil {
+				logger.Error("Failed to publish update to RabbitMQ", zap.Error(err))
+			}
+		}
 	}
 
 	return &pb_data.StoreReadingResponse{}, nil
