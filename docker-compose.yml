@@ -175,5 +175,30 @@ services:
     networks:
       - iot-net
 
+  alert-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/alert-service
+    container_name: alert_service
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      ALERT_SERVICE_DB_USER: ${ALERT_SERVICE_DB_USER}
+      ALERT_SERVICE_DB_PASSWORD: ${ALERT_SERVICE_DB_PASSWORD}
+      ALERT_SERVICE_DB_NAME: ${ALERT_SERVICE_DB_NAME}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - iot-net
+    ports:
+      - "50054:50054"
+
 volumes:
   postgres-data:

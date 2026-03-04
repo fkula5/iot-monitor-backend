@@ -36,3 +36,17 @@ func NewAuthDB(host, port, user, password, dbname string) *userEnt.Client {
 	drv := entsql.OpenDB(dialect.Postgres, db)
 	return userEnt.NewClient(userEnt.Driver(drv))
 }
+
+func NewDriver(host, port, user, password, dbname string) dialect.Driver {
+	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Failed to open database connection: %v", err)
+	}
+
+	if err = db.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+	return entsql.OpenDB(dialect.Postgres, db)
+}
