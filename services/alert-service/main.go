@@ -212,7 +212,7 @@ func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 
 			eventBody, _ := json.Marshal(event)
 
-			ch.PublishWithContext(ctx,
+			err = ch.PublishWithContext(ctx,
 				"alerts_exchange", // Fanout exchange
 				"",
 				false, false,
@@ -221,6 +221,10 @@ func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 					Body:        eventBody,
 				},
 			)
+
+			if err != nil {
+				log.Printf("Failed to publish alert event: %v", err)
+			}
 		}
 	}
 }

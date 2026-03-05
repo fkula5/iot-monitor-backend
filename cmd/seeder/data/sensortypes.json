@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Temperatura Powietrza",
+    "model": "DHT22",
+    "manufacturer": "Aosong",
+    "description": "Czujnik temperatury i wilgotności",
+    "unit": "°C",
+    "min_value": -40.0,
+    "max_value": 80.0
+  },
+  {
+    "name": "Wilgotność Powietrza",
+    "model": "DHT22",
+    "manufacturer": "Aosong",
+    "description": "Czujnik temperatury i wilgotności",
+    "unit": "%",
+    "min_value": 0.0,
+    "max_value": 100.0
+  },
+  {
+    "name": "Ciśnienie Atmosferyczne",
+    "model": "BMP280",
+    "manufacturer": "Bosch",
+    "description": "Precyzyjny czujnik ciśnienia",
+    "unit": "hPa",
+    "min_value": 300.0,
+    "max_value": 1100.0
+  },
+  {
+    "name": "Jakość Powietrza (PM2.5)",
+    "model": "PMS5003",
+    "manufacturer": "Plantower",
+    "description": "Czujnik pyłów zawieszonych PM2.5",
+    "unit": "µg/m³",
+    "min_value": 0.0,
+    "max_value": 500.0
+  },
+  {
+    "name": "Jakość Powietrza (PM10)",
+    "model": "PMS5003",
+    "manufacturer": "Plantower",
+    "description": "Czujnik pyłów zawieszonych PM10",
+    "unit": "µg/m³",
+    "min_value": 0.0,
+    "max_value": 500.0
+  },
+  {
+    "name": "Czujnik Ruchu",
+    "model": "HC-SR501",
+    "manufacturer": "Generic",
+    "description": "Czujnik ruchu PIR",
+    "unit": "bool",
+    "min_value": 0.0,
+    "max_value": 1.0
+  },
+  {
+    "name": "Poziom Światła",
+    "model": "BH1750",
+    "manufacturer": "ROHM",
+    "description": "Cyfrowy czujnik natężenia światła",
+    "unit": "lx",
+    "min_value": 0.0,
+    "max_value": 65535.0
+  },
+  {
+    "name": "Wilgotność Gleby",
+    "model": "YL-69",
+    "manufacturer": "Generic",
+    "description": "Analogowy czujnik wilgotności gleby",
+    "unit": "%",
+    "min_value": 0.0,
+    "max_value": 100.0
+  },
+  {
+    "name": "Czujnik Drzwi/Okien",
+    "model": "MC-38",
+    "manufacturer": "Generic",
+    "description": "Czujnik magnetyczny (kontaktron)",
+    "unit": "bool",
+    "min_value": 0.0,
+    "max_value": 1.0
+  },
+  {
+    "name": "Poziom Hałasu",
+    "model": "MAX4466",
+    "manufacturer": "Maxim Integrated",
+    "description": "Moduł mikrofonu z wzmacniaczem",
+    "unit": "dB",
+    "min_value": 20.0,
+    "max_value": 100.0
+  }
+]
