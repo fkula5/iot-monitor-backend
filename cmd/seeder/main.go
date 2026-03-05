@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"github.com/skni-kod/iot-monitor-backend/internal/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	authEnt "github.com/skni-kod/iot-monitor-backend/services/auth/ent"
@@ -39,6 +41,10 @@ type SensorSeed struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("POSTGRES_USER")
@@ -56,19 +62,19 @@ func main() {
 	defer userClient.Close()
 	defer sensorClient.Close()
 
-	userJson, err := os.Open("data/users.json")
+	userJson, err := os.Open("cmd/seeder/data/users.json")
 	if err != nil {
 		panic(err)
 	}
 	defer userJson.Close()
 
-	sensorTypeJson, err := os.Open("data/sensor_types.json")
+	sensorTypeJson, err := os.Open("cmd/seeder/data/sensortypes.json")
 	if err != nil {
 		panic(err)
 	}
 	defer sensorTypeJson.Close()
 
-	sensorJson, err := os.Open("data/sensors.json")
+	sensorJson, err := os.Open("cmd/seeder/data/sensors.json")
 	if err != nil {
 		panic(err)
 	}
