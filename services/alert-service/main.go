@@ -16,14 +16,12 @@ import (
 	"github.com/skni-kod/iot-monitor-backend/services/alert-service/ent/alertrule"
 )
 
-// Struktura danych przychodząca z RabbitMQ (z data-processing)
 type SensorData struct {
 	SensorID  int64     `json:"sensor_id"`
 	Value     float64   `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// Struktura zdarzenia wyjściowego (gdy wykryjemy alert)
 type AlertEvent struct {
 	AlertID   int       `json:"alert_id"`
 	RuleID    int       `json:"rule_id"`
@@ -34,14 +32,12 @@ type AlertEvent struct {
 }
 
 func main() {
-	// 1. Konfiguracja Bazy Danych
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("ALERT_SERVICE_DB_USER")
 	dbPass := os.Getenv("ALERT_SERVICE_DB_PASSWORD")
 	dbName := os.Getenv("ALERT_SERVICE_DB_NAME")
 
-	// Fallbacki dla środowiska lokalnego (jeśli nie ma w .env)
 	if dbHost == "" {
 		dbHost = "localhost"
 	}
@@ -62,13 +58,11 @@ func main() {
 	client := ent.NewClient(ent.Driver(drv))
 	defer client.Close()
 
-	// Automigracja schematu (tworzy tabele)
 	if err := client.Schema.Create(context.Background()); err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 	log.Println("Database connection established and schema migrated.")
 
-	// 2. Konfiguracja RabbitMQ
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
 		rabbitURL = "amqp://guest:guest@localhost:5672/"
@@ -86,47 +80,41 @@ func main() {
 	}
 	defer ch.Close()
 
-	// 3. Deklaracja Giełd (Exchanges)
-	// Giełda wejściowa (dane z czujników)
 	err = ch.ExchangeDeclare("readings_exchange", "fanout", true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("Failed to declare input exchange: %v", err)
 	}
 
-	// Giełda wyjściowa (wyzwolone alerty - dla dispatchera i api-gateway)
 	err = ch.ExchangeDeclare("alerts_exchange", "fanout", true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("Failed to declare output exchange: %v", err)
 	}
 
-	// 4. Kolejka dla tego serwisu
 	q, err := ch.QueueDeclare(
-		"alert_engine_queue", // Nazwa trwała (bo chcemy, żeby kolejka zbierała dane nawet jak serwis padnie)
-		true,                 // durable
-		false,                // delete when unused
-		false,                // exclusive
-		false,                // no-wait
-		nil,                  // arguments
+		"alert_engine_queue",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		log.Fatalf("Failed to declare queue: %v", err)
 	}
 
-	// Bindowanie kolejki do giełdy z danymi
 	err = ch.QueueBind(q.Name, "", "readings_exchange", false, nil)
 	if err != nil {
 		log.Fatalf("Failed to bind queue: %v", err)
 	}
 
-	// 5. Konsumpcja wiadomości
 	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer tag
-		true,   // auto-ack (dla uproszczenia na start)
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		q.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		log.Fatalf("Failed to register a consumer: %v", err)
@@ -134,7 +122,6 @@ func main() {
 
 	log.Println("Alert Service started. Waiting for sensor data...")
 
-	// Pętla główna - "Silnik Reguł"
 	forever := make(chan bool)
 
 	go func() {
@@ -146,7 +133,6 @@ func main() {
 	<-forever
 }
 
-// Funkcja Silnika: Sprawdza dane względem reguł
 func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 	var data SensorData
 	if err := json.Unmarshal(body, &data); err != nil {
@@ -156,8 +142,6 @@ func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 
 	ctx := context.Background()
 
-	// 1. Pobierz reguły dla tego konkretnego sensora
-	// Optymalizacja: W prawdziwym systemie cache'owalibyśmy to w RAMie!
 	rules, err := client.AlertRule.Query().
 		Where(
 			alertrule.SensorID(data.SensorID),
