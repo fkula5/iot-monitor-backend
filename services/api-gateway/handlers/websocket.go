@@ -19,6 +19,7 @@ import (
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
@@ -43,26 +44,6 @@ func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_s
 		sensorClient: sensorClient,
 		clients:      make(map[*websocket.Conn]bool),
 	}
-}
-
-type ReadingMessage struct {
-	SensorID   int64     `json:"sensor_id"`
-	Value      float32   `json:"value"`
-	Timestamp  time.Time `json:"timestamp"`
-	SensorName string    `json:"sensor_name"`
-	Location   string    `json:"location"`
-	Unit       string    `json:"unit"`
-}
-
-type SubscribeMessage struct {
-	Type      string  `json:"type"`
-	SensorIDs []int64 `json:"sensor_ids"`
-}
-
-type StoreReadingRequest struct {
-	SensorID  int64     `json:"sensor_id"`
-	Value     float32   `json:"value"`
-	Timestamp time.Time `json:"timestamp"`
 }
 
 // @Summary Stream sensor readings via WebSocket
@@ -127,7 +108,7 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 	}
 
 	for {
-		var msg SubscribeMessage
+		var msg types.SubscribeMessage
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -177,7 +158,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 			zap.Float32("value", update.Value),
 		)
 
-		msg := ReadingMessage{
+		msg := types.ReadingMessage{
 			SensorID:   update.SensorId,
 			Value:      update.Value,
 			Timestamp:  update.Timestamp.AsTime(),
@@ -375,7 +356,7 @@ func (h *WebSocketHandler) WsHandler(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} map[string]string
 // @Router /api/data/readings [post]
 func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) {
-	var req StoreReadingRequest
+	var req types.StoreReadingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
