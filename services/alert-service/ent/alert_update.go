@@ -29,6 +29,27 @@ func (au *AlertUpdate) Where(ps ...predicate.Alert) *AlertUpdate {
 	return au
 }
 
+// SetUserID sets the "user_id" field.
+func (au *AlertUpdate) SetUserID(i int64) *AlertUpdate {
+	au.mutation.ResetUserID()
+	au.mutation.SetUserID(i)
+	return au
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (au *AlertUpdate) SetNillableUserID(i *int64) *AlertUpdate {
+	if i != nil {
+		au.SetUserID(*i)
+	}
+	return au
+}
+
+// AddUserID adds i to the "user_id" field.
+func (au *AlertUpdate) AddUserID(i int64) *AlertUpdate {
+	au.mutation.AddUserID(i)
+	return au
+}
+
 // SetValue sets the "value" field.
 func (au *AlertUpdate) SetValue(f float64) *AlertUpdate {
 	au.mutation.ResetValue()
@@ -161,6 +182,12 @@ func (au *AlertUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := au.mutation.UserID(); ok {
+		_spec.SetField(alert.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := au.mutation.AddedUserID(); ok {
+		_spec.AddField(alert.FieldUserID, field.TypeInt64, value)
+	}
 	if value, ok := au.mutation.Value(); ok {
 		_spec.SetField(alert.FieldValue, field.TypeFloat64, value)
 	}
@@ -223,6 +250,27 @@ type AlertUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *AlertMutation
+}
+
+// SetUserID sets the "user_id" field.
+func (auo *AlertUpdateOne) SetUserID(i int64) *AlertUpdateOne {
+	auo.mutation.ResetUserID()
+	auo.mutation.SetUserID(i)
+	return auo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (auo *AlertUpdateOne) SetNillableUserID(i *int64) *AlertUpdateOne {
+	if i != nil {
+		auo.SetUserID(*i)
+	}
+	return auo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (auo *AlertUpdateOne) AddUserID(i int64) *AlertUpdateOne {
+	auo.mutation.AddUserID(i)
+	return auo
 }
 
 // SetValue sets the "value" field.
@@ -386,6 +434,12 @@ func (auo *AlertUpdateOne) sqlSave(ctx context.Context) (_node *Alert, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := auo.mutation.UserID(); ok {
+		_spec.SetField(alert.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := auo.mutation.AddedUserID(); ok {
+		_spec.AddField(alert.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := auo.mutation.Value(); ok {
 		_spec.SetField(alert.FieldValue, field.TypeFloat64, value)

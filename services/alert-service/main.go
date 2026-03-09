@@ -4,16 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net"
 	"os"
 	"time"
 
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/alert-service/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/alert-service/ent/alertrule"
+	"github.com/skni-kod/iot-monitor-backend/services/alert-service/handlers"
+	"github.com/skni-kod/iot-monitor-backend/services/alert-service/service"
+	"github.com/skni-kod/iot-monitor-backend/services/alert-service/storage"
 )
 
 type SensorData struct {
@@ -31,37 +38,75 @@ type AlertEvent struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func main() {
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbUser := os.Getenv("ALERT_SERVICE_DB_USER")
-	dbPass := os.Getenv("ALERT_SERVICE_DB_PASSWORD")
-	dbName := os.Getenv("ALERT_SERVICE_DB_NAME")
+func getEnvOrFail(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		logger.Fatal("Environment variable not set", zap.String("key", key))
+	}
+	return value
+}
 
-	if dbHost == "" {
-		dbHost = "localhost"
+func main() {
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		environment = "development"
 	}
-	if dbPort == "" {
-		dbPort = "5432"
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
 	}
-	if dbUser == "" {
-		dbUser = "alert_user"
+
+	err := logger.Init(logger.Config{
+		Level:       logLevel,
+		Environment: environment,
+		OutputPaths: []string{"stdout"},
+	})
+	if err != nil {
+		fmt.Printf("Failed to initialize logger: %v\n", err)
+		os.Exit(1)
 	}
-	if dbPass == "" {
-		dbPass = "alertpassword"
-	}
-	if dbName == "" {
-		dbName = "alert_db"
-	}
+	defer logger.Sync()
+
+	logger.Info("Starting Alert Service",
+		zap.String("environment", environment),
+		zap.String("log_level", logLevel),
+	)
+
+	dbHost := getEnvOrFail("DB_HOST")
+	dbPort := getEnvOrFail("DB_PORT")
+	dbUser := getEnvOrFail("ALERT_SERVICE_DB_USER")
+	dbPass := getEnvOrFail("ALERT_SERVICE_DB_PASSWORD")
+	dbName := getEnvOrFail("ALERT_SERVICE_DB_NAME")
+	grpcPort := getEnvOrFail("ALERT_SERVICE_GRPC_PORT")
 
 	drv := database.NewDriver(dbHost, dbPort, dbUser, dbPass, dbName)
 	client := ent.NewClient(ent.Driver(drv))
 	defer client.Close()
 
 	if err := client.Schema.Create(context.Background()); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
+		logger.Fatal("failed creating schema resources", zap.Error(err))
 	}
-	log.Println("Database connection established and schema migrated.")
+	logger.Info("Database connection established and schema migrated")
+
+	storage := storage.NewAlertStorage(client)
+	svc := service.NewAlertService(storage)
+	handler := handlers.NewAlertGrpcHandler(svc)
+
+	lis, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		logger.Fatal("failed to listen", zap.String("port", grpcPort), zap.Error(err))
+	}
+
+	s := grpc.NewServer()
+	pb.RegisterAlertServiceServer(s, handler)
+
+	go func() {
+		logger.Info("gRPC server listening", zap.String("port", grpcPort))
+		if err := s.Serve(lis); err != nil {
+			logger.Fatal("failed to serve gRPC", zap.Error(err))
+		}
+	}()
 
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
@@ -70,145 +115,120 @@ func main() {
 
 	conn, err := amqp.Dial(rabbitURL)
 	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
+		logger.Fatal("Failed to connect to RabbitMQ", zap.Error(err))
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatalf("Failed to open a channel: %v", err)
+		logger.Fatal("Failed to open a RabbitMQ channel", zap.Error(err))
 	}
 	defer ch.Close()
 
-	err = ch.ExchangeDeclare("readings_exchange", "fanout", true, false, false, false, nil)
+	setupRabbitMQ(ch)
+
+	msgs, err := ch.Consume("alert_engine_queue", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatalf("Failed to declare input exchange: %v", err)
+		logger.Fatal("Failed to register a consumer", zap.Error(err))
+	}
+
+	logger.Info("Alert Service started. Waiting for sensor data...")
+
+	for d := range msgs {
+		processMessage(client, ch, d.Body)
+	}
+}
+
+func setupRabbitMQ(ch *amqp.Channel) {
+	err := ch.ExchangeDeclare("readings_exchange", "fanout", true, false, false, false, nil)
+	if err != nil {
+		logger.Fatal("Failed to declare readings_exchange", zap.Error(err))
 	}
 
 	err = ch.ExchangeDeclare("alerts_exchange", "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Fatalf("Failed to declare output exchange: %v", err)
+		logger.Fatal("Failed to declare alerts_exchange", zap.Error(err))
 	}
 
-	q, err := ch.QueueDeclare(
-		"alert_engine_queue",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
+	q, err := ch.QueueDeclare("alert_engine_queue", true, false, false, false, nil)
 	if err != nil {
-		log.Fatalf("Failed to declare queue: %v", err)
+		logger.Fatal("Failed to declare alert_engine_queue", zap.Error(err))
 	}
 
 	err = ch.QueueBind(q.Name, "", "readings_exchange", false, nil)
 	if err != nil {
-		log.Fatalf("Failed to bind queue: %v", err)
+		logger.Fatal("Failed to bind queue", zap.Error(err))
 	}
-
-	msgs, err := ch.Consume(
-		q.Name,
-		"",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Fatalf("Failed to register a consumer: %v", err)
-	}
-
-	log.Println("Alert Service started. Waiting for sensor data...")
-
-	forever := make(chan bool)
-
-	go func() {
-		for d := range msgs {
-			processMessage(client, ch, d.Body)
-		}
-	}()
-
-	<-forever
 }
 
 func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 	var data SensorData
 	if err := json.Unmarshal(body, &data); err != nil {
-		log.Printf("Error decoding JSON: %v", err)
+		logger.Error("Error decoding JSON", zap.Error(err))
 		return
 	}
 
 	ctx := context.Background()
-
 	rules, err := client.AlertRule.Query().
-		Where(
-			alertrule.SensorID(data.SensorID),
-			alertrule.IsEnabled(true),
-		).
+		Where(alertrule.SensorID(data.SensorID), alertrule.IsEnabled(true)).
 		All(ctx)
 
 	if err != nil {
-		log.Printf("Error fetching rules: %v", err)
+		logger.Error("Error fetching rules", zap.Int64("sensor_id", data.SensorID), zap.Error(err))
 		return
 	}
 
-	// 2. Sprawdź każdą regułę
 	for _, rule := range rules {
-		isTriggered := false
+		if isTriggered(rule, data.Value) {
+			logger.Info("Alert triggered",
+				zap.Int64("sensor_id", data.SensorID),
+				zap.String("rule_name", rule.Name),
+				zap.Float64("value", data.Value),
+				zap.Float64("threshold", rule.Threshold),
+			)
 
-		switch rule.ConditionType {
-		case "GT": // Greater Than
-			if data.Value > rule.Threshold {
-				isTriggered = true
-			}
-		case "LT": // Less Than
-			if data.Value < rule.Threshold {
-				isTriggered = true
-			}
-		}
-
-		if isTriggered {
-			log.Printf("!!! ALERT TRIGGERED !!! Sensor: %d, Rule: %s, Value: %f", data.SensorID, rule.Name, data.Value)
-
-			// 3. Zapisz Alert w bazie (Historia)
 			savedAlert, err := client.Alert.Create().
 				SetRule(rule).
+				SetUserID(rule.UserID).
 				SetValue(data.Value).
 				SetMessage(fmt.Sprintf("Rule '%s' violated: val %f", rule.Name, data.Value)).
 				Save(ctx)
 
 			if err != nil {
-				log.Printf("Failed to save alert to DB: %v", err)
+				logger.Error("Failed to save alert to DB", zap.Error(err))
 				continue
 			}
 
-			// 4. Wyślij zdarzenie do 'alerts_exchange' (dla Frontendu i Dispatchera)
-			event := AlertEvent{
-				AlertID:   savedAlert.ID,
-				RuleID:    rule.ID,
-				SensorID:  data.SensorID,
-				Message:   savedAlert.Message,
-				Value:     data.Value,
-				Timestamp: time.Now(),
-			}
-
-			eventBody, _ := json.Marshal(event)
-
-			err = ch.PublishWithContext(ctx,
-				"alerts_exchange", // Fanout exchange
-				"",
-				false, false,
-				amqp.Publishing{
-					ContentType: "application/json",
-					Body:        eventBody,
-				},
-			)
-
-			if err != nil {
-				log.Printf("Failed to publish alert event: %v", err)
-			}
+			publishAlert(ch, ctx, savedAlert, rule, data.Value)
 		}
+	}
+}
+
+func isTriggered(rule *ent.AlertRule, value float64) bool {
+	if rule.ConditionType == "GT" {
+		return value > rule.Threshold
+	}
+	if rule.ConditionType == "LT" {
+		return value < rule.Threshold
+	}
+	return false
+}
+
+func publishAlert(ch *amqp.Channel, ctx context.Context, a *ent.Alert, rule *ent.AlertRule, val float64) {
+	event := AlertEvent{
+		AlertID:   a.ID,
+		RuleID:    rule.ID,
+		SensorID:  rule.SensorID,
+		Message:   a.Message,
+		Value:     val,
+		Timestamp: time.Now(),
+	}
+	body, _ := json.Marshal(event)
+	err := ch.PublishWithContext(ctx, "alerts_exchange", "", false, false, amqp.Publishing{
+		ContentType: "application/json",
+		Body:        body,
+	})
+	if err != nil {
+		logger.Error("Failed to publish alert event", zap.Error(err))
 	}
 }

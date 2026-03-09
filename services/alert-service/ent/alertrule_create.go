@@ -27,6 +27,12 @@ func (arc *AlertRuleCreate) SetName(s string) *AlertRuleCreate {
 	return arc
 }
 
+// SetUserID sets the "user_id" field.
+func (arc *AlertRuleCreate) SetUserID(i int64) *AlertRuleCreate {
+	arc.mutation.SetUserID(i)
+	return arc
+}
+
 // SetSensorID sets the "sensor_id" field.
 func (arc *AlertRuleCreate) SetSensorID(i int64) *AlertRuleCreate {
 	arc.mutation.SetSensorID(i)
@@ -169,6 +175,9 @@ func (arc *AlertRuleCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AlertRule.name": %w`, err)}
 		}
 	}
+	if _, ok := arc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "AlertRule.user_id"`)}
+	}
 	if _, ok := arc.mutation.SensorID(); !ok {
 		return &ValidationError{Name: "sensor_id", err: errors.New(`ent: missing required field "AlertRule.sensor_id"`)}
 	}
@@ -213,6 +222,10 @@ func (arc *AlertRuleCreate) createSpec() (*AlertRule, *sqlgraph.CreateSpec) {
 	if value, ok := arc.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := arc.mutation.UserID(); ok {
+		_spec.SetField(alertrule.FieldUserID, field.TypeInt64, value)
+		_node.UserID = value
 	}
 	if value, ok := arc.mutation.SensorID(); ok {
 		_spec.SetField(alertrule.FieldSensorID, field.TypeInt64, value)

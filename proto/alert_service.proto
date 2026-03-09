@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package alert_service;
+
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service";
+
+import "google/protobuf/timestamp.proto";
+
+service AlertService {
+    rpc GetAlert(GetAlertRequest) returns (GetAlertResponse) {}
+    rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse) {}
+    rpc MarkAlertAsRead(MarkAlertAsReadRequest) returns (MarkAlertAsReadResponse) {}
+}
+
+message Alert {
+    int64 id = 1;
+    int64 rule_id = 2;
+    int64 sensor_id = 3;
+    string message = 4;
+    double value = 5;
+    bool is_read = 6;
+    google.protobuf.Timestamp triggered_at = 7;
+}
+
+message GetAlertRequest {
+    int64 id = 1;
+}
+
+message GetAlertResponse {
+    Alert alert = 1;
+}
+
+message ListAlertsRequest {
+    int64 user_id = 1;
+}
+
+message MarkAlertAsReadRequest {
+    int64 id = 1;
+}
+
+message MarkAlertAsReadResponse {
+    bool success = 1;
+}
+
+message ListAlertsResponse {
+    repeated Alert alerts = 1;
+}

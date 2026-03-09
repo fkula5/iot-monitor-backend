@@ -17,11 +17,11 @@ func init() {
 	alertFields := schema.Alert{}.Fields()
 	_ = alertFields
 	// alertDescTriggeredAt is the schema descriptor for triggered_at field.
-	alertDescTriggeredAt := alertFields[2].Descriptor()
+	alertDescTriggeredAt := alertFields[3].Descriptor()
 	// alert.DefaultTriggeredAt holds the default value on creation for the triggered_at field.
 	alert.DefaultTriggeredAt = alertDescTriggeredAt.Default.(func() time.Time)
 	// alertDescIsRead is the schema descriptor for is_read field.
-	alertDescIsRead := alertFields[3].Descriptor()
+	alertDescIsRead := alertFields[4].Descriptor()
 	// alert.DefaultIsRead holds the default value on creation for the is_read field.
 	alert.DefaultIsRead = alertDescIsRead.Default.(bool)
 	alertruleFields := schema.AlertRule{}.Fields()
@@ -31,15 +31,15 @@ func init() {
 	// alertrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	alertrule.NameValidator = alertruleDescName.Validators[0].(func(string) error)
 	// alertruleDescConditionType is the schema descriptor for condition_type field.
-	alertruleDescConditionType := alertruleFields[2].Descriptor()
+	alertruleDescConditionType := alertruleFields[3].Descriptor()
 	// alertrule.DefaultConditionType holds the default value on creation for the condition_type field.
 	alertrule.DefaultConditionType = alertruleDescConditionType.Default.(string)
 	// alertruleDescIsEnabled is the schema descriptor for is_enabled field.
-	alertruleDescIsEnabled := alertruleFields[5].Descriptor()
+	alertruleDescIsEnabled := alertruleFields[6].Descriptor()
 	// alertrule.DefaultIsEnabled holds the default value on creation for the is_enabled field.
 	alertrule.DefaultIsEnabled = alertruleDescIsEnabled.Default.(bool)
 	// alertruleDescCreatedAt is the schema descriptor for created_at field.
-	alertruleDescCreatedAt := alertruleFields[6].Descriptor()
+	alertruleDescCreatedAt := alertruleFields[7].Descriptor()
 	// alertrule.DefaultCreatedAt holds the default value on creation for the created_at field.
 	alertrule.DefaultCreatedAt = alertruleDescCreatedAt.Default.(func() time.Time)
 }

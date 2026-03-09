@@ -55,6 +55,11 @@ func IDLTE(id int) predicate.Alert {
 	return predicate.Alert(sql.FieldLTE(FieldID, id))
 }
 
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldEQ(FieldUserID, v))
+}
+
 // Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
 func Value(v float64) predicate.Alert {
 	return predicate.Alert(sql.FieldEQ(FieldValue, v))
@@ -73,6 +78,46 @@ func TriggeredAt(v time.Time) predicate.Alert {
 // IsRead applies equality check predicate on the "is_read" field. It's identical to IsReadEQ.
 func IsRead(v bool) predicate.Alert {
 	return predicate.Alert(sql.FieldEQ(FieldIsRead, v))
+}
+
+// UserIDEQ applies the EQ predicate on the "user_id" field.
+func UserIDEQ(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldEQ(FieldUserID, v))
+}
+
+// UserIDNEQ applies the NEQ predicate on the "user_id" field.
+func UserIDNEQ(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldNEQ(FieldUserID, v))
+}
+
+// UserIDIn applies the In predicate on the "user_id" field.
+func UserIDIn(vs ...int64) predicate.Alert {
+	return predicate.Alert(sql.FieldIn(FieldUserID, vs...))
+}
+
+// UserIDNotIn applies the NotIn predicate on the "user_id" field.
+func UserIDNotIn(vs ...int64) predicate.Alert {
+	return predicate.Alert(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int64) predicate.Alert {
+	return predicate.Alert(sql.FieldLTE(FieldUserID, v))
 }
 
 // ValueEQ applies the EQ predicate on the "value" field.

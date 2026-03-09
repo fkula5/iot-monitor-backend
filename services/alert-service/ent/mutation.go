@@ -35,6 +35,8 @@ type AlertMutation struct {
 	op            Op
 	typ           string
 	id            *int
+	user_id       *int64
+	adduser_id    *int64
 	value         *float64
 	addvalue      *float64
 	message       *string
@@ -144,6 +146,62 @@ func (m *AlertMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AlertMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AlertMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Alert entity.
+// If the Alert object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *AlertMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *AlertMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AlertMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetValue sets the "value" field.
@@ -383,7 +441,10 @@ func (m *AlertMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
+	if m.user_id != nil {
+		fields = append(fields, alert.FieldUserID)
+	}
 	if m.value != nil {
 		fields = append(fields, alert.FieldValue)
 	}
@@ -404,6 +465,8 @@ func (m *AlertMutation) Fields() []string {
 // schema.
 func (m *AlertMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case alert.FieldUserID:
+		return m.UserID()
 	case alert.FieldValue:
 		return m.Value()
 	case alert.FieldMessage:
@@ -421,6 +484,8 @@ func (m *AlertMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AlertMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case alert.FieldUserID:
+		return m.OldUserID(ctx)
 	case alert.FieldValue:
 		return m.OldValue(ctx)
 	case alert.FieldMessage:
@@ -438,6 +503,13 @@ func (m *AlertMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *AlertMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case alert.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case alert.FieldValue:
 		v, ok := value.(float64)
 		if !ok {
@@ -474,6 +546,9 @@ func (m *AlertMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *AlertMutation) AddedFields() []string {
 	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, alert.FieldUserID)
+	}
 	if m.addvalue != nil {
 		fields = append(fields, alert.FieldValue)
 	}
@@ -485,6 +560,8 @@ func (m *AlertMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *AlertMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case alert.FieldUserID:
+		return m.AddedUserID()
 	case alert.FieldValue:
 		return m.AddedValue()
 	}
@@ -496,6 +573,13 @@ func (m *AlertMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AlertMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case alert.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	case alert.FieldValue:
 		v, ok := value.(float64)
 		if !ok {
@@ -530,6 +614,9 @@ func (m *AlertMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AlertMutation) ResetField(name string) error {
 	switch name {
+	case alert.FieldUserID:
+		m.ResetUserID()
+		return nil
 	case alert.FieldValue:
 		m.ResetValue()
 		return nil
@@ -627,6 +714,8 @@ type AlertRuleMutation struct {
 	typ            string
 	id             *int
 	name           *string
+	user_id        *int64
+	adduser_id     *int64
 	sensor_id      *int64
 	addsensor_id   *int64
 	condition_type *string
@@ -776,6 +865,62 @@ func (m *AlertRuleMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *AlertRuleMutation) ResetName() {
 	m.name = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *AlertRuleMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *AlertRuleMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the AlertRule entity.
+// If the AlertRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AlertRuleMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *AlertRuleMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *AlertRuleMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *AlertRuleMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
 }
 
 // SetSensorID sets the "sensor_id" field.
@@ -1135,9 +1280,12 @@ func (m *AlertRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AlertRuleMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, alertrule.FieldName)
+	}
+	if m.user_id != nil {
+		fields = append(fields, alertrule.FieldUserID)
 	}
 	if m.sensor_id != nil {
 		fields = append(fields, alertrule.FieldSensorID)
@@ -1167,6 +1315,8 @@ func (m *AlertRuleMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case alertrule.FieldName:
 		return m.Name()
+	case alertrule.FieldUserID:
+		return m.UserID()
 	case alertrule.FieldSensorID:
 		return m.SensorID()
 	case alertrule.FieldConditionType:
@@ -1190,6 +1340,8 @@ func (m *AlertRuleMutation) OldField(ctx context.Context, name string) (ent.Valu
 	switch name {
 	case alertrule.FieldName:
 		return m.OldName(ctx)
+	case alertrule.FieldUserID:
+		return m.OldUserID(ctx)
 	case alertrule.FieldSensorID:
 		return m.OldSensorID(ctx)
 	case alertrule.FieldConditionType:
@@ -1217,6 +1369,13 @@ func (m *AlertRuleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case alertrule.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
 		return nil
 	case alertrule.FieldSensorID:
 		v, ok := value.(int64)
@@ -1268,6 +1427,9 @@ func (m *AlertRuleMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *AlertRuleMutation) AddedFields() []string {
 	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, alertrule.FieldUserID)
+	}
 	if m.addsensor_id != nil {
 		fields = append(fields, alertrule.FieldSensorID)
 	}
@@ -1282,6 +1444,8 @@ func (m *AlertRuleMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *AlertRuleMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case alertrule.FieldUserID:
+		return m.AddedUserID()
 	case alertrule.FieldSensorID:
 		return m.AddedSensorID()
 	case alertrule.FieldThreshold:
@@ -1295,6 +1459,13 @@ func (m *AlertRuleMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AlertRuleMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case alertrule.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
 	case alertrule.FieldSensorID:
 		v, ok := value.(int64)
 		if !ok {
@@ -1347,6 +1518,9 @@ func (m *AlertRuleMutation) ResetField(name string) error {
 	switch name {
 	case alertrule.FieldName:
 		m.ResetName()
+		return nil
+	case alertrule.FieldUserID:
+		m.ResetUserID()
 		return nil
 	case alertrule.FieldSensorID:
 		m.ResetSensorID()

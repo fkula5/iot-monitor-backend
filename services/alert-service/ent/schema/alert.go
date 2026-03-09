@@ -8,14 +8,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// Alert holds the schema definition for the Alert entity.
 type Alert struct {
 	ent.Schema
 }
 
-// Fields of the Alert.
 func (Alert) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int64("user_id"),
 		field.Float("value"),
 		field.String("message"),
 		field.Time("triggered_at").Default(time.Now),
@@ -23,7 +22,6 @@ func (Alert) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Alert.
 func (Alert) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("rule", AlertRule.Type).

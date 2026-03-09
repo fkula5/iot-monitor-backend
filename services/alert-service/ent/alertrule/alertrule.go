@@ -16,6 +16,8 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldUserID holds the string denoting the user_id field in the database.
+	FieldUserID = "user_id"
 	// FieldSensorID holds the string denoting the sensor_id field in the database.
 	FieldSensorID = "sensor_id"
 	// FieldConditionType holds the string denoting the condition_type field in the database.
@@ -45,6 +47,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldName,
+	FieldUserID,
 	FieldSensorID,
 	FieldConditionType,
 	FieldThreshold,
@@ -85,6 +88,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByUserID orders the results by the user_id field.
+func ByUserID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
 // BySensorID orders the results by the sensor_id field.

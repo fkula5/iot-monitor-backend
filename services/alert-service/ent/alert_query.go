@@ -299,12 +299,12 @@ func (aq *AlertQuery) WithRule(opts ...func(*AlertRuleQuery)) *AlertQuery {
 // Example:
 //
 //	var v []struct {
-//		Value float64 `json:"value,omitempty"`
+//		UserID int64 `json:"user_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Alert.Query().
-//		GroupBy(alert.FieldValue).
+//		GroupBy(alert.FieldUserID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aq *AlertQuery) GroupBy(field string, fields ...string) *AlertGroupBy {
@@ -322,11 +322,11 @@ func (aq *AlertQuery) GroupBy(field string, fields ...string) *AlertGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Value float64 `json:"value,omitempty"`
+//		UserID int64 `json:"user_id,omitempty"`
 //	}
 //
 //	client.Alert.Query().
-//		Select(alert.FieldValue).
+//		Select(alert.FieldUserID).
 //		Scan(ctx, &v)
 func (aq *AlertQuery) Select(fields ...string) *AlertSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)

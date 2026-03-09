@@ -43,6 +43,27 @@ func (aru *AlertRuleUpdate) SetNillableName(s *string) *AlertRuleUpdate {
 	return aru
 }
 
+// SetUserID sets the "user_id" field.
+func (aru *AlertRuleUpdate) SetUserID(i int64) *AlertRuleUpdate {
+	aru.mutation.ResetUserID()
+	aru.mutation.SetUserID(i)
+	return aru
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (aru *AlertRuleUpdate) SetNillableUserID(i *int64) *AlertRuleUpdate {
+	if i != nil {
+		aru.SetUserID(*i)
+	}
+	return aru
+}
+
+// AddUserID adds i to the "user_id" field.
+func (aru *AlertRuleUpdate) AddUserID(i int64) *AlertRuleUpdate {
+	aru.mutation.AddUserID(i)
+	return aru
+}
+
 // SetSensorID sets the "sensor_id" field.
 func (aru *AlertRuleUpdate) SetSensorID(i int64) *AlertRuleUpdate {
 	aru.mutation.ResetSensorID()
@@ -240,6 +261,12 @@ func (aru *AlertRuleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := aru.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
 	}
+	if value, ok := aru.mutation.UserID(); ok {
+		_spec.SetField(alertrule.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := aru.mutation.AddedUserID(); ok {
+		_spec.AddField(alertrule.FieldUserID, field.TypeInt64, value)
+	}
 	if value, ok := aru.mutation.SensorID(); ok {
 		_spec.SetField(alertrule.FieldSensorID, field.TypeInt64, value)
 	}
@@ -343,6 +370,27 @@ func (aruo *AlertRuleUpdateOne) SetNillableName(s *string) *AlertRuleUpdateOne {
 	if s != nil {
 		aruo.SetName(*s)
 	}
+	return aruo
+}
+
+// SetUserID sets the "user_id" field.
+func (aruo *AlertRuleUpdateOne) SetUserID(i int64) *AlertRuleUpdateOne {
+	aruo.mutation.ResetUserID()
+	aruo.mutation.SetUserID(i)
+	return aruo
+}
+
+// SetNillableUserID sets the "user_id" field if the given value is not nil.
+func (aruo *AlertRuleUpdateOne) SetNillableUserID(i *int64) *AlertRuleUpdateOne {
+	if i != nil {
+		aruo.SetUserID(*i)
+	}
+	return aruo
+}
+
+// AddUserID adds i to the "user_id" field.
+func (aruo *AlertRuleUpdateOne) AddUserID(i int64) *AlertRuleUpdateOne {
+	aruo.mutation.AddUserID(i)
 	return aruo
 }
 
@@ -572,6 +620,12 @@ func (aruo *AlertRuleUpdateOne) sqlSave(ctx context.Context) (_node *AlertRule, 
 	}
 	if value, ok := aruo.mutation.Name(); ok {
 		_spec.SetField(alertrule.FieldName, field.TypeString, value)
+	}
+	if value, ok := aruo.mutation.UserID(); ok {
+		_spec.SetField(alertrule.FieldUserID, field.TypeInt64, value)
+	}
+	if value, ok := aruo.mutation.AddedUserID(); ok {
+		_spec.AddField(alertrule.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := aruo.mutation.SensorID(); ok {
 		_spec.SetField(alertrule.FieldSensorID, field.TypeInt64, value)

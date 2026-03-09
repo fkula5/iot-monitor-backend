@@ -19,6 +19,8 @@ type AlertRule struct {
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int64 `json:"user_id,omitempty"`
 	// SensorID holds the value of the "sensor_id" field.
 	SensorID int64 `json:"sensor_id,omitempty"`
 	// ConditionType holds the value of the "condition_type" field.
@@ -64,7 +66,7 @@ func (*AlertRule) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case alertrule.FieldThreshold:
 			values[i] = new(sql.NullFloat64)
-		case alertrule.FieldID, alertrule.FieldSensorID:
+		case alertrule.FieldID, alertrule.FieldUserID, alertrule.FieldSensorID:
 			values[i] = new(sql.NullInt64)
 		case alertrule.FieldName, alertrule.FieldConditionType, alertrule.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -96,6 +98,12 @@ func (ar *AlertRule) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				ar.Name = value.String
+			}
+		case alertrule.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				ar.UserID = value.Int64
 			}
 		case alertrule.FieldSensorID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -176,6 +184,9 @@ func (ar *AlertRule) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", ar.ID))
 	builder.WriteString("name=")
 	builder.WriteString(ar.Name)
+	builder.WriteString(", ")
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", ar.UserID))
 	builder.WriteString(", ")
 	builder.WriteString("sensor_id=")
 	builder.WriteString(fmt.Sprintf("%v", ar.SensorID))

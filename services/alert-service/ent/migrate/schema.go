@@ -11,6 +11,7 @@ var (
 	// AlertsColumns holds the columns for the "alerts" table.
 	AlertsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "value", Type: field.TypeFloat64},
 		{Name: "message", Type: field.TypeString},
 		{Name: "triggered_at", Type: field.TypeTime},
@@ -25,7 +26,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "alerts_alert_rules_alerts",
-				Columns:    []*schema.Column{AlertsColumns[5]},
+				Columns:    []*schema.Column{AlertsColumns[6]},
 				RefColumns: []*schema.Column{AlertRulesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -35,6 +36,7 @@ var (
 	AlertRulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeInt64},
 		{Name: "sensor_id", Type: field.TypeInt64},
 		{Name: "condition_type", Type: field.TypeString, Default: "GT"},
 		{Name: "threshold", Type: field.TypeFloat64},

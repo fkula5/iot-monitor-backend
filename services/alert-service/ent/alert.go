@@ -18,6 +18,8 @@ type Alert struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int64 `json:"user_id,omitempty"`
 	// Value holds the value of the "value" field.
 	Value float64 `json:"value,omitempty"`
 	// Message holds the value of the "message" field.
@@ -62,7 +64,7 @@ func (*Alert) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case alert.FieldValue:
 			values[i] = new(sql.NullFloat64)
-		case alert.FieldID:
+		case alert.FieldID, alert.FieldUserID:
 			values[i] = new(sql.NullInt64)
 		case alert.FieldMessage:
 			values[i] = new(sql.NullString)
@@ -91,6 +93,12 @@ func (a *Alert) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			a.ID = int(value.Int64)
+		case alert.FieldUserID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
+			} else if value.Valid {
+				a.UserID = value.Int64
+			}
 		case alert.FieldValue:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
@@ -163,6 +171,9 @@ func (a *Alert) String() string {
 	var builder strings.Builder
 	builder.WriteString("Alert(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
+	builder.WriteString("user_id=")
+	builder.WriteString(fmt.Sprintf("%v", a.UserID))
+	builder.WriteString(", ")
 	builder.WriteString("value=")
 	builder.WriteString(fmt.Sprintf("%v", a.Value))
 	builder.WriteString(", ")

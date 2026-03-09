@@ -21,6 +21,12 @@ type AlertCreate struct {
 	hooks    []Hook
 }
 
+// SetUserID sets the "user_id" field.
+func (ac *AlertCreate) SetUserID(i int64) *AlertCreate {
+	ac.mutation.SetUserID(i)
+	return ac
+}
+
 // SetValue sets the "value" field.
 func (ac *AlertCreate) SetValue(f float64) *AlertCreate {
 	ac.mutation.SetValue(f)
@@ -119,6 +125,9 @@ func (ac *AlertCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *AlertCreate) check() error {
+	if _, ok := ac.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Alert.user_id"`)}
+	}
 	if _, ok := ac.mutation.Value(); !ok {
 		return &ValidationError{Name: "value", err: errors.New(`ent: missing required field "Alert.value"`)}
 	}
@@ -160,6 +169,10 @@ func (ac *AlertCreate) createSpec() (*Alert, *sqlgraph.CreateSpec) {
 		_node = &Alert{config: ac.config}
 		_spec = sqlgraph.NewCreateSpec(alert.Table, sqlgraph.NewFieldSpec(alert.FieldID, field.TypeInt))
 	)
+	if value, ok := ac.mutation.UserID(); ok {
+		_spec.SetField(alert.FieldUserID, field.TypeInt64, value)
+		_node.UserID = value
+	}
 	if value, ok := ac.mutation.Value(); ok {
 		_spec.SetField(alert.FieldValue, field.TypeFloat64, value)
 		_node.Value = value
