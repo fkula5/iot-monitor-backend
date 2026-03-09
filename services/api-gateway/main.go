@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	amqp "github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -62,6 +63,58 @@ func main() {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
+
+	rabbitURL := os.Getenv("RABBITMQ_URL")
+	if rabbitURL == "" {
+		rabbitURL = "amqp://guest:guest@localhost:5672/"
+	}
+
+	var alertMsgs <-chan amqp.Delivery
+	conn, err := amqp.Dial(rabbitURL)
+	if err != nil {
+		logger.Warn("Failed to connect to RabbitMQ, alerts will be disabled", zap.Error(err))
+	} else {
+		ch, err := conn.Channel()
+		if err != nil {
+			logger.Warn("Failed to open channel to RabbitMQ, alerts will be disabled", zap.Error(err))
+		} else {
+			q, err := ch.QueueDeclare(
+				"alerts", // name
+				true,     // durable
+				false,    // delete when unused
+				false,    // exclusive
+				false,    // no-wait
+				nil,      // arguments
+			)
+			if err != nil {
+				logger.Warn("Failed to declare alerts queue, alerts will be disabled", zap.Error(err))
+			} else {
+				err = ch.QueueBind(
+					q.Name,            // queue name
+					"",                // routing key
+					"alerts_exchange", // exchange
+					false,             // no-wait
+					nil,               // arguments
+				)
+				if err != nil {
+					logger.Warn("Failed to bind alerts queue, alerts will be disabled", zap.Error(err))
+				}
+
+				alertMsgs, err = ch.Consume(
+					q.Name, // queue
+					"",     // consumer
+					true,   //
+					false,  // exclusive
+					false,  // no-local
+					false,  // no-wait
+					nil,    // args
+				)
+				if err != nil {
+					logger.Warn("Failed to consume from alerts queue, alerts will be disabled", zap.Error(err))
+				}
+			}
+		}
+	}
 
 	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
 	if authGrpcAddr == "" {
@@ -139,7 +192,7 @@ func main() {
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
 	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
+	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient, alertMsgs)
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)

@@ -21,3 +21,8 @@ type StoreReadingRequest struct {
 	Value     float32   `json:"value"`
 	Timestamp time.Time `json:"timestamp"`
 }
+
+type AlertMessage struct {
+	Type    string      `json:"type"`
+	Payload interface{} `json:"payload"`
+}

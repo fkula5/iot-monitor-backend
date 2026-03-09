@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -38,12 +39,18 @@ type WebSocketHandler struct {
 	clientsMu    sync.RWMutex
 }
 
-func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_sensor.SensorServiceClient) *WebSocketHandler {
-	return &WebSocketHandler{
+func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_sensor.SensorServiceClient, alertMsgs <-chan amqp.Delivery) *WebSocketHandler {
+	h := &WebSocketHandler{
 		dataClient:   dataClient,
 		sensorClient: sensorClient,
 		clients:      make(map[*websocket.Conn]bool),
 	}
+
+	if alertMsgs != nil {
+		go h.broadcastAlerts(alertMsgs)
+	}
+
+	return h
 }
 
 // @Summary Stream sensor readings via WebSocket
@@ -385,4 +392,33 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+func (h *WebSocketHandler) broadcastAlerts(alertMsgs <-chan amqp.Delivery) {
+	for m := range alertMsgs {
+		var alert map[string]interface{}
+		if err := json.Unmarshal(m.Body, &alert); err != nil {
+			logger.Error("Failed to unmarshal alert message", zap.Error(err))
+			continue
+		}
+
+		wsMsg := types.AlertMessage{
+			Type:    "alert",
+			Payload: alert,
+		}
+
+		h.clientsMu.RLock()
+		for client := range h.clients {
+			if err := client.WriteJSON(wsMsg); err != nil {
+				logger.Error("Failed to write alert to WebSocket", zap.Error(err))
+				client.Close()
+				h.clientsMu.RUnlock()
+				h.clientsMu.Lock()
+				delete(h.clients, client)
+				h.clientsMu.Unlock()
+				h.clientsMu.RLock()
+			}
+		}
+		h.clientsMu.RUnlock()
+	}
 }
