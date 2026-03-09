@@ -22,6 +22,12 @@ type StoreReadingRequest struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+type ReadingResponse struct {
+	SensorID  int64     `json:"sensor_id"`
+	Value     float32   `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 type AlertMessage struct {
 	Type    string      `json:"type"`
 	Payload interface{} `json:"payload"`

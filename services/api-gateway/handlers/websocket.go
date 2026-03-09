@@ -359,7 +359,7 @@ func (h *WebSocketHandler) WsHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags Data
 // @Accept json
 // @Produce json
-// @Param reading body StoreReadingRequest true "Sensor Reading"
+// @Param reading body types.StoreReadingRequest true "Sensor Reading"
 // @Success 200 {object} map[string]string
 // @Router /api/data/readings [post]
 func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) {

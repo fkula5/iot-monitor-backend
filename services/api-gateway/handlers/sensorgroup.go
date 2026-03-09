@@ -29,7 +29,7 @@ func NewSensorGroupHandler(client pb.SensorServiceClient) *SensorGroupHandler {
 // @Tags SensorGroups
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} string
+// @Success 200 {array} types.SensorGroupResponse
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /api/sensor-groups [get]
@@ -71,7 +71,7 @@ func (h *SensorGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) 
 // @Produce json
 // @Param id path int true "Group ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -169,9 +169,9 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param group body UpdateGroupRequest true "Group data"
+// @Param group body types.UpdateGroupRequest true "Group data"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -263,9 +263,9 @@ func (h *SensorGroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param sensors body AddSensorsRequest true "Sensor IDs"
+// @Param sensors body types.AddSensorsRequest true "Sensor IDs to add"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -312,7 +312,7 @@ func (h *SensorGroupHandler) AddSensorsToGroup(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param sensors body AddSensorsRequest true "Sensor IDs"
+// @Param sensors body types.AddSensorsRequest true "Sensor IDs"
 // @Security ApiKeyAuth
 // @Success 200 {object} string
 // @Failure 400 {object} map[string]string
