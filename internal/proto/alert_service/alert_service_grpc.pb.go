@@ -22,6 +22,10 @@ const (
 	AlertService_GetAlert_FullMethodName        = "/alert_service.AlertService/GetAlert"
 	AlertService_ListAlerts_FullMethodName      = "/alert_service.AlertService/ListAlerts"
 	AlertService_MarkAlertAsRead_FullMethodName = "/alert_service.AlertService/MarkAlertAsRead"
+	AlertService_CreateAlertRule_FullMethodName = "/alert_service.AlertService/CreateAlertRule"
+	AlertService_GetAlertRule_FullMethodName    = "/alert_service.AlertService/GetAlertRule"
+	AlertService_ListAlertRules_FullMethodName  = "/alert_service.AlertService/ListAlertRules"
+	AlertService_UpdateAlertRule_FullMethodName = "/alert_service.AlertService/UpdateAlertRule"
 )
 
 // AlertServiceClient is the client API for AlertService service.
@@ -31,6 +35,10 @@ type AlertServiceClient interface {
 	GetAlert(ctx context.Context, in *GetAlertRequest, opts ...grpc.CallOption) (*GetAlertResponse, error)
 	ListAlerts(ctx context.Context, in *ListAlertsRequest, opts ...grpc.CallOption) (*ListAlertsResponse, error)
 	MarkAlertAsRead(ctx context.Context, in *MarkAlertAsReadRequest, opts ...grpc.CallOption) (*MarkAlertAsReadResponse, error)
+	CreateAlertRule(ctx context.Context, in *CreateAlertRuleRequest, opts ...grpc.CallOption) (*CreateAlertRuleResponse, error)
+	GetAlertRule(ctx context.Context, in *GetAlertRuleRequest, opts ...grpc.CallOption) (*GetAlertRuleResponse, error)
+	ListAlertRules(ctx context.Context, in *ListAlertRulesRequest, opts ...grpc.CallOption) (*ListAlertRulesResponse, error)
+	UpdateAlertRule(ctx context.Context, in *UpdateAlertRuleRequest, opts ...grpc.CallOption) (*UpdateAlertRuleResponse, error)
 }
 
 type alertServiceClient struct {
@@ -71,6 +79,46 @@ func (c *alertServiceClient) MarkAlertAsRead(ctx context.Context, in *MarkAlertA
 	return out, nil
 }
 
+func (c *alertServiceClient) CreateAlertRule(ctx context.Context, in *CreateAlertRuleRequest, opts ...grpc.CallOption) (*CreateAlertRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAlertRuleResponse)
+	err := c.cc.Invoke(ctx, AlertService_CreateAlertRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertServiceClient) GetAlertRule(ctx context.Context, in *GetAlertRuleRequest, opts ...grpc.CallOption) (*GetAlertRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAlertRuleResponse)
+	err := c.cc.Invoke(ctx, AlertService_GetAlertRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertServiceClient) ListAlertRules(ctx context.Context, in *ListAlertRulesRequest, opts ...grpc.CallOption) (*ListAlertRulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAlertRulesResponse)
+	err := c.cc.Invoke(ctx, AlertService_ListAlertRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *alertServiceClient) UpdateAlertRule(ctx context.Context, in *UpdateAlertRuleRequest, opts ...grpc.CallOption) (*UpdateAlertRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAlertRuleResponse)
+	err := c.cc.Invoke(ctx, AlertService_UpdateAlertRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertServiceServer is the server API for AlertService service.
 // All implementations must embed UnimplementedAlertServiceServer
 // for forward compatibility.
@@ -78,6 +126,10 @@ type AlertServiceServer interface {
 	GetAlert(context.Context, *GetAlertRequest) (*GetAlertResponse, error)
 	ListAlerts(context.Context, *ListAlertsRequest) (*ListAlertsResponse, error)
 	MarkAlertAsRead(context.Context, *MarkAlertAsReadRequest) (*MarkAlertAsReadResponse, error)
+	CreateAlertRule(context.Context, *CreateAlertRuleRequest) (*CreateAlertRuleResponse, error)
+	GetAlertRule(context.Context, *GetAlertRuleRequest) (*GetAlertRuleResponse, error)
+	ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error)
+	UpdateAlertRule(context.Context, *UpdateAlertRuleRequest) (*UpdateAlertRuleResponse, error)
 	mustEmbedUnimplementedAlertServiceServer()
 }
 
@@ -96,6 +148,18 @@ func (UnimplementedAlertServiceServer) ListAlerts(context.Context, *ListAlertsRe
 }
 func (UnimplementedAlertServiceServer) MarkAlertAsRead(context.Context, *MarkAlertAsReadRequest) (*MarkAlertAsReadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MarkAlertAsRead not implemented")
+}
+func (UnimplementedAlertServiceServer) CreateAlertRule(context.Context, *CreateAlertRuleRequest) (*CreateAlertRuleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAlertRule not implemented")
+}
+func (UnimplementedAlertServiceServer) GetAlertRule(context.Context, *GetAlertRuleRequest) (*GetAlertRuleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAlertRule not implemented")
+}
+func (UnimplementedAlertServiceServer) ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAlertRules not implemented")
+}
+func (UnimplementedAlertServiceServer) UpdateAlertRule(context.Context, *UpdateAlertRuleRequest) (*UpdateAlertRuleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAlertRule not implemented")
 }
 func (UnimplementedAlertServiceServer) mustEmbedUnimplementedAlertServiceServer() {}
 func (UnimplementedAlertServiceServer) testEmbeddedByValue()                      {}
@@ -172,6 +236,78 @@ func _AlertService_MarkAlertAsRead_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertService_CreateAlertRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAlertRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).CreateAlertRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_CreateAlertRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).CreateAlertRule(ctx, req.(*CreateAlertRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertService_GetAlertRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAlertRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).GetAlertRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_GetAlertRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).GetAlertRule(ctx, req.(*GetAlertRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertService_ListAlertRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAlertRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).ListAlertRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_ListAlertRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).ListAlertRules(ctx, req.(*ListAlertRulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AlertService_UpdateAlertRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAlertRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).UpdateAlertRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_UpdateAlertRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).UpdateAlertRule(ctx, req.(*UpdateAlertRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertService_ServiceDesc is the grpc.ServiceDesc for AlertService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +326,22 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "MarkAlertAsRead",
 			Handler:    _AlertService_MarkAlertAsRead_Handler,
+		},
+		{
+			MethodName: "CreateAlertRule",
+			Handler:    _AlertService_CreateAlertRule_Handler,
+		},
+		{
+			MethodName: "GetAlertRule",
+			Handler:    _AlertService_GetAlertRule_Handler,
+		},
+		{
+			MethodName: "ListAlertRules",
+			Handler:    _AlertService_ListAlertRules_Handler,
+		},
+		{
+			MethodName: "UpdateAlertRule",
+			Handler:    _AlertService_UpdateAlertRule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

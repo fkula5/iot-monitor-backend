@@ -378,6 +378,554 @@ func (x *ListAlertsResponse) GetAlerts() []*Alert {
 	return nil
 }
 
+type AlertRule struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SensorId      int64                  `protobuf:"varint,3,opt,name=sensor_id,json=sensorId,proto3" json:"sensor_id,omitempty"`
+	ConditionType string                 `protobuf:"bytes,4,opt,name=condition_type,json=conditionType,proto3" json:"condition_type,omitempty"`
+	Threshold     float64                `protobuf:"fixed64,5,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	IsEnabled     bool                   `protobuf:"varint,7,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	CreatedAt     *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UserId        int64                  `protobuf:"varint,9,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AlertRule) Reset() {
+	*x = AlertRule{}
+	mi := &file_alert_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AlertRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AlertRule) ProtoMessage() {}
+
+func (x *AlertRule) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AlertRule.ProtoReflect.Descriptor instead.
+func (*AlertRule) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AlertRule) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *AlertRule) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AlertRule) GetSensorId() int64 {
+	if x != nil {
+		return x.SensorId
+	}
+	return 0
+}
+
+func (x *AlertRule) GetConditionType() string {
+	if x != nil {
+		return x.ConditionType
+	}
+	return ""
+}
+
+func (x *AlertRule) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *AlertRule) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *AlertRule) GetIsEnabled() bool {
+	if x != nil {
+		return x.IsEnabled
+	}
+	return false
+}
+
+func (x *AlertRule) GetCreatedAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *AlertRule) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type CreateAlertRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	SensorId      int64                  `protobuf:"varint,2,opt,name=sensor_id,json=sensorId,proto3" json:"sensor_id,omitempty"`
+	ConditionType string                 `protobuf:"bytes,3,opt,name=condition_type,json=conditionType,proto3" json:"condition_type,omitempty"`
+	Threshold     float64                `protobuf:"fixed64,4,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	UserId        int64                  `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAlertRuleRequest) Reset() {
+	*x = CreateAlertRuleRequest{}
+	mi := &file_alert_service_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAlertRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAlertRuleRequest) ProtoMessage() {}
+
+func (x *CreateAlertRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAlertRuleRequest.ProtoReflect.Descriptor instead.
+func (*CreateAlertRuleRequest) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateAlertRuleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateAlertRuleRequest) GetSensorId() int64 {
+	if x != nil {
+		return x.SensorId
+	}
+	return 0
+}
+
+func (x *CreateAlertRuleRequest) GetConditionType() string {
+	if x != nil {
+		return x.ConditionType
+	}
+	return ""
+}
+
+func (x *CreateAlertRuleRequest) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *CreateAlertRuleRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *CreateAlertRuleRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type CreateAlertRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AlertRule     *AlertRule             `protobuf:"bytes,1,opt,name=alert_rule,json=alertRule,proto3" json:"alert_rule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAlertRuleResponse) Reset() {
+	*x = CreateAlertRuleResponse{}
+	mi := &file_alert_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAlertRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAlertRuleResponse) ProtoMessage() {}
+
+func (x *CreateAlertRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAlertRuleResponse.ProtoReflect.Descriptor instead.
+func (*CreateAlertRuleResponse) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateAlertRuleResponse) GetAlertRule() *AlertRule {
+	if x != nil {
+		return x.AlertRule
+	}
+	return nil
+}
+
+type GetAlertRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAlertRuleRequest) Reset() {
+	*x = GetAlertRuleRequest{}
+	mi := &file_alert_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAlertRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAlertRuleRequest) ProtoMessage() {}
+
+func (x *GetAlertRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAlertRuleRequest.ProtoReflect.Descriptor instead.
+func (*GetAlertRuleRequest) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetAlertRuleRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type GetAlertRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AlertRule     *AlertRule             `protobuf:"bytes,1,opt,name=alert_rule,json=alertRule,proto3" json:"alert_rule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAlertRuleResponse) Reset() {
+	*x = GetAlertRuleResponse{}
+	mi := &file_alert_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAlertRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAlertRuleResponse) ProtoMessage() {}
+
+func (x *GetAlertRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAlertRuleResponse.ProtoReflect.Descriptor instead.
+func (*GetAlertRuleResponse) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetAlertRuleResponse) GetAlertRule() *AlertRule {
+	if x != nil {
+		return x.AlertRule
+	}
+	return nil
+}
+
+type ListAlertRulesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAlertRulesRequest) Reset() {
+	*x = ListAlertRulesRequest{}
+	mi := &file_alert_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAlertRulesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAlertRulesRequest) ProtoMessage() {}
+
+func (x *ListAlertRulesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAlertRulesRequest.ProtoReflect.Descriptor instead.
+func (*ListAlertRulesRequest) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListAlertRulesRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ListAlertRulesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AlertRules    []*AlertRule           `protobuf:"bytes,1,rep,name=alert_rules,json=alertRules,proto3" json:"alert_rules,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAlertRulesResponse) Reset() {
+	*x = ListAlertRulesResponse{}
+	mi := &file_alert_service_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAlertRulesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAlertRulesResponse) ProtoMessage() {}
+
+func (x *ListAlertRulesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAlertRulesResponse.ProtoReflect.Descriptor instead.
+func (*ListAlertRulesResponse) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListAlertRulesResponse) GetAlertRules() []*AlertRule {
+	if x != nil {
+		return x.AlertRules
+	}
+	return nil
+}
+
+type UpdateAlertRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SensorId      int64                  `protobuf:"varint,3,opt,name=sensor_id,json=sensorId,proto3" json:"sensor_id,omitempty"`
+	ConditionType string                 `protobuf:"bytes,4,opt,name=condition_type,json=conditionType,proto3" json:"condition_type,omitempty"`
+	Threshold     float64                `protobuf:"fixed64,5,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	IsEnabled     bool                   `protobuf:"varint,7,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAlertRuleRequest) Reset() {
+	*x = UpdateAlertRuleRequest{}
+	mi := &file_alert_service_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAlertRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAlertRuleRequest) ProtoMessage() {}
+
+func (x *UpdateAlertRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAlertRuleRequest.ProtoReflect.Descriptor instead.
+func (*UpdateAlertRuleRequest) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *UpdateAlertRuleRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *UpdateAlertRuleRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateAlertRuleRequest) GetSensorId() int64 {
+	if x != nil {
+		return x.SensorId
+	}
+	return 0
+}
+
+func (x *UpdateAlertRuleRequest) GetConditionType() string {
+	if x != nil {
+		return x.ConditionType
+	}
+	return ""
+}
+
+func (x *UpdateAlertRuleRequest) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *UpdateAlertRuleRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UpdateAlertRuleRequest) GetIsEnabled() bool {
+	if x != nil {
+		return x.IsEnabled
+	}
+	return false
+}
+
+type UpdateAlertRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AlertRule     *AlertRule             `protobuf:"bytes,1,opt,name=alert_rule,json=alertRule,proto3" json:"alert_rule,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAlertRuleResponse) Reset() {
+	*x = UpdateAlertRuleResponse{}
+	mi := &file_alert_service_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAlertRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAlertRuleResponse) ProtoMessage() {}
+
+func (x *UpdateAlertRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAlertRuleResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAlertRuleResponse) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateAlertRuleResponse) GetAlertRule() *AlertRule {
+	if x != nil {
+		return x.AlertRule
+	}
+	return nil
+}
+
 var File_alert_service_proto protoreflect.FileDescriptor
 
 const file_alert_service_proto_rawDesc = "" +
@@ -402,12 +950,60 @@ const file_alert_service_proto_rawDesc = "" +
 	"\x17MarkAlertAsReadResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"B\n" +
 	"\x12ListAlertsResponse\x12,\n" +
-	"\x06alerts\x18\x01 \x03(\v2\x14.alert_service.AlertR\x06alerts2\x96\x02\n" +
+	"\x06alerts\x18\x01 \x03(\v2\x14.alert_service.AlertR\x06alerts\"\xa6\x02\n" +
+	"\tAlertRule\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tsensor_id\x18\x03 \x01(\x03R\bsensorId\x12%\n" +
+	"\x0econdition_type\x18\x04 \x01(\tR\rconditionType\x12\x1c\n" +
+	"\tthreshold\x18\x05 \x01(\x01R\tthreshold\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1d\n" +
+	"\n" +
+	"is_enabled\x18\a \x01(\bR\tisEnabled\x129\n" +
+	"\n" +
+	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x17\n" +
+	"\auser_id\x18\t \x01(\x03R\x06userId\"\xc9\x01\n" +
+	"\x16CreateAlertRuleRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1b\n" +
+	"\tsensor_id\x18\x02 \x01(\x03R\bsensorId\x12%\n" +
+	"\x0econdition_type\x18\x03 \x01(\tR\rconditionType\x12\x1c\n" +
+	"\tthreshold\x18\x04 \x01(\x01R\tthreshold\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x17\n" +
+	"\auser_id\x18\x06 \x01(\x03R\x06userId\"R\n" +
+	"\x17CreateAlertRuleResponse\x127\n" +
+	"\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"%\n" +
+	"\x13GetAlertRuleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"O\n" +
+	"\x14GetAlertRuleResponse\x127\n" +
+	"\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"0\n" +
+	"\x15ListAlertRulesRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"S\n" +
+	"\x16ListAlertRulesResponse\x129\n" +
+	"\valert_rules\x18\x01 \x03(\v2\x18.alert_service.AlertRuleR\n" +
+	"alertRules\"\xdf\x01\n" +
+	"\x16UpdateAlertRuleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tsensor_id\x18\x03 \x01(\x03R\bsensorId\x12%\n" +
+	"\x0econdition_type\x18\x04 \x01(\tR\rconditionType\x12\x1c\n" +
+	"\tthreshold\x18\x05 \x01(\x01R\tthreshold\x12 \n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1d\n" +
+	"\n" +
+	"is_enabled\x18\a \x01(\bR\tisEnabled\"R\n" +
+	"\x17UpdateAlertRuleResponse\x127\n" +
+	"\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule2\x9a\x05\n" +
 	"\fAlertService\x12M\n" +
 	"\bGetAlert\x12\x1e.alert_service.GetAlertRequest\x1a\x1f.alert_service.GetAlertResponse\"\x00\x12S\n" +
 	"\n" +
 	"ListAlerts\x12 .alert_service.ListAlertsRequest\x1a!.alert_service.ListAlertsResponse\"\x00\x12b\n" +
-	"\x0fMarkAlertAsRead\x12%.alert_service.MarkAlertAsReadRequest\x1a&.alert_service.MarkAlertAsReadResponse\"\x00BFZDgithub.com/skni-kod/iot-monitor-backend/internal/proto/alert_serviceb\x06proto3"
+	"\x0fMarkAlertAsRead\x12%.alert_service.MarkAlertAsReadRequest\x1a&.alert_service.MarkAlertAsReadResponse\"\x00\x12b\n" +
+	"\x0fCreateAlertRule\x12%.alert_service.CreateAlertRuleRequest\x1a&.alert_service.CreateAlertRuleResponse\"\x00\x12Y\n" +
+	"\fGetAlertRule\x12\".alert_service.GetAlertRuleRequest\x1a#.alert_service.GetAlertRuleResponse\"\x00\x12_\n" +
+	"\x0eListAlertRules\x12$.alert_service.ListAlertRulesRequest\x1a%.alert_service.ListAlertRulesResponse\"\x00\x12b\n" +
+	"\x0fUpdateAlertRule\x12%.alert_service.UpdateAlertRuleRequest\x1a&.alert_service.UpdateAlertRuleResponse\"\x00BFZDgithub.com/skni-kod/iot-monitor-backend/internal/proto/alert_serviceb\x06proto3"
 
 var (
 	file_alert_service_proto_rawDescOnce sync.Once
@@ -421,7 +1017,7 @@ func file_alert_service_proto_rawDescGZIP() []byte {
 	return file_alert_service_proto_rawDescData
 }
 
-var file_alert_service_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_alert_service_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_alert_service_proto_goTypes = []any{
 	(*Alert)(nil),                   // 0: alert_service.Alert
 	(*GetAlertRequest)(nil),         // 1: alert_service.GetAlertRequest
@@ -430,23 +1026,45 @@ var file_alert_service_proto_goTypes = []any{
 	(*MarkAlertAsReadRequest)(nil),  // 4: alert_service.MarkAlertAsReadRequest
 	(*MarkAlertAsReadResponse)(nil), // 5: alert_service.MarkAlertAsReadResponse
 	(*ListAlertsResponse)(nil),      // 6: alert_service.ListAlertsResponse
-	(*timestamp.Timestamp)(nil),     // 7: google.protobuf.Timestamp
+	(*AlertRule)(nil),               // 7: alert_service.AlertRule
+	(*CreateAlertRuleRequest)(nil),  // 8: alert_service.CreateAlertRuleRequest
+	(*CreateAlertRuleResponse)(nil), // 9: alert_service.CreateAlertRuleResponse
+	(*GetAlertRuleRequest)(nil),     // 10: alert_service.GetAlertRuleRequest
+	(*GetAlertRuleResponse)(nil),    // 11: alert_service.GetAlertRuleResponse
+	(*ListAlertRulesRequest)(nil),   // 12: alert_service.ListAlertRulesRequest
+	(*ListAlertRulesResponse)(nil),  // 13: alert_service.ListAlertRulesResponse
+	(*UpdateAlertRuleRequest)(nil),  // 14: alert_service.UpdateAlertRuleRequest
+	(*UpdateAlertRuleResponse)(nil), // 15: alert_service.UpdateAlertRuleResponse
+	(*timestamp.Timestamp)(nil),     // 16: google.protobuf.Timestamp
 }
 var file_alert_service_proto_depIdxs = []int32{
-	7, // 0: alert_service.Alert.triggered_at:type_name -> google.protobuf.Timestamp
-	0, // 1: alert_service.GetAlertResponse.alert:type_name -> alert_service.Alert
-	0, // 2: alert_service.ListAlertsResponse.alerts:type_name -> alert_service.Alert
-	1, // 3: alert_service.AlertService.GetAlert:input_type -> alert_service.GetAlertRequest
-	3, // 4: alert_service.AlertService.ListAlerts:input_type -> alert_service.ListAlertsRequest
-	4, // 5: alert_service.AlertService.MarkAlertAsRead:input_type -> alert_service.MarkAlertAsReadRequest
-	2, // 6: alert_service.AlertService.GetAlert:output_type -> alert_service.GetAlertResponse
-	6, // 7: alert_service.AlertService.ListAlerts:output_type -> alert_service.ListAlertsResponse
-	5, // 8: alert_service.AlertService.MarkAlertAsRead:output_type -> alert_service.MarkAlertAsReadResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	16, // 0: alert_service.Alert.triggered_at:type_name -> google.protobuf.Timestamp
+	0,  // 1: alert_service.GetAlertResponse.alert:type_name -> alert_service.Alert
+	0,  // 2: alert_service.ListAlertsResponse.alerts:type_name -> alert_service.Alert
+	16, // 3: alert_service.AlertRule.created_at:type_name -> google.protobuf.Timestamp
+	7,  // 4: alert_service.CreateAlertRuleResponse.alert_rule:type_name -> alert_service.AlertRule
+	7,  // 5: alert_service.GetAlertRuleResponse.alert_rule:type_name -> alert_service.AlertRule
+	7,  // 6: alert_service.ListAlertRulesResponse.alert_rules:type_name -> alert_service.AlertRule
+	7,  // 7: alert_service.UpdateAlertRuleResponse.alert_rule:type_name -> alert_service.AlertRule
+	1,  // 8: alert_service.AlertService.GetAlert:input_type -> alert_service.GetAlertRequest
+	3,  // 9: alert_service.AlertService.ListAlerts:input_type -> alert_service.ListAlertsRequest
+	4,  // 10: alert_service.AlertService.MarkAlertAsRead:input_type -> alert_service.MarkAlertAsReadRequest
+	8,  // 11: alert_service.AlertService.CreateAlertRule:input_type -> alert_service.CreateAlertRuleRequest
+	10, // 12: alert_service.AlertService.GetAlertRule:input_type -> alert_service.GetAlertRuleRequest
+	12, // 13: alert_service.AlertService.ListAlertRules:input_type -> alert_service.ListAlertRulesRequest
+	14, // 14: alert_service.AlertService.UpdateAlertRule:input_type -> alert_service.UpdateAlertRuleRequest
+	2,  // 15: alert_service.AlertService.GetAlert:output_type -> alert_service.GetAlertResponse
+	6,  // 16: alert_service.AlertService.ListAlerts:output_type -> alert_service.ListAlertsResponse
+	5,  // 17: alert_service.AlertService.MarkAlertAsRead:output_type -> alert_service.MarkAlertAsReadResponse
+	9,  // 18: alert_service.AlertService.CreateAlertRule:output_type -> alert_service.CreateAlertRuleResponse
+	11, // 19: alert_service.AlertService.GetAlertRule:output_type -> alert_service.GetAlertRuleResponse
+	13, // 20: alert_service.AlertService.ListAlertRules:output_type -> alert_service.ListAlertRulesResponse
+	15, // 21: alert_service.AlertService.UpdateAlertRule:output_type -> alert_service.UpdateAlertRuleResponse
+	15, // [15:22] is the sub-list for method output_type
+	8,  // [8:15] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_alert_service_proto_init() }
@@ -460,7 +1078,7 @@ func file_alert_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alert_service_proto_rawDesc), len(file_alert_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

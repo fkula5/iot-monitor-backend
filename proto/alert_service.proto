@@ -10,6 +10,11 @@ service AlertService {
     rpc GetAlert(GetAlertRequest) returns (GetAlertResponse) {}
     rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse) {}
     rpc MarkAlertAsRead(MarkAlertAsReadRequest) returns (MarkAlertAsReadResponse) {}
+
+    rpc CreateAlertRule(CreateAlertRuleRequest) returns (CreateAlertRuleResponse) {}
+    rpc GetAlertRule(GetAlertRuleRequest) returns (GetAlertRuleResponse) {}
+    rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse) {}
+    rpc UpdateAlertRule(UpdateAlertRuleRequest) returns (UpdateAlertRuleResponse) {}
 }
 
 message Alert {
@@ -44,4 +49,59 @@ message MarkAlertAsReadResponse {
 
 message ListAlertsResponse {
     repeated Alert alerts = 1;
+}
+
+message AlertRule {
+    int64 id = 1;
+    string name = 2;
+    int64 sensor_id = 3;
+    string condition_type = 4;
+    double threshold = 5;
+    string description = 6;
+    bool is_enabled = 7;
+    google.protobuf.Timestamp created_at = 8;
+    int64 user_id = 9;
+}
+
+message CreateAlertRuleRequest {
+    string name = 1;
+    int64 sensor_id = 2;
+    string condition_type = 3;
+    double threshold = 4;
+    string description = 5;
+    int64 user_id = 6;
+}
+
+message CreateAlertRuleResponse {
+    AlertRule alert_rule = 1;
+}
+
+message GetAlertRuleRequest {
+    int64 id = 1;
+}
+
+message GetAlertRuleResponse {
+    AlertRule alert_rule = 1;
+}
+
+message ListAlertRulesRequest {
+    int64 user_id = 1;
+}
+
+message ListAlertRulesResponse {
+    repeated AlertRule alert_rules = 1;
+}
+
+message UpdateAlertRuleRequest {
+    int64 id = 1;
+    string name = 2;
+    int64 sensor_id = 3;
+    string condition_type = 4;
+    double threshold = 5;
+    string description = 6;
+    bool is_enabled = 7;
+}
+
+message UpdateAlertRuleResponse {
+    AlertRule alert_rule = 1;
 }
