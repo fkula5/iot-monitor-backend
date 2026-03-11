@@ -15,5 +15,6 @@ func SetupAlertRuleRoutes(r chi.Router, handler *handlers.AlertRuleHandler) {
 		r.Post("/", handler.CreateAlertRule)
 		r.Put("/{id}", handler.UpdateAlertRule)
 		r.Delete("/{id}", handler.DeleteAlertRule)
+		r.Get("/{id}", handler.GetAlertRule)
 	})
 }

@@ -26,10 +26,12 @@ func NewAlertRuleStorage(client *ent.Client) IAlertRuleStorage {
 
 func (s *AlertRuleStorage) Create(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error) {
 	return s.client.AlertRule.Create().
+		SetName(rule.Name).
 		SetUserID(rule.UserID).
 		SetSensorID(rule.SensorID).
 		SetConditionType(rule.ConditionType).
 		SetThreshold(rule.Threshold).
+		SetDescription(rule.Description).
 		Save(ctx)
 }
 
@@ -43,9 +45,12 @@ func (s *AlertRuleStorage) List(ctx context.Context, userID int64) ([]*ent.Alert
 
 func (s *AlertRuleStorage) Update(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error) {
 	return s.client.AlertRule.UpdateOneID(rule.ID).
+		SetName(rule.Name).
 		SetSensorID(rule.SensorID).
 		SetConditionType(rule.ConditionType).
 		SetThreshold(rule.Threshold).
+		SetDescription(rule.Description).
+		SetIsEnabled(rule.IsEnabled).
 		Save(ctx)
 }
 

@@ -6,7 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/skni-kod/iot-monitor-backend/internal/auth"
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
 type contextKey string
@@ -43,17 +46,20 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		}
 
 		if token == "" {
+			logger.Warn("Missing authentication token", zap.String("path", r.URL.Path))
 			http.Error(w, "Authorization header or token cookie required", http.StatusUnauthorized)
 			return
 		}
 
 		claims, err := m.jwtService.ValidateToken(token)
 		if err != nil {
+			logger.Warn("Invalid or expired token", zap.Error(err), zap.String("path", r.URL.Path))
 			http.Error(w, "Invalid or expired token: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+			logger.Warn("Token expired", zap.Int("userId", claims.UserId), zap.String("path", r.URL.Path))
 			http.Error(w, "Token expired", http.StatusUnauthorized)
 			return
 		}

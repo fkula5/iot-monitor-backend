@@ -1,17 +1,25 @@
 package types
 
-import pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
+import (
+	"time"
+
+	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
+)
 
 type AlertRuleResponse struct {
-	ID             int64   `json:"id"`
-	UserID         int64   `json:"user_id"`
-	SensorID       int64   `json:"sensor_id"`
-	Condition_Type string  `json:"condition_type"`
-	Threshold      float64 `json:"threshold"`
-	Description    string  `json:"description"`
+	ID             int64     `json:"id"`
+	Name           string    `json:"name"`
+	UserID         int64     `json:"user_id"`
+	SensorID       int64     `json:"sensor_id"`
+	Condition_Type string    `json:"condition_type"`
+	Threshold      float64   `json:"threshold"`
+	Description    string    `json:"description"`
+	IsEnabled      bool      `json:"is_enabled"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type AlertRuleRequest struct {
+	Name           string  `json:"name"`
 	SensorID       int64   `json:"sensor_id"`
 	Condition_Type string  `json:"condition_type"`
 	Threshold      float64 `json:"threshold"`
@@ -19,15 +27,17 @@ type AlertRuleRequest struct {
 }
 
 type UpdateAlertRuleRequest struct {
-	AlertRuleID    int64   `json:"alert_rule_id"`
+	ID             int64   `json:"id"`
+	Name           string  `json:"name"`
 	SensorID       int64   `json:"sensor_id"`
 	Condition_Type string  `json:"condition_type"`
 	Threshold      float64 `json:"threshold"`
 	Description    string  `json:"description"`
+	IsEnabled      bool    `json:"is_enabled"`
 }
 
 type DeleteAlertRuleRequest struct {
-	AlertRuleID int64 `json:"alert_rule_id"`
+	Id int64 `json:"id"`
 }
 
 type GetAlertRulesRequest struct {
@@ -37,10 +47,13 @@ type GetAlertRulesRequest struct {
 func MapAlertRuleFromProto(r *pb.AlertRule) AlertRuleResponse {
 	return AlertRuleResponse{
 		ID:             r.Id,
+		Name:           r.Name,
 		UserID:         r.UserId,
 		SensorID:       r.SensorId,
 		Condition_Type: r.ConditionType,
 		Threshold:      r.Threshold,
 		Description:    r.Description,
+		IsEnabled:      r.IsEnabled,
+		CreatedAt:      r.CreatedAt.AsTime(),
 	}
 }
