@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
@@ -108,9 +110,7 @@ func (h *AlertRuleHandler) CreateAlertRule(w http.ResponseWriter, r *http.Reques
 // @Summary Delete Alert Rule
 // @Description Delete an alert rule by ID
 // @Tags Alert Rules
-// @Accept json
-// @Produce json
-// @Param deleteRequest body types.DeleteAlertRuleRequest true "Delete Alert Rule Request"
+// @Param id path int true "Alert Rule ID"
 // @Success 204 {string} string "No Content"
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
@@ -127,18 +127,19 @@ func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var req types.DeleteAlertRuleRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		logger.Warn("Invalid request body in DeleteAlertRule", zap.Error(err))
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logger.Warn("Invalid alert rule ID in DeleteAlertRule request", zap.String("id", idStr))
+		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
 		return
 	}
 
-	_, err := h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{
-		Id: req.Id,
+	_, err = h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{
+		Id: id,
 	})
 	if err != nil {
-		logger.Error("Failed to delete alert rule in alert service", zap.Error(err), zap.Int64("ruleId", req.Id), zap.Int("userId", claims.UserId))
+		logger.Error("Failed to delete alert rule in alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
 		http.Error(w, "Failed to delete alert rule", http.StatusInternalServerError)
 		return
 	}
@@ -151,6 +152,7 @@ func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Reques
 // @Tags Alert Rules
 // @Accept json
 // @Produce json
+// @Param id path int true "Alert Rule ID"
 // @Param updateRequest body types.UpdateAlertRuleRequest true "Update Alert Rule Request"
 // @Success 200 {object} types.AlertRuleResponse
 // @Failure 400 {string} string "Bad Request"
@@ -168,6 +170,14 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logger.Warn("Invalid alert rule ID in UpdateAlertRule request", zap.String("id", idStr))
+		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
+		return
+	}
+
 	var req types.UpdateAlertRuleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logger.Warn("Invalid request body in UpdateAlertRule", zap.Error(err))
@@ -176,7 +186,7 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 	}
 
 	res, err := h.client.UpdateAlertRule(ctx, &pb.UpdateAlertRuleRequest{
-		Id:            req.ID,
+		Id:            id,
 		Name:          req.Name,
 		SensorId:      req.SensorID,
 		ConditionType: req.Condition_Type,
@@ -185,7 +195,7 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 		IsEnabled:     req.IsEnabled,
 	})
 	if err != nil {
-		logger.Error("Failed to update alert rule in alert service", zap.Error(err), zap.Int64("ruleId", req.ID), zap.Int("userId", claims.UserId))
+		logger.Error("Failed to update alert rule in alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
 		http.Error(w, "Failed to update alert rule", http.StatusInternalServerError)
 		return
 	}
@@ -197,9 +207,7 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 // @Summary Get Alert Rule
 // @Description Get an alert rule by ID
 // @Tags Alert Rules
-// @Accept json
-// @Produce json
-// @Param getRequest body types.GetAlertRulesRequest true "Get Alert Rule Request"
+// @Param id path int true "Alert Rule ID"
 // @Success 200 {object} types.AlertRuleResponse
 // @Failure 400 {string} string "Bad Request"
 // @Failure 401 {string} string "Unauthorized"
@@ -216,18 +224,19 @@ func (h *AlertRuleHandler) GetAlertRule(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var req types.GetAlertRulesRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		logger.Warn("Invalid request body in GetAlertRule", zap.Error(err))
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logger.Warn("Invalid alert rule ID in GetAlertRule request", zap.String("id", idStr))
+		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
 		return
 	}
 
 	res, err := h.client.GetAlertRule(ctx, &pb.GetAlertRuleRequest{
-		Id: req.Id,
+		Id: id,
 	})
 	if err != nil {
-		logger.Error("Failed to get alert rule from alert service", zap.Error(err), zap.Int64("ruleId", req.Id), zap.Int("userId", claims.UserId))
+		logger.Error("Failed to get alert rule from alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
 		http.Error(w, "Failed to get alert rule", http.StatusInternalServerError)
 		return
 	}
