@@ -1,0 +1,114 @@
+syntax = "proto3";
+
+package alert_service;
+
+option go_package = "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service";
+
+import "google/protobuf/timestamp.proto";
+
+service AlertService {
+    rpc GetAlert(GetAlertRequest) returns (GetAlertResponse) {}
+    rpc ListAlerts(ListAlertsRequest) returns (ListAlertsResponse) {}
+    rpc MarkAlertAsRead(MarkAlertAsReadRequest) returns (MarkAlertAsReadResponse) {}
+
+    rpc CreateAlertRule(CreateAlertRuleRequest) returns (CreateAlertRuleResponse) {}
+    rpc GetAlertRule(GetAlertRuleRequest) returns (GetAlertRuleResponse) {}
+    rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse) {}
+    rpc UpdateAlertRule(UpdateAlertRuleRequest) returns (UpdateAlertRuleResponse) {}
+    rpc DeleteAlertRule(DeleteAlertRuleRequest) returns (DeleteAlertRuleResponse) {}
+}
+
+message Alert {
+    int64 id = 1;
+    int64 rule_id = 2;
+    int64 sensor_id = 3;
+    string message = 4;
+    double value = 5;
+    bool is_read = 6;
+    google.protobuf.Timestamp triggered_at = 7;
+}
+
+message GetAlertRequest {
+    int64 id = 1;
+}
+
+message GetAlertResponse {
+    Alert alert = 1;
+}
+
+message ListAlertsRequest {
+    int64 user_id = 1;
+}
+
+message MarkAlertAsReadRequest {
+    int64 id = 1;
+}
+
+message MarkAlertAsReadResponse {
+    bool success = 1;
+}
+
+message ListAlertsResponse {
+    repeated Alert alerts = 1;
+}
+
+message AlertRule {
+    int64 id = 1;
+    string name = 2;
+    int64 sensor_id = 3;
+    string condition_type = 4;
+    double threshold = 5;
+    string description = 6;
+    bool is_enabled = 7;
+    google.protobuf.Timestamp created_at = 8;
+    int64 user_id = 9;
+}
+
+message CreateAlertRuleRequest {
+    string name = 1;
+    int64 sensor_id = 2;
+    string condition_type = 3;
+    double threshold = 4;
+    string description = 5;
+    int64 user_id = 6;
+}
+
+message CreateAlertRuleResponse {
+    AlertRule alert_rule = 1;
+}
+
+message GetAlertRuleRequest {
+    int64 id = 1;
+}
+
+message GetAlertRuleResponse {
+    AlertRule alert_rule = 1;
+}
+
+message ListAlertRulesRequest {
+    int64 user_id = 1;
+}
+
+message ListAlertRulesResponse {
+    repeated AlertRule alert_rules = 1;
+}
+
+message UpdateAlertRuleRequest {
+    int64 id = 1;
+    string name = 2;
+    int64 sensor_id = 3;
+    string condition_type = 4;
+    double threshold = 5;
+    string description = 6;
+    bool is_enabled = 7;
+}
+
+message UpdateAlertRuleResponse {
+    AlertRule alert_rule = 1;
+}
+
+message DeleteAlertRuleRequest {
+    int64 id = 1;
+}
+
+message DeleteAlertRuleResponse {}

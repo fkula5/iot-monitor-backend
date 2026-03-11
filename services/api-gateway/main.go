@@ -9,11 +9,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	amqp "github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -63,6 +65,58 @@ func main() {
 	}
 	defer logger.Sync()
 
+	rabbitURL := os.Getenv("RABBITMQ_URL")
+	if rabbitURL == "" {
+		rabbitURL = "amqp://guest:guest@localhost:5672/"
+	}
+
+	var alertMsgs <-chan amqp.Delivery
+	conn, err := amqp.Dial(rabbitURL)
+	if err != nil {
+		logger.Warn("Failed to connect to RabbitMQ, alerts will be disabled", zap.Error(err))
+	} else {
+		ch, err := conn.Channel()
+		if err != nil {
+			logger.Warn("Failed to open channel to RabbitMQ, alerts will be disabled", zap.Error(err))
+		} else {
+			q, err := ch.QueueDeclare(
+				"alerts", // name
+				true,     // durable
+				false,    // delete when unused
+				false,    // exclusive
+				false,    // no-wait
+				nil,      // arguments
+			)
+			if err != nil {
+				logger.Warn("Failed to declare alerts queue, alerts will be disabled", zap.Error(err))
+			} else {
+				err = ch.QueueBind(
+					q.Name,            // queue name
+					"",                // routing key
+					"alerts_exchange", // exchange
+					false,             // no-wait
+					nil,               // arguments
+				)
+				if err != nil {
+					logger.Warn("Failed to bind alerts queue, alerts will be disabled", zap.Error(err))
+				}
+
+				alertMsgs, err = ch.Consume(
+					q.Name, // queue
+					"",     // consumer
+					true,   //
+					false,  // exclusive
+					false,  // no-local
+					false,  // no-wait
+					nil,    // args
+				)
+				if err != nil {
+					logger.Warn("Failed to consume from alerts queue, alerts will be disabled", zap.Error(err))
+				}
+			}
+		}
+	}
+
 	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
 	if authGrpcAddr == "" {
 		logger.Warn("WARNING: AUTH_SERVICE_GRPC_ADDR is empty, using default localhost:50051")
@@ -77,6 +131,13 @@ func main() {
 	}
 	logger.Info("Connecting to sensor service at", zap.String("address", sensorGrpcAddr))
 
+	alertGrpcAddr := strings.TrimSpace(os.Getenv("ALERT_SERVICE_GRPC_ADDR"))
+	if alertGrpcAddr == "" {
+		logger.Warn("WARNING: ALERT_SERVICE_GRPC_ADDR is empty, using default localhost:50054")
+		alertGrpcAddr = "localhost:50054"
+	}
+	logger.Info("Connecting to alert service at", zap.String("address", alertGrpcAddr))
+
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
 		logger.Fatal("Failed to connect to sensor service", zap.Error(err))
@@ -90,6 +151,13 @@ func main() {
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
+
+	alertService, err := NewGrpcClient(alertGrpcAddr)
+	if err != nil {
+		logger.Fatal("Failed to connect to alert service", zap.Error(err))
+	}
+	defer alertService.Close()
+	alertClient := alert_service.NewAlertServiceClient(alertService)
 
 	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
 	if dataProcAddr == "" {
@@ -139,7 +207,9 @@ func main() {
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
 	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
+	alertHandler := handlers.NewAlertHandler(alertClient)
+	alertRuleHandler := handlers.NewAlertRuleHandler(alertClient)
+	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient, alertMsgs)
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
@@ -148,6 +218,8 @@ func main() {
 	routes.SetupSensorRoutes(apiRouter, sensorHandler)
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
 	routes.SetupSensorGroupRoutes(apiRouter, sensorGroupHandler)
+	routes.SetupAlertRoutes(apiRouter, alertHandler)
+	routes.SetupAlertRuleRoutes(apiRouter, alertRuleHandler)
 	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)

@@ -22,6 +22,24 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - iot-net
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     build:
       context: .
@@ -84,33 +102,37 @@ services:
       SENSOR_SERVICE_GRPC_ADDR: ${SENSOR_SERVICE_GRPC_ADDR}
       DATA_SERVICE_GRPC_ADDR: ${DATA_SERVICE_GRPC_ADDR}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
     depends_on:
       - auth-service
       - sensor-service
       - data-processing-service
+      - rabbitmq
     networks:
       - iot-net
-  
-  nginx:
-    image: nginx:alpine
-    container_name: nginx_proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      NGINX_HOST: ${NGINX_HOST}
-      SSL_CERT: ${SSL_CERT}
-      SSL_KEY: ${SSL_KEY}
-      API_GATEWAY_PORT: ${API_GATEWAY_PORT}
-    volumes:
-      - ./nginx/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
-    networks:
-      - iot-net
-    depends_on:
-      - api-gateway
-  
+
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx_proxy
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   environment:
+  #     NGINX_HOST: ${NGINX_HOST}
+  #     SSL_CERT: ${SSL_CERT}
+  #     SSL_KEY: ${SSL_KEY}
+  #     API_GATEWAY_PORT: ${API_GATEWAY_PORT}
+  #   volumes:
+  #     - ./nginx/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
+  #     - ./nginx/certs:/etc/nginx/certs:ro
+  #   networks:
+  #     - iot-net
+  #   depends_on:
+  #     - api-gateway
+
   data-processing-service:
     build:
       context: .
@@ -125,8 +147,11 @@ services:
       DATA_SERVICE_DB_NAME: ${DATA_SERVICE_DB_NAME}
       DATA_SERVICE_DB_USER: ${DATA_SERVICE_DB_USER}
       DATA_SERVICE_DB_PASSWORD: ${DATA_SERVICE_DB_PASSWORD}
+      RABBITMQ_URL: ${RABBITMQ_URL}
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - iot-net
@@ -149,6 +174,31 @@ services:
       - data-processing-service
     networks:
       - iot-net
+
+  alert-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/alert-service
+    container_name: alert_service
+    env_file: .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      ALERT_SERVICE_DB_USER: ${ALERT_SERVICE_DB_USER}
+      ALERT_SERVICE_DB_PASSWORD: ${ALERT_SERVICE_DB_PASSWORD}
+      ALERT_SERVICE_DB_NAME: ${ALERT_SERVICE_DB_NAME}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - iot-net
+    ports:
+      - "50054:50054"
 
 volumes:
   postgres-data:

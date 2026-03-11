@@ -53,3 +53,12 @@ func MapSensorGroupFromProto(sg *pb.SensorGroup, mappedSensors []SensorResponse)
 		UpdatedAt:   sg.UpdatedAt.AsTime(),
 	}
 }
+
+func MapSensorGroupWithSensorsFromProto(sgws *pb.SensorGroupWithSensors) SensorGroupResponse {
+	mappedSensors := make([]SensorResponse, 0, len(sgws.Sensors))
+	for _, s := range sgws.Sensors {
+		mappedSensors = append(mappedSensors, MapSensorFromProto(s))
+	}
+
+	return MapSensorGroupFromProto(sgws.Group, mappedSensors)
+}

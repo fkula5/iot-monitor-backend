@@ -28,7 +28,7 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Tags SensorTypes
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} SensorTypeResponse "List of sensor types"
+// @Success 200 {array} types.SensorTypeResponse "List of sensor types"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /api/sensor-types [get]
@@ -69,7 +69,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param id path int true "Sensor Type ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} SensorTypeResponse "Sensor type details"
+// @Success 200 {object} types.SensorTypeResponse "Sensor type details"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string

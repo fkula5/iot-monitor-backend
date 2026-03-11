@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -19,6 +20,7 @@ import (
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
@@ -37,32 +39,18 @@ type WebSocketHandler struct {
 	clientsMu    sync.RWMutex
 }
 
-func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_sensor.SensorServiceClient) *WebSocketHandler {
-	return &WebSocketHandler{
+func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_sensor.SensorServiceClient, alertMsgs <-chan amqp.Delivery) *WebSocketHandler {
+	h := &WebSocketHandler{
 		dataClient:   dataClient,
 		sensorClient: sensorClient,
 		clients:      make(map[*websocket.Conn]bool),
 	}
-}
 
-type ReadingMessage struct {
-	SensorID   int64     `json:"sensor_id"`
-	Value      float32   `json:"value"`
-	Timestamp  time.Time `json:"timestamp"`
-	SensorName string    `json:"sensor_name"`
-	Location   string    `json:"location"`
-	Unit       string    `json:"unit"`
-}
+	if alertMsgs != nil {
+		go h.broadcastAlerts(alertMsgs)
+	}
 
-type SubscribeMessage struct {
-	Type      string  `json:"type"`
-	SensorIDs []int64 `json:"sensor_ids"`
-}
-
-type StoreReadingRequest struct {
-	SensorID  int64     `json:"sensor_id"`
-	Value     float32   `json:"value"`
-	Timestamp time.Time `json:"timestamp"`
+	return h
 }
 
 // @Summary Stream sensor readings via WebSocket
@@ -127,7 +115,7 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 	}
 
 	for {
-		var msg SubscribeMessage
+		var msg types.SubscribeMessage
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -177,7 +165,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 			zap.Float32("value", update.Value),
 		)
 
-		msg := ReadingMessage{
+		msg := types.ReadingMessage{
 			SensorID:   update.SensorId,
 			Value:      update.Value,
 			Timestamp:  update.Timestamp.AsTime(),
@@ -371,11 +359,11 @@ func (h *WebSocketHandler) WsHandler(w http.ResponseWriter, r *http.Request) {
 // @Tags Data
 // @Accept json
 // @Produce json
-// @Param reading body StoreReadingRequest true "Sensor Reading"
+// @Param reading body types.StoreReadingRequest true "Sensor Reading"
 // @Success 200 {object} map[string]string
 // @Router /api/data/readings [post]
 func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) {
-	var req StoreReadingRequest
+	var req types.StoreReadingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -404,4 +392,33 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+func (h *WebSocketHandler) broadcastAlerts(alertMsgs <-chan amqp.Delivery) {
+	for m := range alertMsgs {
+		var alert map[string]interface{}
+		if err := json.Unmarshal(m.Body, &alert); err != nil {
+			logger.Error("Failed to unmarshal alert message", zap.Error(err))
+			continue
+		}
+
+		wsMsg := types.AlertMessage{
+			Type:    "alert",
+			Payload: alert,
+		}
+
+		h.clientsMu.RLock()
+		for client := range h.clients {
+			if err := client.WriteJSON(wsMsg); err != nil {
+				logger.Error("Failed to write alert to WebSocket", zap.Error(err))
+				client.Close()
+				h.clientsMu.RUnlock()
+				h.clientsMu.Lock()
+				delete(h.clients, client)
+				h.clientsMu.Unlock()
+				h.clientsMu.RLock()
+			}
+		}
+		h.clientsMu.RUnlock()
+	}
 }
