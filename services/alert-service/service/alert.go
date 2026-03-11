@@ -19,8 +19,8 @@ func (s *AlertService) GetAlert(ctx context.Context, id int) (*ent.Alert, error)
 	return s.storage.Get(ctx, id)
 }
 
-func (s *AlertService) ListAlerts(ctx context.Context, userID int64) ([]*ent.Alert, error) {
-	return s.storage.List(ctx, userID)
+func (s *AlertService) ListAlerts(ctx context.Context, userID int64, limit, offset int) ([]*ent.Alert, int, error) {
+	return s.storage.List(ctx, userID, limit, offset)
 }
 
 func (s *AlertService) MarkAsRead(ctx context.Context, id int) (bool, error) {

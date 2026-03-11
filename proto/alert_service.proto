@@ -38,6 +38,8 @@ message GetAlertResponse {
 
 message ListAlertsRequest {
     int64 user_id = 1;
+    int32 limit = 2;
+    int32 offset = 3;
 }
 
 message MarkAlertAsReadRequest {
@@ -50,6 +52,7 @@ message MarkAlertAsReadResponse {
 
 message ListAlertsResponse {
     repeated Alert alerts = 1;
+    int64 total_count = 2;
 }
 
 message AlertRule {
@@ -87,10 +90,13 @@ message GetAlertRuleResponse {
 
 message ListAlertRulesRequest {
     int64 user_id = 1;
+    int32 limit = 2;
+    int32 offset = 3;
 }
 
 message ListAlertRulesResponse {
     repeated AlertRule alert_rules = 1;
+    int64 total_count = 2;
 }
 
 message UpdateAlertRuleRequest {

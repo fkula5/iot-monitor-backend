@@ -25,11 +25,13 @@ func NewAlertHandler(client pb.AlertServiceClient) *AlertHandler {
 }
 
 // @Summary ListAlerts retrieves a list of all alerts for the authenticated user.
-// @Description Fetches all alerts from the Alert Service.
+// @Description Fetches all alerts from the Alert Service with pagination support.
 // @Tags Alerts
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} types.AlertResponse "List of alerts"
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 10)"
+// @Success 200 {object} types.PaginatedAlertResponse "Paginated list of alerts"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/alerts [get]
@@ -44,7 +46,28 @@ func (h *AlertHandler) ListAlerts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.ListAlerts(ctx, &pb.ListAlertsRequest{UserId: int64(claims.UserId)})
+	page := 1
+	limit := 10
+
+	if p := r.URL.Query().Get("page"); p != "" {
+		if val, err := strconv.Atoi(p); err == nil && val > 0 {
+			page = val
+		}
+	}
+
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if val, err := strconv.Atoi(l); err == nil && val > 0 {
+			limit = val
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	res, err := h.client.ListAlerts(ctx, &pb.ListAlertsRequest{
+		UserId: int64(claims.UserId),
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
 	if err != nil {
 		logger.Error("Failed to fetch alerts from alert service", zap.Error(err), zap.Int("userId", claims.UserId))
 		http.Error(w, "Failed to fetch alerts", http.StatusInternalServerError)
@@ -56,8 +79,15 @@ func (h *AlertHandler) ListAlerts(w http.ResponseWriter, r *http.Request) {
 		alertResponses = append(alertResponses, types.MapAlertFromProto(a))
 	}
 
+	response := types.PaginatedAlertResponse{
+		Alerts:     alertResponses,
+		TotalCount: res.TotalCount,
+		Page:       page,
+		Limit:      limit,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(alertResponses)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary MarkAlertAsRead marks an alert as read.

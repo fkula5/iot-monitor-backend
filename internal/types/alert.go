@@ -16,6 +16,13 @@ type AlertResponse struct {
 	TriggeredAt time.Time `json:"triggered_at"`
 }
 
+type PaginatedAlertResponse struct {
+	Alerts     []AlertResponse `json:"alerts"`
+	TotalCount int64           `json:"total_count"`
+	Page       int             `json:"page"`
+	Limit      int             `json:"limit"`
+}
+
 func MapAlertFromProto(a *pb.Alert) AlertResponse {
 	return AlertResponse{
 		ID:          a.Id,

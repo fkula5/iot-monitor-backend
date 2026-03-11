@@ -18,6 +18,13 @@ type AlertRuleResponse struct {
 	CreatedAt      time.Time `json:"created_at"`
 }
 
+type PaginatedAlertRuleResponse struct {
+	AlertRules []AlertRuleResponse `json:"alert_rules"`
+	TotalCount int64               `json:"total_count"`
+	Page       int                 `json:"page"`
+	Limit      int                 `json:"limit"`
+}
+
 type AlertRuleRequest struct {
 	Name           string  `json:"name"`
 	SensorID       int64   `json:"sensor_id"`
