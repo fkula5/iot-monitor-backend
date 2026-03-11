@@ -9,7 +9,7 @@ import (
 
 type IAlertRuleService interface {
 	GetAlertRule(ctx context.Context, id int64) (*ent.AlertRule, error)
-	ListAlertRules(ctx context.Context, userID int64) ([]*ent.AlertRule, error)
+	ListAlertRules(ctx context.Context, userID int64, limit, offset int) ([]*ent.AlertRule, int, error)
 	CreateAlertRule(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error)
 	UpdateAlertRule(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error)
 	DeleteAlertRule(ctx context.Context, id int64) error
@@ -27,8 +27,8 @@ func (s *AlertRuleService) GetAlertRule(ctx context.Context, id int64) (*ent.Ale
 	return s.storage.Get(ctx, id)
 }
 
-func (s *AlertRuleService) ListAlertRules(ctx context.Context, userID int64) ([]*ent.AlertRule, error) {
-	return s.storage.List(ctx, userID)
+func (s *AlertRuleService) ListAlertRules(ctx context.Context, userID int64, limit, offset int) ([]*ent.AlertRule, int, error) {
+	return s.storage.List(ctx, userID, limit, offset)
 }
 
 func (s *AlertRuleService) CreateAlertRule(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error) {

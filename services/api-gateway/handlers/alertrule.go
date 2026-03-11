@@ -25,11 +25,13 @@ func NewAlertRuleHandler(client pb.AlertServiceClient) *AlertRuleHandler {
 }
 
 // @Summary List Alert Rules
-// @Description Get a list of alert rules for the authenticated user
+// @Description Get a list of alert rules for the authenticated user with pagination support
 // @Tags Alert Rules
 // @Accept json
 // @Produce json
-// @Success 200 {array} types.AlertRuleResponse
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 10)"
+// @Success 200 {object} types.PaginatedAlertRuleResponse "Paginated list of alert rules"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {string} string "Internal Server Error"
 // @Router /api/alert-rules [get]
@@ -44,20 +46,48 @@ func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	res, err := h.client.ListAlertRules(ctx, &pb.ListAlertRulesRequest{UserId: int64(claims.UserId)})
+	page := 1
+	limit := 10
+
+	if p := r.URL.Query().Get("page"); p != "" {
+		if val, err := strconv.Atoi(p); err == nil && val > 0 {
+			page = val
+		}
+	}
+
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if val, err := strconv.Atoi(l); err == nil && val > 0 {
+			limit = val
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	res, err := h.client.ListAlertRules(ctx, &pb.ListAlertRulesRequest{
+		UserId: int64(claims.UserId),
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
 	if err != nil {
 		logger.Error("Failed to list alert rules from alert service", zap.Error(err), zap.Int("userId", claims.UserId))
 		http.Error(w, "Failed to list alert rules", http.StatusInternalServerError)
 		return
 	}
 
-	alerRulesResponse := make([]types.AlertRuleResponse, 0, len(res.AlertRules))
+	alertRulesResponse := make([]types.AlertRuleResponse, 0, len(res.AlertRules))
 	for _, r := range res.AlertRules {
-		alerRulesResponse = append(alerRulesResponse, types.MapAlertRuleFromProto(r))
+		alertRulesResponse = append(alertRulesResponse, types.MapAlertRuleFromProto(r))
+	}
+
+	response := types.PaginatedAlertRuleResponse{
+		AlertRules: alertRulesResponse,
+		TotalCount: res.TotalCount,
+		Page:       page,
+		Limit:      limit,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(alerRulesResponse)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Create Alert Rule

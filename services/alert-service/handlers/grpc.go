@@ -36,8 +36,8 @@ func (h *AlertGrpcHandler) GetAlert(ctx context.Context, req *pb.GetAlertRequest
 }
 
 func (h *AlertGrpcHandler) ListAlerts(ctx context.Context, req *pb.ListAlertsRequest) (*pb.ListAlertsResponse, error) {
-	logger.Info("gRPC ListAlerts", zap.Int64("userId", req.UserId))
-	alerts, err := h.alertService.ListAlerts(ctx, req.UserId)
+	logger.Info("gRPC ListAlerts", zap.Int64("userId", req.UserId), zap.Int32("limit", req.Limit), zap.Int32("offset", req.Offset))
+	alerts, totalCount, err := h.alertService.ListAlerts(ctx, req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
 		logger.Error("Failed to list alerts", zap.Error(err), zap.Int64("userId", req.UserId))
 		return nil, err
@@ -46,7 +46,10 @@ func (h *AlertGrpcHandler) ListAlerts(ctx context.Context, req *pb.ListAlertsReq
 	for i, a := range alerts {
 		res[i] = h.mapAlert(a)
 	}
-	return &pb.ListAlertsResponse{Alerts: res}, nil
+	return &pb.ListAlertsResponse{
+		Alerts:     res,
+		TotalCount: int64(totalCount),
+	}, nil
 }
 
 func (h *AlertGrpcHandler) MarkAlertAsRead(ctx context.Context, req *pb.MarkAlertAsReadRequest) (*pb.MarkAlertAsReadResponse, error) {
@@ -60,8 +63,8 @@ func (h *AlertGrpcHandler) MarkAlertAsRead(ctx context.Context, req *pb.MarkAler
 }
 
 func (h *AlertGrpcHandler) ListAlertRules(ctx context.Context, req *pb.ListAlertRulesRequest) (*pb.ListAlertRulesResponse, error) {
-	logger.Info("gRPC ListAlertRules", zap.Int64("userId", req.UserId))
-	rules, err := h.alertRuleService.ListAlertRules(ctx, req.UserId)
+	logger.Info("gRPC ListAlertRules", zap.Int64("userId", req.UserId), zap.Int32("limit", req.Limit), zap.Int32("offset", req.Offset))
+	rules, totalCount, err := h.alertRuleService.ListAlertRules(ctx, req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
 		logger.Error("Failed to list alert rules", zap.Error(err), zap.Int64("userId", req.UserId))
 		return nil, err
@@ -70,7 +73,10 @@ func (h *AlertGrpcHandler) ListAlertRules(ctx context.Context, req *pb.ListAlert
 	for i, r := range rules {
 		res[i] = h.mapAlertRule(r)
 	}
-	return &pb.ListAlertRulesResponse{AlertRules: res}, nil
+	return &pb.ListAlertRulesResponse{
+		AlertRules: res,
+		TotalCount: int64(totalCount),
+	}, nil
 }
 
 func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAlertRuleRequest) (*pb.CreateAlertRuleResponse, error) {

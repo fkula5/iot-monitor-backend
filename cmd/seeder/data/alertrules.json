@@ -1,0 +1,20 @@
+[
+  {
+    "name": "High Temperature Alert",
+    "user_id": 1,
+    "sensor_id": 1,
+    "condition_type": "GT",
+    "threshold": 30.0,
+    "description": "Alert when temperature exceeds 30 degrees",
+    "is_enabled": true
+  },
+  {
+    "name": "Low Humidity Alert",
+    "user_id": 1,
+    "sensor_id": 2,
+    "condition_type": "LT",
+    "threshold": 20.0,
+    "description": "Alert when humidity is below 20%",
+    "is_enabled": true
+  }
+]

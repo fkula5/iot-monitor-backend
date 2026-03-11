@@ -24,7 +24,7 @@ const docTemplate = `{
     "paths": {
         "/api/alert-rules": {
             "get": {
-                "description": "Get a list of alert rules for the authenticated user",
+                "description": "Get a list of alert rules for the authenticated user with pagination support",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,14 +35,25 @@ const docTemplate = `{
                     "Alert Rules"
                 ],
                 "summary": "List Alert Rules",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Paginated list of alert rules",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.AlertRuleResponse"
-                            }
+                            "$ref": "#/definitions/types.PaginatedAlertRuleResponse"
                         }
                     },
                     "401": {
@@ -113,25 +124,17 @@ const docTemplate = `{
         "/api/alert-rules/{id}": {
             "get": {
                 "description": "Get an alert rule by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Alert Rules"
                 ],
                 "summary": "Get Alert Rule",
                 "parameters": [
                     {
-                        "description": "Get Alert Rule Request",
-                        "name": "getRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.GetAlertRulesRequest"
-                        }
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -175,6 +178,13 @@ const docTemplate = `{
                 "summary": "Update Alert Rule",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "Update Alert Rule Request",
                         "name": "updateRequest",
                         "in": "body",
@@ -213,25 +223,17 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Delete an alert rule by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Alert Rules"
                 ],
                 "summary": "Delete Alert Rule",
                 "parameters": [
                     {
-                        "description": "Delete Alert Rule Request",
-                        "name": "deleteRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.DeleteAlertRuleRequest"
-                        }
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -269,7 +271,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Fetches all alerts from the Alert Service.",
+                "description": "Fetches all alerts from the Alert Service with pagination support.",
                 "produces": [
                     "application/json"
                 ],
@@ -277,14 +279,25 @@ const docTemplate = `{
                     "Alerts"
                 ],
                 "summary": "ListAlerts retrieves a list of all alerts for the authenticated user.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List of alerts",
+                        "description": "Paginated list of alerts",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/types.AlertResponse"
-                            }
+                            "$ref": "#/definitions/types.PaginatedAlertResponse"
                         }
                     },
                     "401": {
@@ -1887,6 +1900,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "sensor_id": {
                     "type": "integer"
                 },
@@ -1901,11 +1917,20 @@ const docTemplate = `{
                 "condition_type": {
                     "type": "string"
                 },
+                "created_at": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "sensor_id": {
                     "type": "integer"
@@ -1958,18 +1983,42 @@ const docTemplate = `{
                 }
             }
         },
-        "types.DeleteAlertRuleRequest": {
+        "types.PaginatedAlertResponse": {
             "type": "object",
             "properties": {
-                "alert_rule_id": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.AlertResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_count": {
                     "type": "integer"
                 }
             }
         },
-        "types.GetAlertRulesRequest": {
+        "types.PaginatedAlertRuleResponse": {
             "type": "object",
             "properties": {
-                "id": {
+                "alert_rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.AlertRuleResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_count": {
                     "type": "integer"
                 }
             }
@@ -2093,13 +2142,19 @@ const docTemplate = `{
         "types.UpdateAlertRuleRequest": {
             "type": "object",
             "properties": {
-                "alert_rule_id": {
-                    "type": "integer"
-                },
                 "condition_type": {
                     "type": "string"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
                 },
                 "sensor_id": {

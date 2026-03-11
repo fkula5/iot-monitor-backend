@@ -11,7 +11,7 @@ import (
 type IAlertRuleStorage interface {
 	Create(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error)
 	Get(ctx context.Context, id int64) (*ent.AlertRule, error)
-	List(ctx context.Context, userID int64) ([]*ent.AlertRule, error)
+	List(ctx context.Context, userID int64, limit, offset int) ([]*ent.AlertRule, int, error)
 	Update(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error)
 	Delete(ctx context.Context, id int64) error
 }
@@ -39,8 +39,24 @@ func (s *AlertRuleStorage) Get(ctx context.Context, id int64) (*ent.AlertRule, e
 	return s.client.AlertRule.Query().Where(alertrule.ID(int(id))).Only(ctx)
 }
 
-func (s *AlertRuleStorage) List(ctx context.Context, userID int64) ([]*ent.AlertRule, error) {
-	return s.client.AlertRule.Query().Where(alertrule.UserID(userID)).All(ctx)
+func (s *AlertRuleStorage) List(ctx context.Context, userID int64, limit, offset int) ([]*ent.AlertRule, int, error) {
+	query := s.client.AlertRule.Query().Where(alertrule.UserID(userID))
+
+	totalCount, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rules, err := query.
+		Limit(limit).
+		Offset(offset).
+		Order(ent.Desc(alertrule.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return rules, totalCount, nil
 }
 
 func (s *AlertRuleStorage) Update(ctx context.Context, rule *ent.AlertRule) (*ent.AlertRule, error) {

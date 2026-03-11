@@ -9,7 +9,7 @@ import (
 
 type IAlertStorage interface {
 	Get(ctx context.Context, id int) (*ent.Alert, error)
-	List(ctx context.Context, userID int64) ([]*ent.Alert, error)
+	List(ctx context.Context, userID int64, limit, offset int) ([]*ent.Alert, int, error)
 	MarkAsRead(ctx context.Context, id int) (bool, error)
 }
 
@@ -25,8 +25,25 @@ func (s *AlertStorage) Get(ctx context.Context, id int) (*ent.Alert, error) {
 	return s.client.Alert.Query().Where(alert.ID(id)).WithRule().Only(ctx)
 }
 
-func (s *AlertStorage) List(ctx context.Context, userID int64) ([]*ent.Alert, error) {
-	return s.client.Alert.Query().Where(alert.UserID(userID)).WithRule().All(ctx)
+func (s *AlertStorage) List(ctx context.Context, userID int64, limit, offset int) ([]*ent.Alert, int, error) {
+	query := s.client.Alert.Query().Where(alert.UserID(userID))
+
+	totalCount, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	alerts, err := query.
+		WithRule().
+		Limit(limit).
+		Offset(offset).
+		Order(ent.Desc(alert.FieldTriggeredAt)).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return alerts, totalCount, nil
 }
 
 func (s *AlertStorage) MarkAsRead(ctx context.Context, id int) (bool, error) {
