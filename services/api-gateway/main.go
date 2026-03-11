@@ -208,6 +208,7 @@ func main() {
 	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
 	alertHandler := handlers.NewAlertHandler(alertClient)
+	alertRuleHandler := handlers.NewAlertRuleHandler(alertClient)
 	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient, alertMsgs)
 
 	apiRouter := chi.NewRouter()
@@ -218,6 +219,7 @@ func main() {
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
 	routes.SetupSensorGroupRoutes(apiRouter, sensorGroupHandler)
 	routes.SetupAlertRoutes(apiRouter, alertHandler)
+	routes.SetupAlertRuleRoutes(apiRouter, alertRuleHandler)
 	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)

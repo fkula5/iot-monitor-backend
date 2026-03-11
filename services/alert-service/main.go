@@ -89,9 +89,11 @@ func main() {
 	}
 	logger.Info("Database connection established and schema migrated")
 
-	storage := storage.NewAlertStorage(client)
-	svc := service.NewAlertService(storage)
-	handler := handlers.NewAlertGrpcHandler(svc)
+	alertStorage := storage.NewAlertStorage(client)
+	alertRuleStorage := storage.NewAlertRuleStorage(client)
+	alertService := service.NewAlertService(alertStorage)
+	alertRuleService := service.NewAlertRuleService(alertRuleStorage)
+	handler := handlers.NewAlertGrpcHandler(alertService, alertRuleService)
 
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {

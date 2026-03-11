@@ -26,6 +26,7 @@ const (
 	AlertService_GetAlertRule_FullMethodName    = "/alert_service.AlertService/GetAlertRule"
 	AlertService_ListAlertRules_FullMethodName  = "/alert_service.AlertService/ListAlertRules"
 	AlertService_UpdateAlertRule_FullMethodName = "/alert_service.AlertService/UpdateAlertRule"
+	AlertService_DeleteAlertRule_FullMethodName = "/alert_service.AlertService/DeleteAlertRule"
 )
 
 // AlertServiceClient is the client API for AlertService service.
@@ -39,6 +40,7 @@ type AlertServiceClient interface {
 	GetAlertRule(ctx context.Context, in *GetAlertRuleRequest, opts ...grpc.CallOption) (*GetAlertRuleResponse, error)
 	ListAlertRules(ctx context.Context, in *ListAlertRulesRequest, opts ...grpc.CallOption) (*ListAlertRulesResponse, error)
 	UpdateAlertRule(ctx context.Context, in *UpdateAlertRuleRequest, opts ...grpc.CallOption) (*UpdateAlertRuleResponse, error)
+	DeleteAlertRule(ctx context.Context, in *DeleteAlertRuleRequest, opts ...grpc.CallOption) (*DeleteAlertRuleResponse, error)
 }
 
 type alertServiceClient struct {
@@ -119,6 +121,16 @@ func (c *alertServiceClient) UpdateAlertRule(ctx context.Context, in *UpdateAler
 	return out, nil
 }
 
+func (c *alertServiceClient) DeleteAlertRule(ctx context.Context, in *DeleteAlertRuleRequest, opts ...grpc.CallOption) (*DeleteAlertRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAlertRuleResponse)
+	err := c.cc.Invoke(ctx, AlertService_DeleteAlertRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AlertServiceServer is the server API for AlertService service.
 // All implementations must embed UnimplementedAlertServiceServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type AlertServiceServer interface {
 	GetAlertRule(context.Context, *GetAlertRuleRequest) (*GetAlertRuleResponse, error)
 	ListAlertRules(context.Context, *ListAlertRulesRequest) (*ListAlertRulesResponse, error)
 	UpdateAlertRule(context.Context, *UpdateAlertRuleRequest) (*UpdateAlertRuleResponse, error)
+	DeleteAlertRule(context.Context, *DeleteAlertRuleRequest) (*DeleteAlertRuleResponse, error)
 	mustEmbedUnimplementedAlertServiceServer()
 }
 
@@ -160,6 +173,9 @@ func (UnimplementedAlertServiceServer) ListAlertRules(context.Context, *ListAler
 }
 func (UnimplementedAlertServiceServer) UpdateAlertRule(context.Context, *UpdateAlertRuleRequest) (*UpdateAlertRuleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAlertRule not implemented")
+}
+func (UnimplementedAlertServiceServer) DeleteAlertRule(context.Context, *DeleteAlertRuleRequest) (*DeleteAlertRuleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAlertRule not implemented")
 }
 func (UnimplementedAlertServiceServer) mustEmbedUnimplementedAlertServiceServer() {}
 func (UnimplementedAlertServiceServer) testEmbeddedByValue()                      {}
@@ -308,6 +324,24 @@ func _AlertService_UpdateAlertRule_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AlertService_DeleteAlertRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAlertRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AlertServiceServer).DeleteAlertRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AlertService_DeleteAlertRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AlertServiceServer).DeleteAlertRule(ctx, req.(*DeleteAlertRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AlertService_ServiceDesc is the grpc.ServiceDesc for AlertService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -342,6 +376,10 @@ var AlertService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAlertRule",
 			Handler:    _AlertService_UpdateAlertRule_Handler,
+		},
+		{
+			MethodName: "DeleteAlertRule",
+			Handler:    _AlertService_DeleteAlertRule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

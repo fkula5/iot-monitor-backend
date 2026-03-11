@@ -37,6 +37,32 @@ definitions:
       value:
         type: number
     type: object
+  types.AlertRuleRequest:
+    properties:
+      condition_type:
+        type: string
+      description:
+        type: string
+      sensor_id:
+        type: integer
+      threshold:
+        type: number
+    type: object
+  types.AlertRuleResponse:
+    properties:
+      condition_type:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      sensor_id:
+        type: integer
+      threshold:
+        type: number
+      user_id:
+        type: integer
+    type: object
   types.CreateGroupRequest:
     properties:
       color:
@@ -61,6 +87,16 @@ definitions:
       name:
         type: string
       sensor_type_id:
+        type: integer
+    type: object
+  types.DeleteAlertRuleRequest:
+    properties:
+      alert_rule_id:
+        type: integer
+    type: object
+  types.GetAlertRulesRequest:
+    properties:
+      id:
         type: integer
     type: object
   types.SensorGroupResponse:
@@ -139,6 +175,19 @@ definitions:
       value:
         type: number
     type: object
+  types.UpdateAlertRuleRequest:
+    properties:
+      alert_rule_id:
+        type: integer
+      condition_type:
+        type: string
+      description:
+        type: string
+      sensor_id:
+        type: integer
+      threshold:
+        type: number
+    type: object
   types.UpdateGroupRequest:
     properties:
       color:
@@ -179,6 +228,164 @@ info:
   title: IoT Monitor API
   version: "1.0"
 paths:
+  /api/alert-rules:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of alert rules for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.AlertRuleResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: List Alert Rules
+      tags:
+      - Alert Rules
+    post:
+      consumes:
+      - application/json
+      description: Create a new alert rule for the authenticated user
+      parameters:
+      - description: Alert Rule Request
+        in: body
+        name: alertRule
+        required: true
+        schema:
+          $ref: '#/definitions/types.AlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.AlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create Alert Rule
+      tags:
+      - Alert Rules
+  /api/alert-rules/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an alert rule by ID
+      parameters:
+      - description: Delete Alert Rule Request
+        in: body
+        name: deleteRequest
+        required: true
+        schema:
+          $ref: '#/definitions/types.DeleteAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Delete Alert Rule
+      tags:
+      - Alert Rules
+    get:
+      consumes:
+      - application/json
+      description: Get an alert rule by ID
+      parameters:
+      - description: Get Alert Rule Request
+        in: body
+        name: getRequest
+        required: true
+        schema:
+          $ref: '#/definitions/types.GetAlertRulesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.AlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Alert Rule
+      tags:
+      - Alert Rules
+    put:
+      consumes:
+      - application/json
+      description: Update an existing alert rule
+      parameters:
+      - description: Update Alert Rule Request
+        in: body
+        name: updateRequest
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateAlertRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.AlertRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update Alert Rule
+      tags:
+      - Alert Rules
   /api/alerts:
     get:
       description: Fetches all alerts from the Alert Service.

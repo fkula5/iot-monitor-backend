@@ -926,6 +926,86 @@ func (x *UpdateAlertRuleResponse) GetAlertRule() *AlertRule {
 	return nil
 }
 
+type DeleteAlertRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAlertRuleRequest) Reset() {
+	*x = DeleteAlertRuleRequest{}
+	mi := &file_alert_service_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAlertRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAlertRuleRequest) ProtoMessage() {}
+
+func (x *DeleteAlertRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAlertRuleRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAlertRuleRequest) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *DeleteAlertRuleRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DeleteAlertRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAlertRuleResponse) Reset() {
+	*x = DeleteAlertRuleResponse{}
+	mi := &file_alert_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAlertRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAlertRuleResponse) ProtoMessage() {}
+
+func (x *DeleteAlertRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_alert_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAlertRuleResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAlertRuleResponse) Descriptor() ([]byte, []int) {
+	return file_alert_service_proto_rawDescGZIP(), []int{17}
+}
+
 var File_alert_service_proto protoreflect.FileDescriptor
 
 const file_alert_service_proto_rawDesc = "" +
@@ -994,7 +1074,10 @@ const file_alert_service_proto_rawDesc = "" +
 	"is_enabled\x18\a \x01(\bR\tisEnabled\"R\n" +
 	"\x17UpdateAlertRuleResponse\x127\n" +
 	"\n" +
-	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule2\x9a\x05\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"(\n" +
+	"\x16DeleteAlertRuleRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"\x19\n" +
+	"\x17DeleteAlertRuleResponse2\xfe\x05\n" +
 	"\fAlertService\x12M\n" +
 	"\bGetAlert\x12\x1e.alert_service.GetAlertRequest\x1a\x1f.alert_service.GetAlertResponse\"\x00\x12S\n" +
 	"\n" +
@@ -1003,7 +1086,8 @@ const file_alert_service_proto_rawDesc = "" +
 	"\x0fCreateAlertRule\x12%.alert_service.CreateAlertRuleRequest\x1a&.alert_service.CreateAlertRuleResponse\"\x00\x12Y\n" +
 	"\fGetAlertRule\x12\".alert_service.GetAlertRuleRequest\x1a#.alert_service.GetAlertRuleResponse\"\x00\x12_\n" +
 	"\x0eListAlertRules\x12$.alert_service.ListAlertRulesRequest\x1a%.alert_service.ListAlertRulesResponse\"\x00\x12b\n" +
-	"\x0fUpdateAlertRule\x12%.alert_service.UpdateAlertRuleRequest\x1a&.alert_service.UpdateAlertRuleResponse\"\x00BFZDgithub.com/skni-kod/iot-monitor-backend/internal/proto/alert_serviceb\x06proto3"
+	"\x0fUpdateAlertRule\x12%.alert_service.UpdateAlertRuleRequest\x1a&.alert_service.UpdateAlertRuleResponse\"\x00\x12b\n" +
+	"\x0fDeleteAlertRule\x12%.alert_service.DeleteAlertRuleRequest\x1a&.alert_service.DeleteAlertRuleResponse\"\x00BFZDgithub.com/skni-kod/iot-monitor-backend/internal/proto/alert_serviceb\x06proto3"
 
 var (
 	file_alert_service_proto_rawDescOnce sync.Once
@@ -1017,7 +1101,7 @@ func file_alert_service_proto_rawDescGZIP() []byte {
 	return file_alert_service_proto_rawDescData
 }
 
-var file_alert_service_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_alert_service_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_alert_service_proto_goTypes = []any{
 	(*Alert)(nil),                   // 0: alert_service.Alert
 	(*GetAlertRequest)(nil),         // 1: alert_service.GetAlertRequest
@@ -1035,13 +1119,15 @@ var file_alert_service_proto_goTypes = []any{
 	(*ListAlertRulesResponse)(nil),  // 13: alert_service.ListAlertRulesResponse
 	(*UpdateAlertRuleRequest)(nil),  // 14: alert_service.UpdateAlertRuleRequest
 	(*UpdateAlertRuleResponse)(nil), // 15: alert_service.UpdateAlertRuleResponse
-	(*timestamp.Timestamp)(nil),     // 16: google.protobuf.Timestamp
+	(*DeleteAlertRuleRequest)(nil),  // 16: alert_service.DeleteAlertRuleRequest
+	(*DeleteAlertRuleResponse)(nil), // 17: alert_service.DeleteAlertRuleResponse
+	(*timestamp.Timestamp)(nil),     // 18: google.protobuf.Timestamp
 }
 var file_alert_service_proto_depIdxs = []int32{
-	16, // 0: alert_service.Alert.triggered_at:type_name -> google.protobuf.Timestamp
+	18, // 0: alert_service.Alert.triggered_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: alert_service.GetAlertResponse.alert:type_name -> alert_service.Alert
 	0,  // 2: alert_service.ListAlertsResponse.alerts:type_name -> alert_service.Alert
-	16, // 3: alert_service.AlertRule.created_at:type_name -> google.protobuf.Timestamp
+	18, // 3: alert_service.AlertRule.created_at:type_name -> google.protobuf.Timestamp
 	7,  // 4: alert_service.CreateAlertRuleResponse.alert_rule:type_name -> alert_service.AlertRule
 	7,  // 5: alert_service.GetAlertRuleResponse.alert_rule:type_name -> alert_service.AlertRule
 	7,  // 6: alert_service.ListAlertRulesResponse.alert_rules:type_name -> alert_service.AlertRule
@@ -1053,15 +1139,17 @@ var file_alert_service_proto_depIdxs = []int32{
 	10, // 12: alert_service.AlertService.GetAlertRule:input_type -> alert_service.GetAlertRuleRequest
 	12, // 13: alert_service.AlertService.ListAlertRules:input_type -> alert_service.ListAlertRulesRequest
 	14, // 14: alert_service.AlertService.UpdateAlertRule:input_type -> alert_service.UpdateAlertRuleRequest
-	2,  // 15: alert_service.AlertService.GetAlert:output_type -> alert_service.GetAlertResponse
-	6,  // 16: alert_service.AlertService.ListAlerts:output_type -> alert_service.ListAlertsResponse
-	5,  // 17: alert_service.AlertService.MarkAlertAsRead:output_type -> alert_service.MarkAlertAsReadResponse
-	9,  // 18: alert_service.AlertService.CreateAlertRule:output_type -> alert_service.CreateAlertRuleResponse
-	11, // 19: alert_service.AlertService.GetAlertRule:output_type -> alert_service.GetAlertRuleResponse
-	13, // 20: alert_service.AlertService.ListAlertRules:output_type -> alert_service.ListAlertRulesResponse
-	15, // 21: alert_service.AlertService.UpdateAlertRule:output_type -> alert_service.UpdateAlertRuleResponse
-	15, // [15:22] is the sub-list for method output_type
-	8,  // [8:15] is the sub-list for method input_type
+	16, // 15: alert_service.AlertService.DeleteAlertRule:input_type -> alert_service.DeleteAlertRuleRequest
+	2,  // 16: alert_service.AlertService.GetAlert:output_type -> alert_service.GetAlertResponse
+	6,  // 17: alert_service.AlertService.ListAlerts:output_type -> alert_service.ListAlertsResponse
+	5,  // 18: alert_service.AlertService.MarkAlertAsRead:output_type -> alert_service.MarkAlertAsReadResponse
+	9,  // 19: alert_service.AlertService.CreateAlertRule:output_type -> alert_service.CreateAlertRuleResponse
+	11, // 20: alert_service.AlertService.GetAlertRule:output_type -> alert_service.GetAlertRuleResponse
+	13, // 21: alert_service.AlertService.ListAlertRules:output_type -> alert_service.ListAlertRulesResponse
+	15, // 22: alert_service.AlertService.UpdateAlertRule:output_type -> alert_service.UpdateAlertRuleResponse
+	17, // 23: alert_service.AlertService.DeleteAlertRule:output_type -> alert_service.DeleteAlertRuleResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
 	8,  // [8:8] is the sub-list for extension type_name
 	8,  // [8:8] is the sub-list for extension extendee
 	0,  // [0:8] is the sub-list for field type_name
@@ -1078,7 +1166,7 @@ func file_alert_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_alert_service_proto_rawDesc), len(file_alert_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

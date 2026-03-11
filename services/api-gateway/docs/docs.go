@@ -22,6 +22,246 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/alert-rules": {
+            "get": {
+                "description": "Get a list of alert rules for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "List Alert Rules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.AlertRuleResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new alert rule for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Create Alert Rule",
+                "parameters": [
+                    {
+                        "description": "Alert Rule Request",
+                        "name": "alertRule",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alert-rules/{id}": {
+            "get": {
+                "description": "Get an alert rule by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Get Alert Rule",
+                "parameters": [
+                    {
+                        "description": "Get Alert Rule Request",
+                        "name": "getRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.GetAlertRulesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing alert rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Update Alert Rule",
+                "parameters": [
+                    {
+                        "description": "Update Alert Rule Request",
+                        "name": "updateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateAlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an alert rule by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Delete Alert Rule",
+                "parameters": [
+                    {
+                        "description": "Delete Alert Rule Request",
+                        "name": "deleteRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.DeleteAlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts": {
             "get": {
                 "security": [
@@ -1638,6 +1878,46 @@ const docTemplate = `{
                 }
             }
         },
+        "types.AlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "condition_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                }
+            }
+        },
+        "types.AlertRuleResponse": {
+            "type": "object",
+            "properties": {
+                "condition_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "types.CreateGroupRequest": {
             "type": "object",
             "properties": {
@@ -1674,6 +1954,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sensor_type_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.DeleteAlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "alert_rule_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.GetAlertRulesRequest": {
+            "type": "object",
+            "properties": {
+                "id": {
                     "type": "integer"
                 }
             }
@@ -1790,6 +2086,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "types.UpdateAlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "alert_rule_id": {
+                    "type": "integer"
+                },
+                "condition_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
                     "type": "number"
                 }
             }

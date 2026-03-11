@@ -15,6 +15,7 @@ service AlertService {
     rpc GetAlertRule(GetAlertRuleRequest) returns (GetAlertRuleResponse) {}
     rpc ListAlertRules(ListAlertRulesRequest) returns (ListAlertRulesResponse) {}
     rpc UpdateAlertRule(UpdateAlertRuleRequest) returns (UpdateAlertRuleResponse) {}
+    rpc DeleteAlertRule(DeleteAlertRuleRequest) returns (DeleteAlertRuleResponse) {}
 }
 
 message Alert {
@@ -105,3 +106,9 @@ message UpdateAlertRuleRequest {
 message UpdateAlertRuleResponse {
     AlertRule alert_rule = 1;
 }
+
+message DeleteAlertRuleRequest {
+    int64 id = 1;
+}
+
+message DeleteAlertRuleResponse {}
