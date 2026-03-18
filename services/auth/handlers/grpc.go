@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,12 +29,10 @@ func NewGrpcHandler(s *grpc.Server, authService services.IAuthService) {
 
 func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	if req.Email == "" {
-		logger.Warn("Login request missing email")
 		return nil, status.Error(codes.InvalidArgument, "email is required")
 	}
 
 	if req.Password == "" {
-		logger.Warn("Login request missing password")
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
@@ -46,7 +43,6 @@ func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 
 	authRes, err := h.authService.Login(ctx, authReq)
 	if err != nil {
-		logger.Error("Failed to login user", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -59,22 +55,18 @@ func (h *AuthGrpcHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 
 func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	if req.Email == "" {
-		logger.Warn("Register request missing email")
 		return nil, status.Error(codes.InvalidArgument, "email is required")
 	}
 
 	if req.Username == "" {
-		logger.Warn("Register request missing username")
 		return nil, status.Error(codes.InvalidArgument, "username is required")
 	}
 
 	if req.Password == "" {
-		logger.Warn("Register request missing password")
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
 	if len(req.Password) < 8 {
-		logger.Warn("Register request password too short")
 		return nil, status.Error(codes.InvalidArgument, "password must be at least 8 characters long")
 	}
 
@@ -88,7 +80,6 @@ func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest)
 
 	authRes, err := h.authService.Register(ctx, authReq)
 	if err != nil {
-		logger.Error("Failed to register user", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -106,7 +97,6 @@ func (h *AuthGrpcHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (
 
 	user, err := h.authService.GetUserByID(ctx, int(req.Id))
 	if err != nil {
-		logger.Error("Failed to get user", zap.Error(err))
 		return nil, status.Error(codes.NotFound, "user not found")
 	}
 
@@ -128,7 +118,6 @@ func (h *AuthGrpcHandler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 	user, err := h.authService.Update(ctx, int(req.Id), updateData)
 
 	if err != nil {
-		logger.Error("Failed to update user", zap.Error(err))
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

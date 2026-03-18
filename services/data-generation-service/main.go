@@ -38,6 +38,7 @@ func main() {
 		Level:       logLevel,
 		Environment: environment,
 		OutputPaths: []string{"stdout"},
+		ServiceName: "data-generation-service",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))

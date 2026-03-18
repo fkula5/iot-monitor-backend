@@ -59,6 +59,7 @@ func main() {
 		Level:       logLevel,
 		Environment: environment,
 		OutputPaths: []string{"stdout"},
+		ServiceName: "api-gateway",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))

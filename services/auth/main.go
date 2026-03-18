@@ -40,6 +40,7 @@ func main() {
 		Level:       logLevel,
 		Environment: environment,
 		OutputPaths: []string{"stdout"},
+		ServiceName: "auth-service",
 	})
 
 	host := getEnvOrFail("DB_HOST")
@@ -72,7 +73,9 @@ func main() {
 		logger.Fatal("Failed to listen", zap.Error(err))
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 
 	userStorage := storage.NewUserStorage(client)
 	authService := services.NewAuthService(userStorage)

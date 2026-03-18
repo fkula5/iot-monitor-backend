@@ -61,6 +61,7 @@ func main() {
 		Level:       logLevel,
 		Environment: environment,
 		OutputPaths: []string{"stdout"},
+		ServiceName: "alert-service",
 	})
 	if err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
@@ -103,7 +104,9 @@ func main() {
 		logger.Fatal("failed to listen", zap.String("port", grpcPort), zap.Error(err))
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 	pb.RegisterAlertServiceServer(s, handler)
 
 	go func() {
