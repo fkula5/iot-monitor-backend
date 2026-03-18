@@ -39,8 +39,8 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "sensor-service",
 		OutputPaths: []string{"stdout"},
+		ServiceName: "sensor-service",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
@@ -89,7 +89,9 @@ func main() {
 		)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 
 	sensorsStore := storage.NewSensorStorage(client)
 	sensorsTypeStore := storage.NewSensorTypeStorage(client)

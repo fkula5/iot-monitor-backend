@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"context"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -48,10 +50,12 @@ func Init(cfg Config) error {
 		return err
 	}
 
-	globalLogger = logger.With(
-		zap.String("service", cfg.ServiceName),
-		zap.String("environment", cfg.Environment),
-	)
+	fields := []zap.Field{zap.String("environment", cfg.Environment)}
+	if cfg.ServiceName != "" {
+		fields = append(fields, zap.String("service", cfg.ServiceName))
+	}
+
+	globalLogger = logger.With(fields...)
 	return nil
 }
 
@@ -60,6 +64,21 @@ func Sync() error {
 		return globalLogger.Sync()
 	}
 	return nil
+}
+
+// L returns the global logger instance
+func L() *zap.Logger {
+	return globalLogger
+}
+
+// With returns a logger with the given fields
+func With(fields ...zap.Field) *zap.Logger {
+	return globalLogger.With(fields...)
+}
+
+// Named returns a logger with a new name appended to the current name
+func Named(name string) *zap.Logger {
+	return globalLogger.Named(name)
 }
 
 func Debug(msg string, fields ...zap.Field) {
@@ -80,4 +99,10 @@ func Error(msg string, fields ...zap.Field) {
 
 func Fatal(msg string, fields ...zap.Field) {
 	globalLogger.Fatal(msg, fields...)
+}
+
+// FromContext returns a logger from the context if available, otherwise returns global logger
+func FromContext(ctx context.Context) *zap.Logger {
+	// This can be expanded when we implement tracing/request IDs in context
+	return globalLogger
 }

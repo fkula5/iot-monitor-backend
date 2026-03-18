@@ -60,8 +60,8 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "api-gateway",
 		OutputPaths: []string{"stdout"},
+		ServiceName: "api-gateway",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))

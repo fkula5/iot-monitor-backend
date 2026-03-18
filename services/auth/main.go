@@ -48,7 +48,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "auth",
+		ServiceName: "auth-service",
 		OutputPaths: []string{"stdout"},
 	})
 
@@ -92,7 +92,9 @@ func main() {
 		logger.Fatal("Failed to listen", zap.Error(err))
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 
 	userStorage := storage.NewUserStorage(client)
 	authService := services.NewAuthService(userStorage, mailer)
