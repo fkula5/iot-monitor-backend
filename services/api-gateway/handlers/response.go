@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"go.uber.org/zap"
+
+	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 )
 
 // Response is the standard API response structure

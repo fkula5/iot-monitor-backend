@@ -13,8 +13,6 @@ import (
 	"github.com/gorilla/websocket"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
