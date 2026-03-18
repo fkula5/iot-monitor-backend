@@ -80,7 +80,10 @@ func main() {
 	dbName := getEnvOrFail("ALERT_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("ALERT_SERVICE_GRPC_PORT")
 
-	drv := database.NewDriver(dbHost, dbPort, dbUser, dbPass, dbName)
+	drv, err := database.NewDriver(dbHost, dbPort, dbUser, dbPass, dbName)
+	if err != nil {
+		logger.Fatal("failed to create database driver", zap.Error(err))
+	}
 	client := ent.NewClient(ent.Driver(drv))
 	defer client.Close()
 

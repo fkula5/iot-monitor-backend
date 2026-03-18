@@ -52,11 +52,11 @@ type AlertRuleSeed struct {
 }
 
 type AlertSeed struct {
-	UserID    int64   `json:"user_id"`
-	RuleID    int     `json:"rule_id"`
-	Value     float64 `json:"value"`
-	Message   string  `json:"message"`
-	IsRead    bool    `json:"is_read"`
+	UserID  int64   `json:"user_id"`
+	RuleID  int     `json:"rule_id"`
+	Value   float64 `json:"value"`
+	Message string  `json:"message"`
+	IsRead  bool    `json:"is_read"`
 }
 
 func main() {
@@ -72,9 +72,18 @@ func main() {
 	sensorDbName := os.Getenv("SENSOR_SERVICE_DB_NAME")
 	alertDbName := os.Getenv("ALERT_SERVICE_DB_NAME")
 
-	userDriver := database.NewDriver(dbHost, dbPort, dbUser, dbPass, userDbName)
-	sensorDriver := database.NewDriver(dbHost, dbPort, dbUser, dbPass, sensorDbName)
-	alertDriver := database.NewDriver(dbHost, dbPort, dbUser, dbPass, alertDbName)
+	userDriver, err := database.NewDriver(dbHost, dbPort, dbUser, dbPass, userDbName)
+	if err != nil {
+		panic(err)
+	}
+	sensorDriver, err := database.NewDriver(dbHost, dbPort, dbUser, dbPass, sensorDbName)
+	if err != nil {
+		panic(err)
+	}
+	alertDriver, err := database.NewDriver(dbHost, dbPort, dbUser, dbPass, alertDbName)
+	if err != nil {
+		panic(err)
+	}
 
 	userClient := authEnt.NewClient(authEnt.Driver(userDriver))
 	sensorClient := sensorEnt.NewClient(sensorEnt.Driver(sensorDriver))
