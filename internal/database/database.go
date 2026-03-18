@@ -3,50 +3,26 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/lib/pq"
-
-	userEnt "github.com/skni-kod/iot-monitor-backend/services/auth/ent"
-	sensorEnt "github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
 )
 
-func NewSensorDB(host, port, user, password, dbname string) *sensorEnt.Client {
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Failed to establish database connection: %v", err)
-	}
-
-	drv := entsql.OpenDB(dialect.Postgres, db)
-
-	return sensorEnt.NewClient(sensorEnt.Driver(drv))
+func connectionString(host, port, user, password, dbname string) string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 }
 
-func NewAuthDB(host, port, user, password, dbname string) *userEnt.Client {
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+func NewDriver(host, port, user, password, dbname string) (dialect.Driver, error) {
+	connStr := connectionString(host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("Failed to establish database connectio: %v", err)
-	}
-
-	drv := entsql.OpenDB(dialect.Postgres, db)
-	return userEnt.NewClient(userEnt.Driver(drv))
-}
-
-func NewDriver(host, port, user, password, dbname string) dialect.Driver {
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Failed to open database connection: %v", err)
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
-	return entsql.OpenDB(dialect.Postgres, db)
+	return entsql.OpenDB(dialect.Postgres, db), nil
 }

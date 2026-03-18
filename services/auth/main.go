@@ -12,6 +12,7 @@ import (
 
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/services/auth/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/services"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/storage"
@@ -63,12 +64,16 @@ func main() {
 	}
 	defer logger.Sync()
 
-	db := database.NewAuthDB(host, port, user, password, dbname)
-	defer db.Close()
+	drv, err := database.NewDriver(host, port, user, password, dbname)
+	if err != nil {
+		logger.Fatal("Failed to create database driver", zap.Error(err))
+	}
+	client := ent.NewClient(ent.Driver(drv))
+	defer client.Close()
 
 	ctx := context.Background()
 
-	if err := db.Schema.Create(ctx); err != nil {
+	if err := client.Schema.Create(ctx); err != nil {
 		logger.Fatal("Failed to create schema", zap.Error(err))
 	}
 
@@ -89,7 +94,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	userStorage := storage.NewUserStorage(db)
+	userStorage := storage.NewUserStorage(client)
 	authService := services.NewAuthService(userStorage, mailer)
 	handlers.NewGrpcHandler(grpcServer, authService)
 
