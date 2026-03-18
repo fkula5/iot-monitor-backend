@@ -1,5 +1,11 @@
 basePath: /
 definitions:
+  handlers.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+    type: object
   handlers.UserResponse:
     properties:
       email:
@@ -275,17 +281,32 @@ paths:
       - application/json
       responses:
         "200":
-          description: Paginated list of alert rules
+          description: OK
           schema:
-            $ref: '#/definitions/types.PaginatedAlertRuleResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.PaginatedAlertRuleResponse'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: List Alert Rules
       tags:
       - Alert Rules
@@ -306,19 +327,39 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.AlertRuleResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.AlertRuleResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Create Alert Rule
       tags:
       - Alert Rules
@@ -335,19 +376,34 @@ paths:
         "204":
           description: No Content
           schema:
-            type: string
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Delete Alert Rule
       tags:
       - Alert Rules
@@ -363,19 +419,39 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.AlertRuleResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.AlertRuleResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Get Alert Rule
       tags:
       - Alert Rules
@@ -401,19 +477,39 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.AlertRuleResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.AlertRuleResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Update Alert Rule
       tags:
       - Alert Rules
@@ -433,17 +529,32 @@ paths:
       - application/json
       responses:
         "200":
-          description: Paginated list of alerts
+          description: OK
           schema:
-            $ref: '#/definitions/types.PaginatedAlertResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.PaginatedAlertResponse'
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: ListAlerts retrieves a list of all alerts for the authenticated user.
@@ -462,21 +573,41 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success status
+          description: OK
           schema:
-            type: boolean
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: boolean
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: MarkAlertAsRead marks an alert as read.
@@ -500,9 +631,30 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Store a new sensor reading
       tags:
       - Data
@@ -519,7 +671,30 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Get latest readings for multiple sensors
       tags:
       - Data
@@ -540,7 +715,30 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Get latest N readings for a single sensor
       tags:
       - Data
@@ -565,9 +763,32 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    type: object
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Get historical sensor readings
       tags:
       - Data
@@ -592,19 +813,32 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/types.SensorGroupResponse'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/types.SensorGroupResponse'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: List sensor groups
@@ -627,23 +861,39 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SensorGroupResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Create sensor group
@@ -661,28 +911,44 @@ paths:
       responses:
         "204":
           description: No Content
+          schema:
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Delete sensor group
@@ -702,29 +968,48 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.SensorGroupResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SensorGroupResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Get sensor group
@@ -752,29 +1037,48 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.SensorGroupResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Update sensor group
@@ -803,29 +1107,48 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Remove sensors from group
@@ -853,29 +1176,48 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.SensorGroupResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Add sensors to group
@@ -888,21 +1230,34 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of sensor types
+          description: OK
           schema:
-            items:
-              $ref: '#/definitions/types.SensorTypeResponse'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/types.SensorTypeResponse'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: List Sensor Types
@@ -925,23 +1280,39 @@ paths:
         "201":
           description: Created
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Create Sensor Type
@@ -959,28 +1330,44 @@ paths:
       responses:
         "204":
           description: No Content
+          schema:
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Delete Sensor Type
@@ -998,31 +1385,50 @@ paths:
       - application/json
       responses:
         "200":
-          description: Sensor type details
+          description: OK
           schema:
-            $ref: '#/definitions/types.SensorTypeResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SensorTypeResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Get Sensor Type
@@ -1050,29 +1456,48 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Update Sensor Type
@@ -1087,17 +1512,32 @@ paths:
         "200":
           description: List of sensors
           schema:
-            items:
-              $ref: '#/definitions/types.SensorResponse'
-            type: array
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/types.SensorResponse'
+                  type: array
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: ListSensors retrieves a list of all sensors.
@@ -1120,19 +1560,39 @@ paths:
         "201":
           description: Created sensor details
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: CreateSensor creates a new sensor.
@@ -1151,23 +1611,43 @@ paths:
         "204":
           description: No Content
           schema:
-            type: string
+            $ref: '#/definitions/handlers.Response'
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: DeleteSensor deletes a sensor by ID.
@@ -1187,23 +1667,48 @@ paths:
         "200":
           description: Sensor details
           schema:
-            $ref: '#/definitions/types.SensorResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.SensorResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: GetSensor retrieves a sensor by ID.
@@ -1231,23 +1736,48 @@ paths:
         "200":
           description: Updated sensor details
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "404":
           description: Not Found
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: UpdateSensor updates an existing sensor.
@@ -1268,19 +1798,39 @@ paths:
         "200":
           description: Updated sensor details
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: SetSensorActive sets a sensor as active.
@@ -1309,26 +1859,46 @@ paths:
         "200":
           description: Authentication successful
           schema:
-            properties:
-              expires_at:
-                type: string
-              token:
-                type: string
-              user:
-                type: object
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  properties:
+                    expires_at:
+                      type: string
+                    token:
+                      type: string
+                    user:
+                      $ref: '#/definitions/handlers.UserResponse'
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "401":
           description: Unauthorized
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Login authenticates a user and returns a token.
       tags:
       - Auth
@@ -1361,22 +1931,37 @@ paths:
         "201":
           description: Registration successful
           schema:
-            properties:
-              expires_at:
-                type: string
-              token:
-                type: string
-              user:
-                type: object
-            type: object
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  properties:
+                    expires_at:
+                      type: string
+                    token:
+                      type: string
+                    user:
+                      $ref: '#/definitions/handlers.UserResponse'
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       summary: Register creates a new user account.
       tags:
       - Auth
@@ -1389,7 +1974,39 @@ paths:
         "200":
           description: User Profile
           schema:
-            $ref: '#/definitions/handlers.UserResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Get User
@@ -1417,7 +2034,30 @@ paths:
         "200":
           description: Updated User
           schema:
-            $ref: '#/definitions/handlers.UserResponse'
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/handlers.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/handlers.Response'
+            - properties:
+                error:
+                  type: string
+              type: object
       security:
       - ApiKeyAuth: []
       summary: Update Profile
