@@ -29,9 +29,9 @@ func NewSensorHandler(client pb.SensorServiceClient) *SensorHandler {
 // @Tags Sensors
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} types.SensorResponse "List of sensors"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=[]types.SensorResponse} "List of sensors"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors [get]
 func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -39,13 +39,13 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	res, err := h.client.ListSensors(ctx, &pb.ListSensorsRequest{UserId: int64(claims.UserId)})
 	if err != nil {
-		http.Error(w, "Failed to fetch sensors", http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to fetch sensors")
 		return
 	}
 
@@ -54,8 +54,7 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 		sensorResponses = append(sensorResponses, types.MapSensorFromProto(s))
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(sensorResponses)
+	JSON(w, http.StatusOK, sensorResponses)
 }
 
 // @Summary GetSensor retrieves a sensor by ID.
@@ -64,11 +63,11 @@ func (h *SensorHandler) ListSensors(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path int true "Sensor ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} types.SensorResponse "Sensor details"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {string} string "Not Found"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=types.SensorResponse} "Sensor details"
+// @Failure 400 {object} Response{error=string} "Bad Request"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 404 {object} Response{error=string} "Not Found"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors/{id} [get]
 func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -77,27 +76,22 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor ID")
 		return
 	}
 
 	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
-		http.Error(w, "Failed to fetch sensor: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to fetch sensor")
 		return
 	}
 
 	if res.Sensor == nil {
-		http.Error(w, "Sensor not found", http.StatusNotFound)
+		Error(w, http.StatusNotFound, "Sensor not found")
 		return
 	}
 
-	response := types.MapSensorFromProto(res.Sensor)
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	}
+	JSON(w, http.StatusOK, types.MapSensorFromProto(res.Sensor))
 }
 
 // @Summary SetSensorActive sets a sensor as active.
@@ -106,10 +100,10 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security ApiKeyAuth
 // @Param id path int true "Sensor ID"
-// @Success 200 {object} string "Updated sensor details"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=object} "Updated sensor details"
+// @Failure 400 {object} Response{error=string} "Bad Request"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors/{id}/activate [post]
 func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -118,7 +112,7 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor ID")
 		return
 	}
 
@@ -126,16 +120,11 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 		Id: int64(id),
 	})
 	if err != nil {
-		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to update sensor: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(res.Sensor)
-	if err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	JSON(w, http.StatusOK, res.Sensor)
 }
 
 // @Summary CreateSensor creates a new sensor.
@@ -145,10 +134,10 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 // @Produce json
 // @Security ApiKeyAuth
 // @Param sensor body types.CreateSensorRequest true "Sensor to create"
-// @Success 201 {object} string "Created sensor details"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 201 {object} Response{data=object} "Created sensor details"
+// @Failure 400 {object} Response{error=string} "Bad Request"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors [post]
 func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -156,49 +145,39 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
 	if !ok {
-		http.Error(w, "Unauthorized: Could not retrieve user information", http.StatusUnauthorized)
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	userId := claims.UserId
-
 	var req types.CreateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if req.Name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Name is required")
 		return
 	}
 	if req.SensorTypeId <= 0 {
-		http.Error(w, "Valid sensor_type_id is required", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Valid sensor_type_id is required")
 		return
 	}
 
-	grpcReq := &pb.CreateSensorRequest{
+	res, err := h.client.CreateSensor(ctx, &pb.CreateSensorRequest{
 		Name:         req.Name,
 		Location:     req.Location,
 		Description:  req.Description,
 		SensorTypeId: req.SensorTypeId,
-		UserId:       int64(userId),
+		UserId:       int64(claims.UserId),
 		Active:       true,
-	}
-
-	res, err := h.client.CreateSensor(ctx, grpcReq)
+	})
 	if err != nil {
-		http.Error(w, "Failed to create sensor: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to create sensor: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(res.Sensor)
-	if err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	Created(w, res.Sensor)
 }
 
 // @Summary UpdateSensor updates an existing sensor.
@@ -209,11 +188,11 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 // @Security ApiKeyAuth
 // @Param id path int true "Sensor ID"
 // @Param sensor body types.UpdateSensorRequest true "Sensor fields to update"
-// @Success 200 {object} string "Updated sensor details"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {string} string "Not Found"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=object} "Updated sensor details"
+// @Failure 400 {object} Response{error=string} "Bad Request"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 404 {object} Response{error=string} "Not Found"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors/{id} [put]
 func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -222,13 +201,13 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor ID")
 		return
 	}
 
 	var req types.UpdateSensorRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -236,10 +215,10 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor not found", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor not found")
 			return
 		}
-		http.Error(w, "Failed to fetch current sensor state: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to fetch current sensor state")
 		return
 	}
 	currentSensor := currentSensorRes.Sensor
@@ -266,45 +245,35 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		grpcReq.Active = *req.Active
 	}
 	if req.SensorTypeId != nil {
-
-		_, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{Id: *req.SensorTypeId})
-		if err != nil {
+		if _, err := h.client.GetSensorType(ctx, &pb.GetSensorTypeRequest{Id: *req.SensorTypeId}); err != nil {
 			st, ok := status.FromError(err)
 			if ok && st.Code() == codes.NotFound {
-				http.Error(w, "Specified SensorTypeID not found", http.StatusBadRequest)
+				Error(w, http.StatusBadRequest, "Specified SensorTypeID not found")
 				return
 			}
-			http.Error(w, "Failed to validate SensorTypeID: "+err.Error(), http.StatusInternalServerError)
+			Error(w, http.StatusInternalServerError, "Failed to validate SensorTypeID")
 			return
 		}
 		grpcReq.SensorTypeId = *req.SensorTypeId
 	}
 
 	if grpcReq.Name == "" {
-		http.Error(w, "Name cannot be empty", http.StatusBadRequest)
-		return
-	}
-	if grpcReq.SensorTypeId <= 0 {
-		http.Error(w, "Valid SensorTypeID is required", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Name cannot be empty")
 		return
 	}
 
 	res, err := h.client.UpdateSensor(ctx, grpcReq)
 	if err != nil {
-
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor not found or related entity missing", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor not found")
 			return
 		}
-		http.Error(w, "Failed to update sensor: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to update sensor")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res.Sensor); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+	JSON(w, http.StatusOK, res.Sensor)
 }
 
 // @Summary DeleteSensor deletes a sensor by ID.
@@ -312,11 +281,11 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 // @Tags Sensors
 // @Param id path int true "Sensor ID"
 // @Security ApiKeyAuth
-// @Success 204 {string} string "No Content"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {string} string "Not Found"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 204 {object} Response "No Content"
+// @Failure 400 {object} Response{error=string} "Bad Request"
+// @Failure 401 {object} Response{error=string} "Unauthorized"
+// @Failure 404 {object} Response{error=string} "Not Found"
+// @Failure 500 {object} Response{error=string} "Internal Server Error"
 // @Router /api/sensors/{id} [delete]
 func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -325,20 +294,19 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "Invalid sensor ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor ID")
 		return
 	}
 
-	_, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id)})
-	if err != nil {
+	if _, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id)}); err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor not found", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor not found")
 			return
 		}
-		http.Error(w, "Failed to delete sensor: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to delete sensor")
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	NoContent(w)
 }

@@ -28,9 +28,9 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Tags SensorTypes
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} types.SensorTypeResponse "List of sensor types"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} Response{data=[]types.SensorTypeResponse}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/sensor-types [get]
 func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -38,7 +38,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 
 	res, err := h.client.ListSensorTypes(ctx, &pb.ListSensorTypesRequest{})
 	if err != nil {
-		http.Error(w, "Failed to list sensor types: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to list sensor types")
 		return
 	}
 
@@ -57,10 +57,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 		})
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(sensorTypeResponses); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+	JSON(w, http.StatusOK, sensorTypeResponses)
 }
 
 // @Summary Get Sensor Type
@@ -69,20 +66,19 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param id path int true "Sensor Type ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} types.SensorTypeResponse "Sensor type details"
-// @Failure 400 {object} map[string]string
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} Response{data=types.SensorTypeResponse}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 404 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/sensor-types/{id} [get]
 func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		http.Error(w, "Invalid sensor type ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor type ID")
 		return
 	}
 
@@ -90,14 +86,14 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor type not found", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor type not found")
 			return
 		}
-		http.Error(w, "Failed to get sensor type: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to get sensor type")
 		return
 	}
 
-	sensorType := types.SensorTypeResponse{
+	JSON(w, http.StatusOK, types.SensorTypeResponse{
 		ID:           res.SensorType.Id,
 		Name:         res.SensorType.Name,
 		Model:        res.SensorType.Model,
@@ -107,12 +103,7 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 		MinValue:     res.SensorType.MinValue,
 		MaxValue:     res.SensorType.MaxValue,
 		CreatedAt:    res.SensorType.CreatedAt.AsTime(),
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(sensorType); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+	})
 }
 
 // @Summary Create Sensor Type
@@ -122,10 +113,10 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 // @Produce json
 // @Param sensorType body string true "Sensor Type Data"
 // @Security ApiKeyAuth
-// @Success 201 {object} string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {object} map[string]string
+// @Success 201 {object} Response{data=object}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/sensor-types [post]
 func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -133,26 +124,22 @@ func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Requ
 
 	var req pb.CreateSensorTypeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if req.Name == "" || req.Model == "" {
-		http.Error(w, "Name and Model are required", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Name and Model are required")
 		return
 	}
 
 	res, err := h.client.CreateSensorType(ctx, &req)
 	if err != nil {
-		http.Error(w, "Failed to create sensor type: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to create sensor type")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(res.SensorType); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+	Created(w, res.SensorType)
 }
 
 // @Summary Update Sensor Type
@@ -163,33 +150,31 @@ func (h *SensorTypeHandler) CreateSensorType(w http.ResponseWriter, r *http.Requ
 // @Param id path int true "Sensor Type ID"
 // @Param sensorType body string true "Sensor Type Data"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 200 {object} Response{data=object}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 404 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/sensor-types/{id} [put]
 func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		http.Error(w, "Invalid sensor type ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor type ID")
 		return
 	}
 
 	var req pb.UpdateSensorTypeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	req.Id = int64(id)
-
 	if req.Name == "" || req.Model == "" {
-		http.Error(w, "Name and Model are required", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Name and Model are required")
 		return
 	}
 
@@ -197,51 +182,46 @@ func (h *SensorTypeHandler) UpdateSensorType(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor type not found", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor type not found")
 			return
 		}
-		http.Error(w, "Failed to update sensor type: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to update sensor type")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res.SensorType); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-	}
+	JSON(w, http.StatusOK, res.SensorType)
 }
 
 // @Summary Delete Sensor Type
 // @Description Delete a sensor type by ID
 // @Tags SensorTypes
 // @Param id path int true "Sensor Type ID"
-// @Success 204
 // @Security ApiKeyAuth
-// @Failure 400 {object} map[string]string
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Success 204 {object} Response
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 404 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/sensor-types/{id} [delete]
 func (h *SensorTypeHandler) DeleteSensorType(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		http.Error(w, "Invalid sensor type ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid sensor type ID")
 		return
 	}
 
-	_, err = h.client.DeleteSensorType(ctx, &pb.DeleteSensorTypeRequest{Id: int64(id)})
-	if err != nil {
+	if _, err = h.client.DeleteSensorType(ctx, &pb.DeleteSensorTypeRequest{Id: int64(id)}); err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
-			http.Error(w, "Sensor type not found", http.StatusNotFound)
+			Error(w, http.StatusNotFound, "Sensor type not found")
 			return
 		}
-		http.Error(w, "Failed to delete sensor type: "+err.Error(), http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to delete sensor type")
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	NoContent(w)
 }

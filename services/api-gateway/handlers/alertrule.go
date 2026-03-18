@@ -8,11 +8,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
@@ -31,9 +29,9 @@ func NewAlertRuleHandler(client pb.AlertServiceClient) *AlertRuleHandler {
 // @Produce json
 // @Param page query int false "Page number (default 1)"
 // @Param limit query int false "Items per page (default 10)"
-// @Success 200 {object} types.PaginatedAlertRuleResponse "Paginated list of alert rules"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=types.PaginatedAlertRuleResponse}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/alert-rules [get]
 func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -41,8 +39,7 @@ func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request
 
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
 	if !ok {
-		logger.Warn("Unauthorized access attempt to ListAlertRules")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
@@ -61,16 +58,13 @@ func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	offset := (page - 1) * limit
-
 	res, err := h.client.ListAlertRules(ctx, &pb.ListAlertRulesRequest{
 		UserId: int64(claims.UserId),
 		Limit:  int32(limit),
-		Offset: int32(offset),
+		Offset: int32((page - 1) * limit),
 	})
 	if err != nil {
-		logger.Error("Failed to list alert rules from alert service", zap.Error(err), zap.Int("userId", claims.UserId))
-		http.Error(w, "Failed to list alert rules", http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to list alert rules")
 		return
 	}
 
@@ -79,15 +73,12 @@ func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request
 		alertRulesResponse = append(alertRulesResponse, types.MapAlertRuleFromProto(r))
 	}
 
-	response := types.PaginatedAlertRuleResponse{
+	JSON(w, http.StatusOK, types.PaginatedAlertRuleResponse{
 		AlertRules: alertRulesResponse,
 		TotalCount: res.TotalCount,
 		Page:       page,
 		Limit:      limit,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	})
 }
 
 // @Summary Create Alert Rule
@@ -96,10 +87,10 @@ func (h *AlertRuleHandler) ListAlertRules(w http.ResponseWriter, r *http.Request
 // @Accept json
 // @Produce json
 // @Param alertRule body types.AlertRuleRequest true "Alert Rule Request"
-// @Success 200 {object} types.AlertRuleResponse
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=types.AlertRuleResponse}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/alert-rules [post]
 func (h *AlertRuleHandler) CreateAlertRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
@@ -107,15 +98,13 @@ func (h *AlertRuleHandler) CreateAlertRule(w http.ResponseWriter, r *http.Reques
 
 	claims, ok := authMiddleware.GetUserFromContext(r.Context())
 	if !ok {
-		logger.Warn("Unauthorized access attempt to CreateAlertRule")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
 	var req types.AlertRuleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		logger.Warn("Invalid request body in CreateAlertRule", zap.Error(err))
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -128,53 +117,43 @@ func (h *AlertRuleHandler) CreateAlertRule(w http.ResponseWriter, r *http.Reques
 		Description:   req.Description,
 	})
 	if err != nil {
-		logger.Error("Failed to create alert rule in alert service", zap.Error(err), zap.Int("userId", claims.UserId))
-		http.Error(w, "Failed to create alert rule", http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to create alert rule")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(types.MapAlertRuleFromProto(res.AlertRule))
+	JSON(w, http.StatusOK, types.MapAlertRuleFromProto(res.AlertRule))
 }
 
 // @Summary Delete Alert Rule
 // @Description Delete an alert rule by ID
 // @Tags Alert Rules
 // @Param id path int true "Alert Rule ID"
-// @Success 204 {string} string "No Content"
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 204 {object} Response
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/alert-rules/{id} [delete]
 func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	claims, ok := authMiddleware.GetUserFromContext(r.Context())
-	if !ok {
-		logger.Warn("Unauthorized access attempt to DeleteAlertRule")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		logger.Warn("Invalid alert rule ID in DeleteAlertRule request", zap.String("id", idStr))
-		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid alert rule ID")
 		return
 	}
 
-	_, err = h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{
-		Id: id,
-	})
-	if err != nil {
-		logger.Error("Failed to delete alert rule in alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
-		http.Error(w, "Failed to delete alert rule", http.StatusInternalServerError)
+	if _, err = h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{Id: id}); err != nil {
+		Error(w, http.StatusInternalServerError, "Failed to delete alert rule")
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	NoContent(w)
 }
 
 // @Summary Update Alert Rule
@@ -184,34 +163,29 @@ func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Reques
 // @Produce json
 // @Param id path int true "Alert Rule ID"
 // @Param updateRequest body types.UpdateAlertRuleRequest true "Update Alert Rule Request"
-// @Success 200 {object} types.AlertRuleResponse
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=types.AlertRuleResponse}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/alert-rules/{id} [put]
 func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	claims, ok := authMiddleware.GetUserFromContext(r.Context())
-	if !ok {
-		logger.Warn("Unauthorized access attempt to UpdateAlertRule")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		logger.Warn("Invalid alert rule ID in UpdateAlertRule request", zap.String("id", idStr))
-		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid alert rule ID")
 		return
 	}
 
 	var req types.UpdateAlertRuleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		logger.Warn("Invalid request body in UpdateAlertRule", zap.Error(err))
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
@@ -225,52 +199,42 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 		IsEnabled:     req.IsEnabled,
 	})
 	if err != nil {
-		logger.Error("Failed to update alert rule in alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
-		http.Error(w, "Failed to update alert rule", http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to update alert rule")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(types.MapAlertRuleFromProto(res.AlertRule))
+	JSON(w, http.StatusOK, types.MapAlertRuleFromProto(res.AlertRule))
 }
 
 // @Summary Get Alert Rule
 // @Description Get an alert rule by ID
 // @Tags Alert Rules
 // @Param id path int true "Alert Rule ID"
-// @Success 200 {object} types.AlertRuleResponse
-// @Failure 400 {string} string "Bad Request"
-// @Failure 401 {string} string "Unauthorized"
-// @Failure 500 {string} string "Internal Server Error"
+// @Success 200 {object} Response{data=types.AlertRuleResponse}
+// @Failure 400 {object} Response{error=string}
+// @Failure 401 {object} Response{error=string}
+// @Failure 500 {object} Response{error=string}
 // @Router /api/alert-rules/{id} [get]
 func (h *AlertRuleHandler) GetAlertRule(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	claims, ok := authMiddleware.GetUserFromContext(r.Context())
-	if !ok {
-		logger.Warn("Unauthorized access attempt to GetAlertRule")
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
+		Error(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		logger.Warn("Invalid alert rule ID in GetAlertRule request", zap.String("id", idStr))
-		http.Error(w, "Invalid alert rule ID", http.StatusBadRequest)
+		Error(w, http.StatusBadRequest, "Invalid alert rule ID")
 		return
 	}
 
-	res, err := h.client.GetAlertRule(ctx, &pb.GetAlertRuleRequest{
-		Id: id,
-	})
+	res, err := h.client.GetAlertRule(ctx, &pb.GetAlertRuleRequest{Id: id})
 	if err != nil {
-		logger.Error("Failed to get alert rule from alert service", zap.Error(err), zap.Int64("ruleId", id), zap.Int("userId", claims.UserId))
-		http.Error(w, "Failed to get alert rule", http.StatusInternalServerError)
+		Error(w, http.StatusInternalServerError, "Failed to get alert rule")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(types.MapAlertRuleFromProto(res.AlertRule))
+	JSON(w, http.StatusOK, types.MapAlertRuleFromProto(res.AlertRule))
 }
