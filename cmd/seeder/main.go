@@ -52,11 +52,11 @@ type AlertRuleSeed struct {
 }
 
 type AlertSeed struct {
-	UserID    int64   `json:"user_id"`
-	RuleID    int     `json:"rule_id"`
-	Value     float64 `json:"value"`
-	Message   string  `json:"message"`
-	IsRead    bool    `json:"is_read"`
+	UserID  int64   `json:"user_id"`
+	RuleID  int     `json:"rule_id"`
+	Value   float64 `json:"value"`
+	Message string  `json:"message"`
+	IsRead  bool    `json:"is_read"`
 }
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dbHost := os.Getenv("DB_HOST")
+	dbHost := "localhost"
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPass := os.Getenv("POSTGRES_PASSWORD")
