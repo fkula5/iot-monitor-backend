@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -117,6 +118,24 @@ func main() {
 
 	authClient := pb_auth.NewAuthServiceClient(authConn)
 
+	// Initialize Mailer
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPortStr := os.Getenv("SMTP_PORT")
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
+	smtpFrom := os.Getenv("SMTP_FROM")
+
+	if smtpFrom == "" {
+		smtpFrom = "alerts@iot-monitor.local"
+	}
+
+	smtpPort := 587
+	if smtpPortStr != "" {
+		fmt.Sscanf(smtpPortStr, "%d", &smtpPort)
+	}
+
+	mailer := NewMailer(smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom)
+
 	msgs, err := ch.Consume(
 		q.Name,
 		"",
@@ -135,7 +154,7 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			processAlert(d.Body, authClient)
+			processAlert(d.Body, authClient, mailer)
 		}
 	}()
 
@@ -144,7 +163,7 @@ func main() {
 	logger.Info("Shutting down Alert Dispatcher Service")
 }
 
-func processAlert(body []byte, authClient pb_auth.AuthServiceClient) {
+func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer *Mailer) {
 	var event AlertEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		logger.Error("Failed to unmarshal alert event", zap.Error(err))
@@ -170,5 +189,13 @@ func processAlert(body []byte, authClient pb_auth.AuthServiceClient) {
 		zap.String("username", userRes.User.Username),
 	)
 
-	// TODO: Send email
+	if err := mailer.SendAlertEmail(userRes.User.Email, event); err != nil {
+		logger.Error("Failed to send alert email",
+			zap.String("to", userRes.User.Email),
+			zap.Error(err),
+		)
+		return
+	}
+
+	logger.Info("Successfully sent alert email", zap.String("to", userRes.User.Email))
 }
