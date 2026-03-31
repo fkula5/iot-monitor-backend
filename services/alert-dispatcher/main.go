@@ -7,8 +7,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,15 +20,14 @@ import (
 )
 
 type AlertEvent struct {
-	AlertID   int       `json:"alert_id"`
-	RuleID    int       `json:"rule_id"`
-	UserID    int64     `json:"user_id"`
-	SensorID  int64     `json:"sensor_id"`
-	Message   string    `json:"message"`
-	Value     float64   `json:"value"`
-	Timestamp string    `json:"timestamp"`
+        AlertID   int       `json:"alert_id"`
+        RuleID    int       `json:"rule_id"`
+        UserID    int64     `json:"user_id"`
+        SensorID  int64     `json:"sensor_id"`
+        Message   string    `json:"message"`
+        Value     float64   `json:"value"`
+        Timestamp time.Time `json:"timestamp"`
 }
-
 func main() {
 	environment := os.Getenv("ENVIRONMENT")
 	if environment == "" {
@@ -104,7 +105,6 @@ func main() {
 		logger.Fatal("Failed to bind queue", zap.Error(err))
 	}
 
-	// Connect to Auth Service
 	authAddr := os.Getenv("AUTH_SERVICE_GRPC_ADDR")
 	if authAddr == "" {
 		authAddr = "localhost:50051"
@@ -118,7 +118,6 @@ func main() {
 
 	authClient := pb_auth.NewAuthServiceClient(authConn)
 
-	// Initialize Mailer
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPortStr := os.Getenv("SMTP_PORT")
 	smtpUser := os.Getenv("SMTP_USER")
@@ -176,14 +175,14 @@ func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer *Mai
 		zap.String("message", event.Message),
 	)
 
-	// Fetch user details from Auth Service
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	userRes, err := authClient.GetUser(ctx, &pb_auth.GetUserRequest{Id: event.UserID})
 	if err != nil {
-		logger.Error("Failed to fetch user details", zap.Int64("user_id", event.UserID), zap.Error(err))
-		return
+	        logger.Error("Failed to fetch user details", zap.Int64("user_id", event.UserID), zap.Error(err))
+	        return
 	}
-
 	logger.Info("Dispatching alert to user",
 		zap.String("email", userRes.User.Email),
 		zap.String("username", userRes.User.Username),

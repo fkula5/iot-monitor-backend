@@ -19,7 +19,7 @@ func NewAuthHandler(client auth.AuthServiceClient) *AuthHandler {
 }
 
 type UserResponse struct {
-	ID        int32  `json:"id"`
+	ID        int64  `json:"id"`
 	Email     string `json:"email"`
 	Username  string `json:"username"`
 	FirstName string `json:"first_name"`
@@ -181,7 +181,7 @@ func (h *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := h.Client.GetUser(ctx, &auth.GetUserRequest{
-		Id: int32(claims.UserId),
+		Id: int64(claims.UserId),
 	})
 	if err != nil {
 		http.Error(w, "Failed to fetch user profile", http.StatusInternalServerError)
@@ -229,7 +229,7 @@ func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := h.Client.UpdateUser(ctx, &auth.UpdateUserRequest{
-		Id:        int32(claims.UserId),
+		Id:        int64(claims.UserId),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 	})

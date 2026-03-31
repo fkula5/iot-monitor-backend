@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
+        "fmt"
+        "time"
 
-	"gopkg.in/gomail.v2"
+        "gopkg.in/gomail.v2"
 )
-
 type Mailer struct {
 	dialer *gomail.Dialer
 	from   string
@@ -29,7 +29,8 @@ func (m *Mailer) SendAlertEmail(to string, event AlertEvent) error {
 		<p><strong>Sensor ID:</strong> %d</p>
 		<p><strong>Value:</strong> %f</p>
 		<p><strong>Time:</strong> %s</p>
-	`, event.Message, event.SensorID, event.Value, event.Timestamp))
+		`, event.Message, event.SensorID, event.Value, event.Timestamp.Format(time.RFC1123)))
 
-	return m.dialer.DialAndSend(msg)
-}
+		return m.dialer.DialAndSend(msg)
+		}
+

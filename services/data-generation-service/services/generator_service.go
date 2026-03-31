@@ -132,7 +132,7 @@ func (g *GeneratorService) generateData(ctx context.Context) {
 
 	allSensors := make([]*pb_sensor.Sensor, 0)
 
-	for userId := int64(1); userId <= 6; userId++ {
+	for userId := int64(1); userId <= 7; userId++ {
 		sensors, err := g.sensorClient.ListSensors(ctxTimeout, &pb_sensor.ListSensorsRequest{
 			UserId: userId,
 		})
