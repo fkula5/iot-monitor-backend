@@ -143,7 +143,7 @@ func convertUserToProto(userInfo *services.UserInfo) *pb.User {
 	}
 
 	return &pb.User{
-		Id:        int32(userInfo.ID),
+		Id:        int64(userInfo.ID),
 		Email:     userInfo.Email,
 		Username:  userInfo.Username,
 		FirstName: userInfo.FirstName,
@@ -160,7 +160,7 @@ func convertEntUserToProto(user *ent.User) *pb.User {
 	}
 
 	return &pb.User{
-		Id:        int32(user.ID),
+		Id:        int64(user.ID),
 		Email:     user.Email,
 		Username:  user.Username,
 		FirstName: user.FirstName,

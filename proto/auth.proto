@@ -14,7 +14,7 @@ service AuthService{
 }
 
 message User{
-    int32 id = 1;
+    int64 id = 1;
     string email = 2;
     string username = 3;
     string first_name = 4;
@@ -50,11 +50,11 @@ message LoginResponse {
 }
 
 message GetUserRequest {
-    int32 id = 1;
+    int64 id = 1;
 }
 
 message UpdateUserRequest {
-    int32 id = 1;
+    int64 id = 1;
     string first_name = 2;
     string last_name = 3;
 }
