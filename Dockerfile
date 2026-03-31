@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o /app/server ./$SERVICE_PATH/main.go
+RUN CGO_ENABLED=0 go build -o /app/server ./$SERVICE_PATH
 
 FROM alpine:latest
 WORKDIR /app

@@ -200,5 +200,29 @@ services:
     ports:
       - "50054:50054"
 
+  alert-dispatcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PATH: services/alert-dispatcher
+    container_name: alert_dispatcher
+    env_file: .env
+    environment:
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      AUTH_SERVICE_GRPC_ADDR: ${AUTH_SERVICE_GRPC_ADDR}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - iot-net
+
 volumes:
   postgres-data:
