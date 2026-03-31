@@ -110,7 +110,7 @@ func main() {
 		authAddr = "localhost:50051"
 	}
 
-	authConn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	authConn, err := grpc.NewClient(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Fatal("Failed to connect to Auth Service", zap.Error(err))
 	}
