@@ -32,6 +32,7 @@ type SensorData struct {
 type AlertEvent struct {
 	AlertID   int       `json:"alert_id"`
 	RuleID    int       `json:"rule_id"`
+	UserID    int64     `json:"user_id"`
 	SensorID  int64     `json:"sensor_id"`
 	Message   string    `json:"message"`
 	Value     float64   `json:"value"`
@@ -220,6 +221,7 @@ func publishAlert(ch *amqp.Channel, ctx context.Context, a *ent.Alert, rule *ent
 	event := AlertEvent{
 		AlertID:   a.ID,
 		RuleID:    rule.ID,
+		UserID:    rule.UserID,
 		SensorID:  rule.SensorID,
 		Message:   a.Message,
 		Value:     val,
