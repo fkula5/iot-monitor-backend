@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/skni-kod/iot-monitor-backend/internal/auth"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/auth/storage"
@@ -50,19 +51,23 @@ type IAuthService interface {
 	ValidateToken(ctx context.Context, token string) (*ent.User, error)
 	GetUserByID(ctx context.Context, userID int) (*ent.User, error)
 	Update(ctx context.Context, userID int, req *UpdateRequest) (*ent.User, error)
+	ForgotPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, token string, newPassword string) error
 }
 
 type AuthService struct {
 	userStorage     storage.IUserStorage
 	jwtService      *auth.JWTService
 	passwordService *auth.PasswordService
+	mailer          *Mailer
 }
 
-func NewAuthService(userStorage storage.IUserStorage) IAuthService {
+func NewAuthService(userStorage storage.IUserStorage, mailer *Mailer) IAuthService {
 	return &AuthService{
 		userStorage:     userStorage,
 		jwtService:      auth.NewJWTService(),
 		passwordService: auth.NewPasswordService(),
+		mailer:          mailer,
 	}
 }
 
@@ -202,4 +207,38 @@ func (s *AuthService) Update(ctx context.Context, userID int, req *UpdateRequest
 	}
 
 	return updatedUser, nil
+}
+
+func (s *AuthService) ForgotPassword(ctx context.Context, email string) error {
+	u, err := s.userStorage.GetByEmail(ctx, email)
+	if err != nil {
+		return err // Or return nil to avoid email enumeration
+	}
+
+	token := uuid.New().String()
+	expiresAt := time.Now().Add(time.Hour)
+
+	if err := s.userStorage.SetResetToken(ctx, email, token, expiresAt); err != nil {
+		return err
+	}
+
+	return s.mailer.SendResetPasswordEmail(u.Email, token)
+}
+
+func (s *AuthService) ResetPassword(ctx context.Context, token string, newPassword string) error {
+	u, err := s.userStorage.GetByResetToken(ctx, token)
+	if err != nil {
+		return fmt.Errorf("invalid or expired token")
+	}
+
+	if u.ResetTokenExpires.Before(time.Now()) {
+		return fmt.Errorf("token expired")
+	}
+
+	hash, err := s.passwordService.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+
+	return s.userStorage.UpdatePassword(ctx, u.ID, hash)
 }

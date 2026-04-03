@@ -12,6 +12,8 @@ func SetupAuthRoutes(r chi.Router, handler *handlers.AuthHandler) {
 
 	r.Post("/register", handler.Register)
 	r.Post("/login", handler.Login)
+	r.Post("/forgot-password", handler.ForgotPassword)
+	r.Post("/reset-password", handler.ResetPassword)
 	r.Group(func(r chi.Router) {
 		r.Use(authMw.Authenticate)
 		r.Get("/user", handler.GetUser)

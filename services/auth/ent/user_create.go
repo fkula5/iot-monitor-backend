@@ -136,6 +136,34 @@ func (uc *UserCreate) SetNillableRefreshTokenExpires(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetResetToken sets the "reset_token" field.
+func (uc *UserCreate) SetResetToken(s string) *UserCreate {
+	uc.mutation.SetResetToken(s)
+	return uc
+}
+
+// SetNillableResetToken sets the "reset_token" field if the given value is not nil.
+func (uc *UserCreate) SetNillableResetToken(s *string) *UserCreate {
+	if s != nil {
+		uc.SetResetToken(*s)
+	}
+	return uc
+}
+
+// SetResetTokenExpires sets the "reset_token_expires" field.
+func (uc *UserCreate) SetResetTokenExpires(t time.Time) *UserCreate {
+	uc.mutation.SetResetTokenExpires(t)
+	return uc
+}
+
+// SetNillableResetTokenExpires sets the "reset_token_expires" field if the given value is not nil.
+func (uc *UserCreate) SetNillableResetTokenExpires(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetResetTokenExpires(*t)
+	}
+	return uc
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uc *UserCreate) Mutation() *UserMutation {
 	return uc.mutation
@@ -285,6 +313,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.RefreshTokenExpires(); ok {
 		_spec.SetField(user.FieldRefreshTokenExpires, field.TypeTime, value)
 		_node.RefreshTokenExpires = value
+	}
+	if value, ok := uc.mutation.ResetToken(); ok {
+		_spec.SetField(user.FieldResetToken, field.TypeString, value)
+		_node.ResetToken = value
+	}
+	if value, ok := uc.mutation.ResetTokenExpires(); ok {
+		_spec.SetField(user.FieldResetTokenExpires, field.TypeTime, value)
+		_node.ResetTokenExpires = value
 	}
 	return _node, _spec
 }

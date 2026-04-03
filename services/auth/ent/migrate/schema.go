@@ -21,6 +21,8 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "refresh_token", Type: field.TypeString, Nullable: true},
 		{Name: "refresh_token_expires", Type: field.TypeTime, Nullable: true},
+		{Name: "reset_token", Type: field.TypeString, Nullable: true},
+		{Name: "reset_token_expires", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

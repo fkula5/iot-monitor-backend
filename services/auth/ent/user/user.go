@@ -33,6 +33,10 @@ const (
 	FieldRefreshToken = "refresh_token"
 	// FieldRefreshTokenExpires holds the string denoting the refresh_token_expires field in the database.
 	FieldRefreshTokenExpires = "refresh_token_expires"
+	// FieldResetToken holds the string denoting the reset_token field in the database.
+	FieldResetToken = "reset_token"
+	// FieldResetTokenExpires holds the string denoting the reset_token_expires field in the database.
+	FieldResetTokenExpires = "reset_token_expires"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )
@@ -50,6 +54,8 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldRefreshToken,
 	FieldRefreshTokenExpires,
+	FieldResetToken,
+	FieldResetTokenExpires,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -135,4 +141,14 @@ func ByRefreshToken(opts ...sql.OrderTermOption) OrderOption {
 // ByRefreshTokenExpires orders the results by the refresh_token_expires field.
 func ByRefreshTokenExpires(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRefreshTokenExpires, opts...).ToFunc()
+}
+
+// ByResetToken orders the results by the reset_token field.
+func ByResetToken(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResetToken, opts...).ToFunc()
+}
+
+// ByResetTokenExpires orders the results by the reset_token_expires field.
+func ByResetTokenExpires(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResetTokenExpires, opts...).ToFunc()
 }

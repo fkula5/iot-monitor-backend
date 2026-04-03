@@ -249,6 +249,72 @@ func (h *AuthHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// @Summary Forgot Password
+// @Description Request a password reset email
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body object{email=string} true "Email address"
+// @Success 200 {object} object{success=bool,message=string} "Success response"
+// @Router /auth/forgot-password [post]
+func (h *AuthHandler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Email string `json:"email"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.Client.ForgotPassword(ctx, &auth.ForgotPasswordRequest{Email: req.Email})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
+// @Summary Reset Password
+// @Description Reset password using a token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body object{token=string,new_password=string} true "Reset data"
+// @Success 200 {object} object{success=bool,message=string} "Success response"
+// @Router /auth/reset-password [post]
+func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Token       string `json:"token"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	res, err := h.Client.ResetPassword(ctx, &auth.ResetPasswordRequest{
+		Token:       req.Token,
+		NewPassword: req.NewPassword,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(res)
+}
+
 func mapUserToResponse(u *auth.User) UserResponse {
 	return UserResponse{
 		ID:        u.Id,
