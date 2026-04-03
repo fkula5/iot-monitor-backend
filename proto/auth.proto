@@ -11,6 +11,8 @@ service AuthService{
     rpc Login(LoginRequest) returns (LoginResponse) {}
     rpc GetUser(GetUserRequest) returns (UserResponse) {}
     rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {}
+    rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse) {}
+    rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
 }
 
 message User{
@@ -61,4 +63,23 @@ message UpdateUserRequest {
 
 message UserResponse{
     User user = 1;
+}
+
+message ForgotPasswordRequest {
+    string email = 1;
+}
+
+message ForgotPasswordResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ResetPasswordRequest {
+    string token = 1;
+    string new_password = 2;
+}
+
+message ResetPasswordResponse {
+    bool success = 1;
+    string message = 2;
 }
