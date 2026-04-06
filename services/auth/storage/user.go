@@ -19,6 +19,9 @@ type IUserStorage interface {
 	SetRefreshToken(ctx context.Context, userID int, token string, expires time.Time) error
 	ClearRefreshToken(ctx context.Context, userID int) error
 	GetByEmail(ctx context.Context, email string) (*ent.User, error)
+	SetResetToken(ctx context.Context, email string, token string, expiresAt time.Time) error
+	GetByResetToken(ctx context.Context, token string) (*ent.User, error)
+	UpdatePassword(ctx context.Context, userID int, passwordHash string) error
 }
 
 type UserStorage struct {
@@ -87,4 +90,26 @@ func (s *UserStorage) ExistsByUsername(ctx context.Context, username string) (bo
 
 func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*ent.User, error) {
 	return s.client.User.Query().Where(user.Email(email)).Only(ctx)
+}
+
+func (s *UserStorage) SetResetToken(ctx context.Context, email string, token string, expiresAt time.Time) error {
+	return s.client.User.Update().
+		Where(user.EmailEQ(email)).
+		SetResetToken(token).
+		SetResetTokenExpires(expiresAt).
+		Exec(ctx)
+}
+
+func (s *UserStorage) GetByResetToken(ctx context.Context, token string) (*ent.User, error) {
+	return s.client.User.Query().
+		Where(user.ResetTokenEQ(token)).
+		Only(ctx)
+}
+
+func (s *UserStorage) UpdatePassword(ctx context.Context, userID int, passwordHash string) error {
+	return s.client.User.UpdateOneID(userID).
+		SetPasswordHash(passwordHash).
+		ClearResetToken().
+		ClearResetTokenExpires().
+		Exec(ctx)
 }

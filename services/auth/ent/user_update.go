@@ -170,6 +170,46 @@ func (uu *UserUpdate) ClearRefreshTokenExpires() *UserUpdate {
 	return uu
 }
 
+// SetResetToken sets the "reset_token" field.
+func (uu *UserUpdate) SetResetToken(s string) *UserUpdate {
+	uu.mutation.SetResetToken(s)
+	return uu
+}
+
+// SetNillableResetToken sets the "reset_token" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableResetToken(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetResetToken(*s)
+	}
+	return uu
+}
+
+// ClearResetToken clears the value of the "reset_token" field.
+func (uu *UserUpdate) ClearResetToken() *UserUpdate {
+	uu.mutation.ClearResetToken()
+	return uu
+}
+
+// SetResetTokenExpires sets the "reset_token_expires" field.
+func (uu *UserUpdate) SetResetTokenExpires(t time.Time) *UserUpdate {
+	uu.mutation.SetResetTokenExpires(t)
+	return uu
+}
+
+// SetNillableResetTokenExpires sets the "reset_token_expires" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableResetTokenExpires(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetResetTokenExpires(*t)
+	}
+	return uu
+}
+
+// ClearResetTokenExpires clears the value of the "reset_token_expires" field.
+func (uu *UserUpdate) ClearResetTokenExpires() *UserUpdate {
+	uu.mutation.ClearResetTokenExpires()
+	return uu
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -281,6 +321,18 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.RefreshTokenExpiresCleared() {
 		_spec.ClearField(user.FieldRefreshTokenExpires, field.TypeTime)
+	}
+	if value, ok := uu.mutation.ResetToken(); ok {
+		_spec.SetField(user.FieldResetToken, field.TypeString, value)
+	}
+	if uu.mutation.ResetTokenCleared() {
+		_spec.ClearField(user.FieldResetToken, field.TypeString)
+	}
+	if value, ok := uu.mutation.ResetTokenExpires(); ok {
+		_spec.SetField(user.FieldResetTokenExpires, field.TypeTime, value)
+	}
+	if uu.mutation.ResetTokenExpiresCleared() {
+		_spec.ClearField(user.FieldResetTokenExpires, field.TypeTime)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -444,6 +496,46 @@ func (uuo *UserUpdateOne) ClearRefreshTokenExpires() *UserUpdateOne {
 	return uuo
 }
 
+// SetResetToken sets the "reset_token" field.
+func (uuo *UserUpdateOne) SetResetToken(s string) *UserUpdateOne {
+	uuo.mutation.SetResetToken(s)
+	return uuo
+}
+
+// SetNillableResetToken sets the "reset_token" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableResetToken(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetResetToken(*s)
+	}
+	return uuo
+}
+
+// ClearResetToken clears the value of the "reset_token" field.
+func (uuo *UserUpdateOne) ClearResetToken() *UserUpdateOne {
+	uuo.mutation.ClearResetToken()
+	return uuo
+}
+
+// SetResetTokenExpires sets the "reset_token_expires" field.
+func (uuo *UserUpdateOne) SetResetTokenExpires(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetResetTokenExpires(t)
+	return uuo
+}
+
+// SetNillableResetTokenExpires sets the "reset_token_expires" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableResetTokenExpires(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetResetTokenExpires(*t)
+	}
+	return uuo
+}
+
+// ClearResetTokenExpires clears the value of the "reset_token_expires" field.
+func (uuo *UserUpdateOne) ClearResetTokenExpires() *UserUpdateOne {
+	uuo.mutation.ClearResetTokenExpires()
+	return uuo
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -585,6 +677,18 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.RefreshTokenExpiresCleared() {
 		_spec.ClearField(user.FieldRefreshTokenExpires, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.ResetToken(); ok {
+		_spec.SetField(user.FieldResetToken, field.TypeString, value)
+	}
+	if uuo.mutation.ResetTokenCleared() {
+		_spec.ClearField(user.FieldResetToken, field.TypeString)
+	}
+	if value, ok := uuo.mutation.ResetTokenExpires(); ok {
+		_spec.SetField(user.FieldResetTokenExpires, field.TypeTime, value)
+	}
+	if uuo.mutation.ResetTokenExpiresCleared() {
+		_spec.ClearField(user.FieldResetTokenExpires, field.TypeTime)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

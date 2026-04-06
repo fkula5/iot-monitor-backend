@@ -137,6 +137,24 @@ func (h *AuthGrpcHandler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequ
 	}, nil
 }
 
+func (h *AuthGrpcHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRequest) (*pb.ForgotPasswordResponse, error) {
+	err := h.authService.ForgotPassword(ctx, req.Email)
+	if err != nil {
+		logger.Error("Failed to send forgot password email", zap.Error(err))
+		return &pb.ForgotPasswordResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &pb.ForgotPasswordResponse{Success: true, Message: "Email sent"}, nil
+}
+
+func (h *AuthGrpcHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
+	err := h.authService.ResetPassword(ctx, req.Token, req.NewPassword)
+	if err != nil {
+		logger.Error("Failed to reset password", zap.Error(err))
+		return &pb.ResetPasswordResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &pb.ResetPasswordResponse{Success: true, Message: "Password reset successful"}, nil
+}
+
 func convertUserToProto(userInfo *services.UserInfo) *pb.User {
 	if userInfo == nil {
 		return nil

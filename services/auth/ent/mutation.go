@@ -43,6 +43,8 @@ type UserMutation struct {
 	updated_at            *time.Time
 	refresh_token         *string
 	refresh_token_expires *time.Time
+	reset_token           *string
+	reset_token_expires   *time.Time
 	clearedFields         map[string]struct{}
 	done                  bool
 	oldValue              func(context.Context) (*User, error)
@@ -559,6 +561,104 @@ func (m *UserMutation) ResetRefreshTokenExpires() {
 	delete(m.clearedFields, user.FieldRefreshTokenExpires)
 }
 
+// SetResetToken sets the "reset_token" field.
+func (m *UserMutation) SetResetToken(s string) {
+	m.reset_token = &s
+}
+
+// ResetToken returns the value of the "reset_token" field in the mutation.
+func (m *UserMutation) ResetToken() (r string, exists bool) {
+	v := m.reset_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResetToken returns the old "reset_token" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldResetToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResetToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResetToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResetToken: %w", err)
+	}
+	return oldValue.ResetToken, nil
+}
+
+// ClearResetToken clears the value of the "reset_token" field.
+func (m *UserMutation) ClearResetToken() {
+	m.reset_token = nil
+	m.clearedFields[user.FieldResetToken] = struct{}{}
+}
+
+// ResetTokenCleared returns if the "reset_token" field was cleared in this mutation.
+func (m *UserMutation) ResetTokenCleared() bool {
+	_, ok := m.clearedFields[user.FieldResetToken]
+	return ok
+}
+
+// ResetResetToken resets all changes to the "reset_token" field.
+func (m *UserMutation) ResetResetToken() {
+	m.reset_token = nil
+	delete(m.clearedFields, user.FieldResetToken)
+}
+
+// SetResetTokenExpires sets the "reset_token_expires" field.
+func (m *UserMutation) SetResetTokenExpires(t time.Time) {
+	m.reset_token_expires = &t
+}
+
+// ResetTokenExpires returns the value of the "reset_token_expires" field in the mutation.
+func (m *UserMutation) ResetTokenExpires() (r time.Time, exists bool) {
+	v := m.reset_token_expires
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResetTokenExpires returns the old "reset_token_expires" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldResetTokenExpires(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResetTokenExpires is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResetTokenExpires requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResetTokenExpires: %w", err)
+	}
+	return oldValue.ResetTokenExpires, nil
+}
+
+// ClearResetTokenExpires clears the value of the "reset_token_expires" field.
+func (m *UserMutation) ClearResetTokenExpires() {
+	m.reset_token_expires = nil
+	m.clearedFields[user.FieldResetTokenExpires] = struct{}{}
+}
+
+// ResetTokenExpiresCleared returns if the "reset_token_expires" field was cleared in this mutation.
+func (m *UserMutation) ResetTokenExpiresCleared() bool {
+	_, ok := m.clearedFields[user.FieldResetTokenExpires]
+	return ok
+}
+
+// ResetResetTokenExpires resets all changes to the "reset_token_expires" field.
+func (m *UserMutation) ResetResetTokenExpires() {
+	m.reset_token_expires = nil
+	delete(m.clearedFields, user.FieldResetTokenExpires)
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -593,7 +693,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -624,6 +724,12 @@ func (m *UserMutation) Fields() []string {
 	if m.refresh_token_expires != nil {
 		fields = append(fields, user.FieldRefreshTokenExpires)
 	}
+	if m.reset_token != nil {
+		fields = append(fields, user.FieldResetToken)
+	}
+	if m.reset_token_expires != nil {
+		fields = append(fields, user.FieldResetTokenExpires)
+	}
 	return fields
 }
 
@@ -652,6 +758,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.RefreshToken()
 	case user.FieldRefreshTokenExpires:
 		return m.RefreshTokenExpires()
+	case user.FieldResetToken:
+		return m.ResetToken()
+	case user.FieldResetTokenExpires:
+		return m.ResetTokenExpires()
 	}
 	return nil, false
 }
@@ -681,6 +791,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldRefreshToken(ctx)
 	case user.FieldRefreshTokenExpires:
 		return m.OldRefreshTokenExpires(ctx)
+	case user.FieldResetToken:
+		return m.OldResetToken(ctx)
+	case user.FieldResetTokenExpires:
+		return m.OldResetTokenExpires(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -760,6 +874,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRefreshTokenExpires(v)
 		return nil
+	case user.FieldResetToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResetToken(v)
+		return nil
+	case user.FieldResetTokenExpires:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResetTokenExpires(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -802,6 +930,12 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldRefreshTokenExpires) {
 		fields = append(fields, user.FieldRefreshTokenExpires)
 	}
+	if m.FieldCleared(user.FieldResetToken) {
+		fields = append(fields, user.FieldResetToken)
+	}
+	if m.FieldCleared(user.FieldResetTokenExpires) {
+		fields = append(fields, user.FieldResetTokenExpires)
+	}
 	return fields
 }
 
@@ -827,6 +961,12 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldRefreshTokenExpires:
 		m.ClearRefreshTokenExpires()
+		return nil
+	case user.FieldResetToken:
+		m.ClearResetToken()
+		return nil
+	case user.FieldResetTokenExpires:
+		m.ClearResetTokenExpires()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -865,6 +1005,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRefreshTokenExpires:
 		m.ResetRefreshTokenExpires()
+		return nil
+	case user.FieldResetToken:
+		m.ResetResetToken()
+		return nil
+	case user.FieldResetTokenExpires:
+		m.ResetResetTokenExpires()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
