@@ -61,6 +61,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "alert-service",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {

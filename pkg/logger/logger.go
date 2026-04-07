@@ -11,18 +11,24 @@ type Config struct {
 	Level       string
 	Environment string
 	OutputPaths []string
+	ServiceName string
 }
 
 func Init(cfg Config) error {
 	var zapConfig zap.Config
+	var encoderConfig zapcore.EncoderConfig
 
 	if cfg.Environment == "production" {
 		zapConfig = zap.NewProductionConfig()
-		zapConfig.EncoderConfig.TimeKey = "timestamp"
-		zapConfig.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderConfig = zap.NewProductionEncoderConfig()
+		encoderConfig.TimeKey = "timestamp"
+		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		zapConfig.EncoderConfig = encoderConfig
 	} else {
 		zapConfig = zap.NewDevelopmentConfig()
-		zapConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		encoderConfig = zap.NewDevelopmentEncoderConfig()
+		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		zapConfig.EncoderConfig = encoderConfig
 	}
 
 	level := zapcore.InfoLevel
@@ -42,7 +48,10 @@ func Init(cfg Config) error {
 		return err
 	}
 
-	globalLogger = logger
+	globalLogger = logger.With(
+		zap.String("service", cfg.ServiceName),
+		zap.String("environment", cfg.Environment),
+	)
 	return nil
 }
 
