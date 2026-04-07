@@ -188,6 +188,9 @@ func main() {
 	globalLimitReqs := getEnvAsInt("RATE_LIMIT_GLOBAL_REQUESTS", 100)
 	globalLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_GLOBAL_WINDOW", "1m"))
 
+	authLimitReqs := getEnvAsInt("RATE_LIMIT_AUTH_REQUESTS", 5)
+	authLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_AUTH_WINDOW", "1m"))
+
 	r := chi.NewRouter()
 	r.Use(httprate.LimitByIP(globalLimitReqs, globalLimitWindow))
 	r.Use(middleware.Logger)
@@ -232,6 +235,7 @@ func main() {
 	r.Mount("/api", apiRouter)
 
 	authRouter := chi.NewRouter()
+	authRouter.Use(httprate.LimitByIP(authLimitReqs, authLimitWindow))
 	routes.SetupAuthRoutes(authRouter, authHandler)
 	r.Mount("/auth", authRouter)
 
