@@ -38,6 +38,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "sensor-service",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {

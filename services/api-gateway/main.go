@@ -60,6 +60,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "api-gateway",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {

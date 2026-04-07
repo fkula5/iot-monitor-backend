@@ -42,6 +42,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "alert-dispatcher",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
@@ -102,7 +103,7 @@ func main() {
 		nil,
 	)
 	if err != nil {
-		logger.Fatal("Failed to bind queue", zap.Error(err))
+		logger.Fatal("Failed to declare queue bind", zap.Error(err))
 	}
 
 	authAddr := os.Getenv("AUTH_SERVICE_GRPC_ADDR")
