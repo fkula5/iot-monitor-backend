@@ -1286,6 +1286,36 @@ paths:
       summary: SetSensorActive sets a sensor as active.
       tags:
       - Sensors
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Request a password reset email
+      parameters:
+      - description: Email address
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            email:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Forgot Password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -1378,6 +1408,38 @@ paths:
           schema:
             type: string
       summary: Register creates a new user account.
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset password using a token
+      parameters:
+      - description: Reset data
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            new_password:
+              type: string
+            token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            properties:
+              message:
+                type: string
+              success:
+                type: boolean
+            type: object
+      summary: Reset Password
       tags:
       - Auth
   /auth/user:
