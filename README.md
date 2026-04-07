@@ -1,841 +1,555 @@
 # IoT Monitor Backend
 
-A scalable backend system for managing and monitoring IoT sensors, built with Go and modern microservice architecture.
+A scalable backend system for managing and monitoring IoT sensors, built with Go and a microservice architecture.
 
 ## Overview
 
-This project provides a comprehensive backend infrastructure for IoT device monitoring. It consists of several microservices that communicate via gRPC and expose functionality through a REST API gateway with real-time data streaming capabilities.
+This project provides a comprehensive backend infrastructure for IoT device monitoring. Microservices communicate via gRPC and expose functionality through a REST API gateway with real-time data streaming capabilities. An event-driven alert pipeline is built on top of RabbitMQ.
 
 ### Core Services
 
-- **Authentication Service**: User management and JWT-based authentication
-- **Sensor Service**: Core service for managing sensors, sensor types, and sensor groups
-- **Data Processing Service**: Time-series data storage and retrieval using TimescaleDB
-- **API Gateway**: REST API interface for external clients with JWT authentication middleware and WebSocket support
-- **Data Generation Service**: Simulates IoT sensors for testing and development
+- **Authentication Service** — User management, JWT-based authentication, and password reset via email
+- **Sensor Service** — CRUD for sensors, sensor types, and sensor groups
+- **Data Processing Service** — Time-series storage and retrieval with TimescaleDB; publishes readings to RabbitMQ
+- **Alert Service** — Evaluates sensor readings against user-defined rules and stores triggered alerts; exposes a gRPC API
+- **Alert Dispatcher** — Consumes alert events from RabbitMQ and sends email notifications via SMTP
+- **API Gateway** — REST + WebSocket interface for external clients; routes to all backend services and forwards real-time alerts over WebSocket
+- **Data Generation Service** — Simulates IoT sensors for testing and development
 
-The system uses gRPC for inter-service communication, TimescaleDB (PostgreSQL extension) for time-series data persistence, WebSocket for real-time data streaming, and the Ent ORM for database schema management.
+### Communication & Infrastructure
+
+- **gRPC** for all inter-service calls
+- **RabbitMQ** for event-driven messaging between the data processing service, alert service, and alert dispatcher
+- **TimescaleDB** (PostgreSQL extension) for time-series sensor readings
+- **Ent ORM** for type-safe schema management across all relational databases
+- **WebSocket** for real-time sensor data streaming to clients
 
 ### Deployment
 
-The system is currently deployed on a VPS using systemd for service management on Linux. Each microservice runs as a separate systemd unit, providing automatic restart on failure, centralized logging, and easy service management.
+The system runs in Docker Compose for development. Production deployment targets a Linux VPS using systemd unit files for each microservice.
+
+---
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    %% Client Applications
     subgraph "Client Applications"
         WebClient["Web Client"]
         MobileClient["Mobile Client"]
     end
 
-    %% API Gateway Service
     subgraph "API Gateway Service"
         ChiRouter["Chi Router"]
-        ApiRoutes["API Routes"]
-        Middleware["Middleware </br>- Logger</br>- RequestID</br>- Timeout</br>- Recoverer</br>- CORS</br>- JWT Auth"]
-        SensorRoutes["Sensor Routes</br>- List Sensors</br>- Get Sensor</br>- Create Sensor</br>- Update Sensor</br>- Delete Sensor</br>- Set Sensor Active"]
-        SensorTypeRoutes["Sensor Type Routes</br>- List Sensor Types</br>- Get Sensor Type</br>- Create Sensor Type</br>- Update Sensor Type</br>- Delete Sensor Type"]
-        SensorGroupRoutes["Sensor Group Routes</br>- List Groups</br>- Get Group</br>- Create Group</br>- Update Group</br>- Delete Group</br>- Add/Remove Sensors"]
-        AuthRoutes["Auth Routes</br>- Register</br>- Login"]
-        DataRoutes["Data Routes</br>- WebSocket Stream</br>- Latest Readings</br>- Historical Data"]
+        Middleware["Middleware\n- Logger / RequestID / Timeout\n- Recoverer / CORS / JWT Auth\n- Rate Limiting"]
+        SensorRoutes["Sensor Routes"]
+        SensorTypeRoutes["Sensor Type Routes"]
+        SensorGroupRoutes["Sensor Group Routes"]
+        AuthRoutes["Auth Routes"]
+        DataRoutes["Data Routes (WS + REST)"]
+        AlertRoutes["Alert Routes"]
+        AlertRuleRoutes["Alert Rule Routes"]
     end
 
-    %% Auth Service
     subgraph "Auth Service"
-        AuthGrpcServer["gRPC Server"]
-        AuthServiceImpl["Auth Service Implementation"]
-
-        subgraph "Auth Service Layer"
-            AuthService["Auth Service"]
-            JWTService["JWT Service"]
-            PasswordService["Password Service"]
-        end
-
-        subgraph "Auth Storage Layer"
-            UserStorage["User Storage"]
-            AuthEntClient["Ent ORM Client"]
-        end
+        AuthGrpc["gRPC Server"]
+        AuthSvc["Auth Service\n(JWT, bcrypt, password reset)"]
+        UserStore["User Storage (Ent)"]
+        AuthDB[(users DB)]
     end
 
-    %% Sensor Service
     subgraph "Sensor Service"
-        GrpcServer["gRPC Server"]
-        SensorServiceImpl["Sensor Service Implementation"]
-        SensorTypeServiceImpl["Sensor Type Service Implementation"]
-        SensorGroupServiceImpl["Sensor Group Service Implementation"]
-
-        subgraph "Service Layer"
-            SensorService["Sensor Service"]
-            SensorTypeService["Sensor Type Service"]
-            SensorGroupService["Sensor Group Service"]
-        end
-
-        subgraph "Storage Layer"
-            SensorStorage["Sensor Storage"]
-            SensorTypeStorage["Sensor Type Storage"]
-            SensorGroupStorage["Sensor Group Storage"]
-            EntClient["Ent ORM Client"]
-        end
+        SensorGrpc["gRPC Server"]
+        SensorSvc["Sensor / Type / Group Services"]
+        SensorStore["Sensor Storage (Ent)"]
+        SensorDB[(sensors DB)]
     end
 
-    %% Data Processing Service
     subgraph "Data Processing Service"
-        DataGrpcServer["gRPC Server"]
-        DataServiceImpl["Data Service Implementation"]
-
-        subgraph "Data Service Layer"
-            DataService["Data Service"]
-            StreamManager["Stream Manager"]
-        end
-
-        subgraph "Data Storage Layer"
-            TimescaleStorage["TimescaleDB Storage"]
-        end
+        DataGrpc["gRPC Server"]
+        DataSvc["Data Service + Stream Manager"]
+        DataStore["TimescaleDB Storage"]
+        DataDB[("sensor_readings\n(TimescaleDB)")]
     end
 
-    %% Database Server
-    subgraph "PostgreSQL Server"
-        AuthPostgresDB[(users DB)]
-        SensorsDB[(sensors DB</br>+ sensor_groups</br>+ sensor_group_sensors)]
-        DataDB[("sensor_readings DB</br>(TimescaleDB)")]
+    subgraph "Alert Service"
+        AlertGrpc["gRPC Server"]
+        AlertSvc["Alert / AlertRule Services"]
+        AlertStore["Alert Storage (Ent)"]
+        AlertDB[(alerts DB)]
     end
 
-    %% Data Generation Service
+    subgraph "Alert Dispatcher"
+        Dispatcher["Email Dispatcher\n(gomail)"]
+    end
+
+    subgraph "RabbitMQ"
+        ReadingsExchange["readings_exchange (fanout)"]
+        AlertsExchange["alerts_exchange (fanout)"]
+    end
+
     subgraph "Data Generation Service"
-        Generator["Data Generator"]
-        ValueGenerator["Value Generator Logic"]
+        Generator["Sensor Data Generator"]
     end
 
-    %% Connections between components
-    %% Client to API Gateway
-    WebClient --> ChiRouter
-    MobileClient --> ChiRouter
-    WebClient -.WebSocket.-> DataRoutes
-    MobileClient -.WebSocket.-> DataRoutes
+    WebClient -->|HTTP / WS| ChiRouter
+    MobileClient -->|HTTP / WS| ChiRouter
+    ChiRouter --> Middleware --> AuthRoutes & SensorRoutes & SensorTypeRoutes & SensorGroupRoutes & DataRoutes & AlertRoutes & AlertRuleRoutes
 
-    %% API Gateway internal connections
-    ChiRouter --> Middleware
-    Middleware --> ApiRoutes
-    ApiRoutes --> SensorRoutes
-    ApiRoutes --> SensorTypeRoutes
-    ApiRoutes --> SensorGroupRoutes
-    ApiRoutes --> AuthRoutes
-    ApiRoutes --> DataRoutes
+    AuthRoutes -->|gRPC| AuthGrpc --> AuthSvc --> UserStore --> AuthDB
+    SensorRoutes & SensorTypeRoutes & SensorGroupRoutes -->|gRPC| SensorGrpc --> SensorSvc --> SensorStore --> SensorDB
+    DataRoutes -->|gRPC| DataGrpc --> DataSvc --> DataStore --> DataDB
 
-    %% API Gateway to Services
-    AuthRoutes -- "gRPC Client" --> AuthGrpcServer
-    SensorRoutes -- "gRPC Client" --> GrpcServer
-    SensorTypeRoutes -- "gRPC Client" --> GrpcServer
-    SensorGroupRoutes -- "gRPC Client" --> GrpcServer
-    DataRoutes -- "gRPC Client" --> DataGrpcServer
+    DataSvc -->|publish| ReadingsExchange
+    ReadingsExchange --> AlertSvc
+    AlertSvc --> AlertStore --> AlertDB
+    AlertRoutes & AlertRuleRoutes -->|gRPC| AlertGrpc --> AlertSvc
 
-    %% Auth Service internal connections
-    AuthGrpcServer --> AuthServiceImpl
-    AuthServiceImpl --> AuthService
-    AuthService --> JWTService
-    AuthService --> PasswordService
-    AuthService --> UserStorage
-    UserStorage --> AuthEntClient
-    AuthEntClient --> AuthPostgresDB
+    AlertSvc -->|publish| AlertsExchange
+    AlertsExchange --> Dispatcher
+    Dispatcher -->|SMTP email| Dispatcher
 
-    %% Sensor Service internal connections
-    GrpcServer --> SensorServiceImpl
-    GrpcServer --> SensorTypeServiceImpl
-    GrpcServer --> SensorGroupServiceImpl
-    SensorServiceImpl --> SensorService
-    SensorTypeServiceImpl --> SensorTypeService
-    SensorGroupServiceImpl --> SensorGroupService
-    SensorService --> SensorStorage
-    SensorTypeService --> SensorTypeStorage
-    SensorGroupService --> SensorGroupStorage
-    SensorStorage --> EntClient
-    SensorTypeStorage --> EntClient
-    SensorGroupStorage --> EntClient
-    EntClient --> SensorsDB
+    AlertsExchange --> DataRoutes
 
-    %% Data Processing Service internal connections
-    DataGrpcServer --> DataServiceImpl
-    DataServiceImpl --> DataService
-    DataService --> StreamManager
-    DataService --> TimescaleStorage
-    StreamManager -.Stream.-> DataGrpcServer
-    TimescaleStorage --> DataDB
-
-    %% Data Generation Service connections
-    Generator --> ValueGenerator
-    ValueGenerator -- "gRPC Client" --> GrpcServer
-    ValueGenerator -- "gRPC Client" --> DataGrpcServer
-
-    %% Style definitions
-    classDef client fill:#e1f5fe,stroke:#01579b,color:#01579b
-    classDef apiGateway fill:#e8f5e9,stroke:#2e7d32,color:#2e7d32
-    classDef authService fill:#f1f8e9,stroke:#33691e,color:#33691e
-    classDef sensorService fill:#fff3e0,stroke:#ff6f00,color:#ff6f00
-    classDef dataService fill:#fce4ec,stroke:#c2185b,color:#c2185b
-    classDef dataGeneration fill:#f3e5f5,stroke:#7b1fa2,color:#7b1fa2
-    classDef database fill:#ffebee,stroke:#c62828,color:#c62828
-
-    %% Apply styles
-    class WebClient,MobileClient client
-    class ChiRouter,ApiRoutes,Middleware,SensorRoutes,SensorTypeRoutes,SensorGroupRoutes,AuthRoutes,DataRoutes apiGateway
-    class AuthGrpcServer,AuthServiceImpl,AuthService,JWTService,PasswordService,UserStorage,AuthEntClient authService
-    class GrpcServer,SensorServiceImpl,SensorTypeServiceImpl,SensorGroupServiceImpl,SensorService,SensorTypeService,SensorGroupService,SensorStorage,SensorTypeStorage,SensorGroupStorage,EntClient sensorService
-    class DataGrpcServer,DataServiceImpl,DataService,StreamManager,TimescaleStorage dataService
-    class Generator,ValueGenerator dataGeneration
-    class AuthPostgresDB,SensorsDB,DataDB database
+    Generator -->|gRPC StoreReading| DataGrpc
+    Generator -->|gRPC ListSensors| SensorGrpc
 ```
+
+---
 
 ## Features
 
 ### Authentication & Authorization
 
-- User registration and login with JWT tokens
-- Secure password hashing with bcrypt
-- JWT-based authentication middleware for protected routes
-- Configurable token expiration
+- Register and login with JWT tokens
+- Password hashing with bcrypt (configurable cost)
+- Forgot password / reset password flow via email (SMTP)
+- JWT validation middleware for all protected routes
+- Configurable token expiration and lockout settings
 
 ### Sensor Management
 
-- Create, read, update, and delete sensors
-- Enable/disable sensors for monitoring
-- Associate sensors with sensor types
-- Track sensor locations and descriptions
-- **NEW:** Organize sensors into groups
+- Full CRUD for sensors with active/inactive toggling
+- Sensors are scoped to a user and associated with a sensor type
+- Location and description metadata
 
 ### Sensor Type Management
 
-- Define sensor types with specific properties (model, manufacturer, unit)
-- Set value ranges (min/max) for each sensor type
-- Full CRUD operations on sensor types
+- Define types with model, manufacturer, unit, and value ranges (min/max)
+- Full CRUD operations
 
 ### Sensor Group Management
 
-- **Create custom groups** to organize sensors by location, type, or any criteria
-- **Assign multiple sensors** to multiple groups (many-to-many relationship)
-- **Visual customization** with colors and icons
-- **Add/remove sensors** from groups dynamically
-- **Group statistics** and sensor count tracking
-- **Search and filter** groups by name or description
+- Organize sensors into named groups with color and icon
+- Many-to-many relationship: sensors can belong to multiple groups
+- Add or remove sensors from groups dynamically
+- Deleting a group does not affect its sensors
 
 ### Real-Time Data Streaming
 
-- WebSocket support for real-time sensor data updates
-- Subscribe to multiple sensors simultaneously
-- Automatic reconnection and error handling
-- Supports filtering by sensor IDs
+- WebSocket endpoint for real-time sensor readings
+- Subscribe to specific sensor IDs or receive all active sensor data
+- Real-time alert events forwarded over the same WebSocket connection via RabbitMQ fan-out
+
+### Alert Rules & Alerts
+
+- Create per-sensor alert rules with condition types `GT` (greater than) or `LT` (less than) and a threshold value
+- Alert service evaluates every incoming reading against enabled rules
+- Triggered alerts are persisted and published to RabbitMQ
+- Mark alerts as read via the API
+- Paginated listing of alerts and rules
+
+### Email Alert Dispatch
+
+- Alert Dispatcher consumes alert events from RabbitMQ
+- Fetches user email from the Auth Service via gRPC
+- Sends HTML alert emails via SMTP (configurable — Mailtrap-compatible by default)
 
 ### Time-Series Data Management
 
 - Store sensor readings with timestamp precision
 - Query historical data within time ranges
-- Retrieve latest readings for single or multiple sensors
-- Efficient data aggregation using TimescaleDB hypertables
+- Retrieve latest N readings for a single sensor
+- Batch latest readings for multiple sensors
+- TimescaleDB hypertables with index on `(sensor_id, time DESC)` for efficient queries
 
 ### Data Simulation
 
-- Generate realistic sensor data for testing
-- Configurable data generation intervals
-- Value smoothing with drift and noise simulation
-- Automatic detection and processing of active sensors
+- Generates realistic sensor values with small random variations, Gaussian noise, and midpoint drift
+- Configurable generation interval (`DATA_GENERATION_INTERVAL_SECONDS`)
+- Automatically discovers and processes all active sensors
 
 ### API Features
 
 - RESTful API with consistent JSON responses
-- WebSocket endpoints for real-time data streaming
-- CORS support for web clients
-- Request logging and timeout management
-- Error recovery middleware
-- Swagger/OpenAPI documentation
+- WebSocket for real-time sensor data and alert streaming
+- CORS with configurable allowed origins
+- Global and per-route rate limiting (configurable via environment variables)
+- Request logging, timeout, and panic recovery middleware
+- Swagger/OpenAPI documentation at `/swagger/index.html`
+
+---
 
 ## Technology Stack
 
-- **Go 1.24+**: Primary programming language
-- **gRPC**: Service-to-service communication with Protocol Buffers
-- **TimescaleDB**: PostgreSQL extension for time-series data
-- **PostgreSQL**: Relational database for data persistence
-- **Ent ORM**: Type-safe database schema management and queries
-- **Chi Router**: Lightweight HTTP routing framework
-- **Gorilla WebSocket**: WebSocket implementation for real-time streaming
-- **JWT**: Token-based authentication
-- **bcrypt**: Secure password hashing
-- **Docker**: Containerization platform
-- **systemd**: Service management on Linux VPS
-- **GitHub Actions**: CI/CD pipeline (configured in `.github/workflows`)
+| Component             | Technology                         |
+| --------------------- | ---------------------------------- |
+| Language              | Go 1.24+                           |
+| Service communication | gRPC + Protocol Buffers            |
+| Message broker        | RabbitMQ (amqp091-go)              |
+| Time-series DB        | TimescaleDB (PostgreSQL extension) |
+| Relational DB         | PostgreSQL                         |
+| ORM                   | Ent                                |
+| HTTP router           | Chi                                |
+| WebSocket             | Gorilla WebSocket                  |
+| Authentication        | JWT (golang-jwt/jwt)               |
+| Password hashing      | bcrypt                             |
+| Email                 | gomail.v2                          |
+| Logging               | Uber Zap                           |
+| Containerization      | Docker / Docker Compose            |
+| Production            | systemd on Linux VPS               |
+| CI/CD                 | GitHub Actions                     |
+
+---
 
 ## Project Structure
 
 ```
 .
-├── .github/workflows  # CI/CD configuration
-├── .env.example       # Environment variables template
-├── internal           # Shared internal packages
-│   ├── auth           # JWT and password utilities
-│   │   ├── jwt.go             # JWT token generation and validation
-│   │   └── password.go        # Password hashing and validation
-│   ├── database       # Database connection utilities
-│   │   └── database.go        # Ent client initialization
-│   └── proto          # Generated Protocol Buffer code
-│       ├── auth                # Auth service protobuf
-│       ├── sensor_service      # Sensor service protobuf
-│       └── data_service        # Data processing service protobuf
-├── proto              # Protocol buffer definition files
-│   ├── auth.proto             # Auth service definitions
-│   ├── sensor_service.proto   # Sensor service definitions (includes groups)
-│   └── data_service.proto     # Data processing service definitions
-├── services           # Microservices
-│   ├── api-gateway    # REST API gateway service
-│   │   ├── handlers   # HTTP request handlers
-│   │   │   ├── auth.go        # Authentication endpoints
-│   │   │   ├── sensor.go      # Sensor endpoints
-│   │   │   ├── sensortype.go  # Sensor type endpoints
-│   │   │   ├── sensorgroup.go # Sensor group endpoints
-│   │   │   └── websocket.go   # WebSocket and data endpoints
-│   │   ├── middleware # HTTP middleware
-│   │   │   └── jwt.go         # JWT authentication middleware
-│   │   ├── routes     # Route definitions
-│   │   │   ├── auth.go        # Auth routes
-│   │   │   ├── sensor.go      # Sensor routes
-│   │   │   ├── sensortype.go  # Sensor type routes
-│   │   │   ├── sensorgroup.go # Sensor group routes
-│   │   │   └── data.go        # Data streaming routes
-│   │   ├── docs       # Swagger documentation
-│   │   └── main.go            # Gateway entry point
-│   ├── auth           # Authentication service
-│   │   ├── ent        # Ent entity definitions
-│   │   │   └── schema         # Database schemas
-│   │   │       └── user.go    # User entity
-│   │   ├── handlers   # gRPC request handlers
-│   │   │   └── grpc.go        # Auth gRPC handlers
-│   │   ├── services   # Authentication business logic
-│   │   │   └── auth.go        # Auth service implementation
-│   │   ├── storage    # User data persistence
-│   │   │   └── user.go        # User storage implementation
-│   │   └── main.go            # Auth service entry point
-│   ├── data-processing # Data processing service
-│   │   ├── handlers   # gRPC request handlers
-│   │   │   └── grpc.go        # Data service gRPC handlers
-│   │   ├── storage    # Data persistence
-│   │   │   ├── timescale.go   # TimescaleDB storage implementation
-│   │   │   └── memory.go      # In-memory storage (legacy)
-│   │   └── main.go            # Data service entry point
-│   ├── data-generation-service  # Sensor data simulation
-│   │   ├── services   # Data generation logic
-│   │   │   └── generator_service.go  # Generator implementation
-│   │   └── main.go            # Generator entry point
-│   └── sensor-service # Core sensor management service
-│       ├── ent        # Ent entity definitions
-│       │   └── schema         # Database schemas
-│       │       ├── sensor.go       # Sensor entity
-│       │       ├── sensortype.go   # Sensor type entity
-│       │       └── sensorgroup.go  # Sensor group entity
-│       ├── handlers   # gRPC request handlers
-│       │   └── grpc.go        # Sensor gRPC handlers
-│       ├── services   # Business logic
-│       │   ├── sensor.go      # Sensor service
-│       │   ├── sensortype.go  # Sensor type service
-│       │   └── sensorgroup.go # Sensor group service
-│       ├── storage    # Data persistence
-│       │   ├── sensor.go      # Sensor storage
-│       │   ├── sensortype.go  # Sensor type storage
-│       │   └── sensorgroup.go # Sensor group storage
-│       └── main.go            # Sensor service entry point
-├── init-db.sh         # Database initialization script
-├── docker-compose.yml # Docker compose configuration
-├── Dockerfile         # Multi-stage Docker build
-├── Makefile           # Build and development commands
-├── .golangci.yml      # Linter configuration
-└── README.md          # This file
+├── .github/workflows          # CI/CD configuration
+├── .env.example               # Environment variables template
+├── cmd/
+│   └── seeder/                # Database seeder (users, sensor types, sensors, alert rules, alerts)
+│       └── data/              # Seed JSON files
+├── internal/
+│   ├── auth/                  # JWT service and password service (shared)
+│   ├── database/              # Ent client initialisation helpers
+│   ├── proto/                 # Generated protobuf Go code
+│   │   ├── auth/
+│   │   ├── sensor_service/
+│   │   ├── data_service/
+│   │   └── alert_service/
+│   └── types/                 # Shared HTTP request/response types
+├── pkg/
+│   └── logger/                # Zap-based structured logger
+├── proto/                     # Protobuf definition files
+│   ├── auth.proto
+│   ├── sensor_service.proto
+│   ├── data_service.proto
+│   └── alert_service.proto
+├── scripts/
+│   └── verify_security.sh     # CORS and rate limit verification script
+├── services/
+│   ├── api-gateway/           # REST + WebSocket gateway
+│   │   ├── handlers/          # HTTP handlers (auth, sensor, sensortype, sensorgroup, websocket, alert, alertrule)
+│   │   ├── middleware/        # JWT auth middleware
+│   │   ├── routes/            # Route setup per domain
+│   │   └── docs/              # Swagger docs (generated)
+│   ├── auth/                  # Authentication gRPC service
+│   │   ├── ent/schema/        # User entity schema
+│   │   ├── handlers/          # gRPC handler
+│   │   ├── services/          # Auth business logic + mailer
+│   │   └── storage/           # User storage
+│   ├── alert-service/         # Alert gRPC service + RabbitMQ consumer
+│   │   ├── ent/schema/        # Alert and AlertRule entity schemas
+│   │   ├── handlers/          # gRPC handler
+│   │   ├── service/           # Alert and AlertRule services
+│   │   └── storage/           # Alert and AlertRule storage
+│   ├── alert-dispatcher/      # RabbitMQ consumer → SMTP email dispatcher
+│   ├── data-generation-service/ # Sensor data simulator
+│   │   └── services/          # Generator service
+│   ├── data-processing/       # Data gRPC service + TimescaleDB + RabbitMQ publisher
+│   │   ├── handlers/          # gRPC handler with stream management
+│   │   └── storage/           # TimescaleDB and in-memory storage implementations
+│   └── sensor-service/        # Sensor gRPC service
+│       ├── ent/schema/        # Sensor, SensorType, SensorGroup schemas
+│       ├── handlers/          # gRPC handler
+│       ├── services/          # Business logic
+│       └── storage/           # Storage implementations
+├── nginx/                     # Nginx reverse proxy config template (SSL)
+├── init-db.sh                 # PostgreSQL initialisation script (databases, users, TimescaleDB)
+├── docker-compose.yml
+├── Dockerfile                 # Multi-stage build (reusable across services via SERVICE_PATH arg)
+├── Makefile
+├── .golangci.yml              # Linter configuration
+└── go.mod / go.sum
 ```
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Go 1.24 or higher
-- PostgreSQL 12 or higher with TimescaleDB extension
-- Protocol Buffer Compiler (protoc)
-- protoc-gen-go and protoc-gen-go-grpc plugins
+- Go 1.24+
+- Docker and Docker Compose
+- `protoc` with `protoc-gen-go` and `protoc-gen-go-grpc` plugins (for proto regeneration)
 
 ### Environment Setup
 
-1. Copy the environment template:
+```bash
+cp .env.example .env
+```
 
-   ```bash
-   cp .env.example .env
-   ```
+Fill in `.env`. Minimum required values:
 
-2. Configure your environment variables in `.env`:
+```env
+# API Gateway
+API_GATEWAY_PORT=8080
 
-   ```env
-   # API Gateway
-   API_GATEWAY_PORT=3000
+# Auth Service
+AUTH_SERVICE_GRPC_ADDR=localhost:50051
+AUTH_SERVICE_GRPC_PORT=50051
+AUTH_SERVICE_DB_NAME=iot_auth
+AUTH_SERVICE_DB_USER=auth_user
+AUTH_SERVICE_DB_PASSWORD=your-password
+JWT_SECRET=your-secret-key
+JWT_EXPIRATION_HOURS=24
+BCRYPT_COST=12
+MAX_LOGIN_ATTEMPTS=5
+LOCKOUT_DURATION_MINUTES=15
 
-   # Auth Service
-   AUTH_SERVICE_GRPC_ADDR=localhost:50051
-   AUTH_SERVICE_GRPC_PORT=50051
-   AUTH_SERVICE_DB_NAME=iot_auth
-   AUTH_SERVICE_DB_USER=auth_user
-   AUTH_SERVICE_DB_PASSWORD=your-password
-   JWT_SECRET=your-secret-key-here
-   JWT_REFRESH_SECRET=your-refresh-secret
-   JWT_EXPIRATION_HOURS=24
-   BCRYPT_COST=12
-   MAX_LOGIN_ATTEMPTS=5
-   LOCKOUT_DURATION_MINUTES=15
+# Sensor Service
+SENSOR_SERVICE_GRPC_ADDR=localhost:50052
+SENSOR_SERVICE_GRPC_PORT=50052
+SENSOR_SERVICE_DB_NAME=iot_sensors
+SENSOR_SERVICE_DB_USER=sensor_user
+SENSOR_SERVICE_DB_PASSWORD=your-password
 
-   # Sensor Service
-   SENSOR_SERVICE_GRPC_ADDR=localhost:50052
-   SENSOR_SERVICE_GRPC_PORT=50052
-   SENSOR_SERVICE_DB_NAME=iot_sensors
-   SENSOR_SERVICE_DB_USER=sensor_user
-   SENSOR_SERVICE_DB_PASSWORD=your-password
+# Data Processing Service
+DATA_SERVICE_GRPC_ADDR=localhost:50053
+DATA_SERVICE_GRPC_PORT=50053
+DATA_SERVICE_DB_NAME=iot_data
+DATA_SERVICE_DB_USER=data_user
+DATA_SERVICE_DB_PASSWORD=your-password
 
-   # Data Processing Service
-   DATA_SERVICE_GRPC_ADDR=localhost:50053
-   DATA_SERVICE_GRPC_PORT=50053
-   DATA_SERVICE_DB_NAME=iot_data
-   DATA_SERVICE_DB_USER=data_user
-   DATA_SERVICE_DB_PASSWORD=your-password
+# Alert Service
+ALERT_SERVICE_GRPC_ADDR=localhost:50054
+ALERT_SERVICE_GRPC_PORT=50054
+ALERT_SERVICE_DB_NAME=iot_alerts
+ALERT_SERVICE_DB_USER=alert_user
+ALERT_SERVICE_DB_PASSWORD=your-password
 
-   # Data Generation
-   DATA_GENERATION_INTERVAL_SECONDS=60
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your-password
 
-   # Database
-   DB_HOST=localhost
-   DB_PORT=5432
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=your-password
+# RabbitMQ
+RABBITMQ_URL=amqp://user:pass@localhost:5672/
+RABBITMQ_DEFAULT_USER=user
+RABBITMQ_DEFAULT_PASS=pass
 
-   # CORS
-   CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-   ```
+# SMTP (email alerts)
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=alerts@iot-monitor.local
 
-### Database Setup
+# Data generation
+DATA_GENERATION_INTERVAL_SECONDS=60
 
-1. Create the required databases:
+# CORS
+CORS_ALLOWED_ORIGINS=http://localhost:5173
 
-   ```sql
-   CREATE DATABASE iot_auth;
-   CREATE DATABASE iot_sensors;
-   CREATE DATABASE iot_data;
-   ```
-
-2. Enable TimescaleDB extension for the data database:
-
-   ```sql
-   \c iot_data
-   CREATE EXTENSION IF NOT EXISTS timescaledb;
-   ```
-
-3. The Ent ORM will automatically create the necessary tables when each service starts:
-   - `users` - user accounts
-   - `sensors` - sensor devices
-   - `sensor_types` - sensor type definitions
-   - `sensor_groups` - sensor groups
-   - `sensor_group_sensors` - many-to-many relationship table
-   - `sensor_readings` - time-series data (TimescaleDB hypertable)
-
-### Compilation
-
-1. Generate protocol buffer files:
-
-   ```bash
-   make generate-proto
-   ```
-
-2. Build all services:
-
-   ```bash
-   # Build auth service
-   go build -o bin/auth-service ./services/auth
-
-   # Build sensor service
-   go build -o bin/sensor-service ./services/sensor-service
-
-   # Build data processing service
-   go build -o bin/data-processing-service ./services/data-processing
-
-   # Build API gateway
-   go build -o bin/api-gateway ./services/api-gateway
-
-   # Build data generator
-   go build -o bin/data-generation-service ./services/data-generation-service
-   ```
+# Rate limiting
+RATE_LIMIT_GLOBAL_REQUESTS=100
+RATE_LIMIT_GLOBAL_WINDOW=1m
+RATE_LIMIT_AUTH_REQUESTS=5
+RATE_LIMIT_AUTH_WINDOW=1m
+```
 
 ### Running with Docker Compose
 
-For development and testing, you can use Docker Compose:
-
 ```bash
-# Start all services
-docker-compose up --build
-
-# Start specific services
 make up
+# or
+docker compose up --build auth-service sensor-service api-gateway data-generation-service data-processing-service
 ```
 
-### Running the System
+This also starts RabbitMQ, TimescaleDB/PostgreSQL, the alert service, and the alert dispatcher.
 
-Start the services in the following order:
+### Running the Database Seeder
 
-1. **Auth Service** (gRPC server on port 50051):
-
-   ```bash
-   ./bin/auth-service
-   ```
-
-2. **Sensor Service** (gRPC server on port 50052):
-
-   ```bash
-   ./bin/sensor-service
-   ```
-
-3. **Data Processing Service** (gRPC server on port 50053):
-
-   ```bash
-   ./bin/data-processing-service
-   ```
-
-4. **API Gateway** (HTTP server on port 8080):
-
-   ```bash
-   ./bin/api-gateway
-   ```
-
-5. **Data Generation Service** (optional):
-   ```bash
-   ./bin/data-generation-service
-   ```
-
-## API Endpoints
-
-### Authentication Endpoints
-
-**Base URL:** `http://localhost:8080/auth`
-
-- `POST /auth/register` - Register a new user
-
-  ```json
-  {
-    "email": "user@example.com",
-    "username": "username",
-    "password": "password123",
-    "first_name": "John",
-    "last_name": "Doe"
-  }
-  ```
-
-- `POST /auth/login` - Login and receive JWT token
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "password123"
-  }
-  ```
-
-### Sensor Endpoints
-
-**Base URL:** `http://localhost:8080/api/sensors`
-
-**Note:** All sensor endpoints require JWT authentication via `Authorization: Bearer <token>` header
-
-- `GET /api/sensors` - List all sensors
-- `GET /api/sensors/{id}` - Get sensor by ID
-- `POST /api/sensors` - Create a new sensor
-  ```json
-  {
-    "name": "Temperature Sensor 1",
-    "location": "Room 101",
-    "description": "Main temperature sensor",
-    "sensor_type_id": 1
-  }
-  ```
-- `PUT /api/sensors/{id}` - Update sensor
-- `DELETE /api/sensors/{id}` - Delete sensor
-- `PUT /api/sensors/{id}/active` - Set sensor active/inactive status
-  ```json
-  {
-    "active": true
-  }
-  ```
-
-### Sensor Type Endpoints
-
-**Base URL:** `http://localhost:8080/api/sensor-types`
-
-**Note:** All sensor type endpoints require JWT authentication via `Authorization: Bearer <token>` header
-
-- `GET /api/sensor-types` - List all sensor types
-- `GET /api/sensor-types/{id}` - Get sensor type by ID
-- `POST /api/sensor-types` - Create a new sensor type
-  ```json
-  {
-    "name": "Temperature Sensor",
-    "model": "DHT22",
-    "manufacturer": "Adafruit",
-    "description": "Digital temperature and humidity sensor",
-    "unit": "°C",
-    "min_value": -40.0,
-    "max_value": 80.0
-  }
-  ```
-- `PUT /api/sensor-types/{id}` - Update sensor type
-- `DELETE /api/sensor-types/{id}` - Delete sensor type
-
-### Sensor Group Endpoints
-
-**Base URL:** `http://localhost:8080/api/sensor-groups`
-
-**Note:** All sensor group endpoints require JWT authentication via `Authorization: Bearer <token>` header
-
-- `GET /api/sensor-groups` - List all sensor groups
-- `GET /api/sensor-groups/{id}` - Get sensor group by ID with sensors
-- `POST /api/sensor-groups` - Create a new sensor group
-  ```json
-  {
-    "name": "Temperature Sensors",
-    "description": "All temperature monitoring sensors",
-    "color": "#3B82F6",
-    "icon": "thermometer",
-    "sensor_ids": [1, 2, 3]
-  }
-  ```
-- `PUT /api/sensor-groups/{id}` - Update sensor group
-  ```json
-  {
-    "name": "Updated Group Name",
-    "description": "Updated description",
-    "color": "#10B981",
-    "icon": "folder",
-    "sensor_ids": [1, 2, 3, 4]
-  }
-  ```
-- `DELETE /api/sensor-groups/{id}` - Delete sensor group
-- `POST /api/sensor-groups/{id}/sensors` - Add sensors to group
-  ```json
-  {
-    "sensor_ids": [5, 6, 7]
-  }
-  ```
-- `DELETE /api/sensor-groups/{id}/sensors` - Remove sensors from group
-  ```json
-  {
-    "sensor_ids": [1, 2]
-  }
-  ```
-
-### Data Endpoints
-
-**Base URL:** `http://localhost:8080/api/data`
-
-- `GET /api/data/ws/readings?sensor_ids=1,2,3` - WebSocket endpoint for real-time sensor data streaming
-- `GET /api/data/readings/latest?sensor_ids=1,2,3` - Get latest reading for multiple sensors
-- `GET /api/data/sensors/{sensor_id}/latest?limit=10` - Get latest N readings for a specific sensor
-- `GET /api/data/sensors/{sensor_id}/readings?start_time=2024-01-01T00:00:00Z&end_time=2024-01-02T00:00:00Z` - Get historical readings
-
-### Health Check
-
-- `GET /health` - Check if API gateway is running
-
-### API Documentation
-
-- `GET /swagger/index.html` - Swagger UI for interactive API documentation
-
-## Development
-
-### Linting
-
-The project uses `golangci-lint` for code quality. Configuration is in `.golangci.yml`.
-
-Run lint checks:
+After services are up and databases are initialised:
 
 ```bash
-golangci-lint run
+make seed
 ```
 
-### Code Generation
+This seeds users, sensor types, sensors, alert rules, and sample alerts from `cmd/seeder/data/`.
 
-When you modify `.proto` files, regenerate the Go code:
+### Building Individual Services
+
+```bash
+make build SERVICE=auth-service
+make build SERVICE=sensor-service
+make build SERVICE=data-processing
+make build SERVICE=api-gateway
+make build SERVICE=data-generation-service
+make build SERVICE=alert-service
+make build SERVICE=alert-dispatcher
+```
+
+Binaries are written to `bin/`.
+
+### Regenerating Protobuf Code
 
 ```bash
 make generate-proto
 ```
 
-When you modify Ent schemas, regenerate the Ent code:
+### Regenerating Ent Schemas
 
 ```bash
-# In the auth service directory
 go generate ./services/auth/ent
-
-# In the sensor service directory
 go generate ./services/sensor-service/ent
+go generate ./services/alert-service/ent
 ```
 
-### Adding New Sensor Types
+---
 
-1. Use the sensor service gRPC API or create via API gateway:
+## API Reference
 
-   ```json
-   {
-     "name": "Temperature Sensor",
-     "model": "DHT22",
-     "manufacturer": "Adafruit",
-     "description": "Digital temperature and humidity sensor",
-     "unit": "°C",
-     "min_value": -40.0,
-     "max_value": 80.0
-   }
-   ```
+All endpoints are prefixed as shown. Protected routes require `Authorization: Bearer <token>`.
 
-2. The sensor type will be available for use when creating new sensors.
+### Auth — `/auth`
 
-### Adding New Sensors
+| Method | Path                    | Description                  |
+| ------ | ----------------------- | ---------------------------- |
+| POST   | `/auth/register`        | Register a new user          |
+| POST   | `/auth/login`           | Login, receive JWT           |
+| GET    | `/auth/user`            | Get current user profile     |
+| PUT    | `/auth/user`            | Update current user profile  |
+| POST   | `/auth/forgot-password` | Request password reset email |
+| POST   | `/auth/reset-password`  | Reset password with token    |
 
-1. Create sensors via the API gateway:
+### Sensors — `/api/sensors` 🔒
 
-   ```json
-   {
-     "name": "Living Room Temp",
-     "location": "Living Room",
-     "description": "Monitors living room temperature",
-     "sensor_type_id": 1
-   }
-   ```
+| Method | Path                       | Description                         |
+| ------ | -------------------------- | ----------------------------------- |
+| GET    | `/api/sensors`             | List sensors for authenticated user |
+| POST   | `/api/sensors`             | Create sensor                       |
+| GET    | `/api/sensors/{id}`        | Get sensor by ID                    |
+| PUT    | `/api/sensors/{id}`        | Update sensor                       |
+| DELETE | `/api/sensors/{id}`        | Delete sensor                       |
+| PUT    | `/api/sensors/{id}/active` | Toggle sensor active status         |
 
-2. Sensors are automatically created as active and will be included in data generation.
+### Sensor Types — `/api/sensor-types` 🔒
 
-### Creating Sensor Groups
+| Method | Path                     | Description           |
+| ------ | ------------------------ | --------------------- |
+| GET    | `/api/sensor-types`      | List all sensor types |
+| POST   | `/api/sensor-types`      | Create sensor type    |
+| GET    | `/api/sensor-types/{id}` | Get sensor type       |
+| PUT    | `/api/sensor-types/{id}` | Update sensor type    |
+| DELETE | `/api/sensor-types/{id}` | Delete sensor type    |
 
-1. Create a group to organize sensors:
+### Sensor Groups — `/api/sensor-groups` 🔒
 
-   ```json
-   {
-     "name": "Ground Floor Sensors",
-     "description": "All sensors on the ground floor",
-     "color": "#3B82F6",
-     "icon": "home",
-     "sensor_ids": [1, 2, 3, 4]
-   }
-   ```
+| Method | Path                              | Description                        |
+| ------ | --------------------------------- | ---------------------------------- |
+| GET    | `/api/sensor-groups`              | List groups for authenticated user |
+| POST   | `/api/sensor-groups`              | Create group                       |
+| GET    | `/api/sensor-groups/{id}`         | Get group with sensors             |
+| PUT    | `/api/sensor-groups/{id}`         | Update group                       |
+| DELETE | `/api/sensor-groups/{id}`         | Delete group                       |
+| POST   | `/api/sensor-groups/{id}/sensors` | Add sensors to group               |
+| DELETE | `/api/sensor-groups/{id}/sensors` | Remove sensors from group          |
 
-2. Groups can be used to:
-   - Organize sensors by location (e.g., "Kitchen", "Bedroom")
-   - Group by type (e.g., "Temperature Sensors", "Motion Detectors")
-   - Create custom categories (e.g., "Critical Sensors", "Backup Sensors")
+### Data — `/api/data`
+
+| Method | Path                                                             | Description                            |
+| ------ | ---------------------------------------------------------------- | -------------------------------------- |
+| GET    | `/api/data/ws/readings?sensor_ids=1,2,3`                         | WebSocket: real-time readings + alerts |
+| GET    | `/api/data/readings/latest?sensor_ids=1,2,3`                     | Latest reading per sensor (batch)      |
+| GET    | `/api/data/sensors/{sensor_id}/latest?limit=10`                  | Latest N readings for one sensor       |
+| GET    | `/api/data/sensors/{sensor_id}/readings?start_time=…&end_time=…` | Historical readings                    |
+| POST   | `/api/data/readings`                                             | Store a reading manually               |
+
+### Alerts — `/api/alerts` 🔒
+
+| Method | Path                          | Description                        |
+| ------ | ----------------------------- | ---------------------------------- |
+| GET    | `/api/alerts?page=1&limit=10` | List alerts for authenticated user |
+| POST   | `/api/alerts/{id}/read`       | Mark alert as read                 |
+
+### Alert Rules — `/api/alert-rules` 🔒
+
+| Method | Path                               | Description                             |
+| ------ | ---------------------------------- | --------------------------------------- |
+| GET    | `/api/alert-rules?page=1&limit=10` | List alert rules for authenticated user |
+| POST   | `/api/alert-rules`                 | Create alert rule                       |
+| GET    | `/api/alert-rules/{id}`            | Get alert rule                          |
+| PUT    | `/api/alert-rules/{id}`            | Update alert rule                       |
+| DELETE | `/api/alert-rules/{id}`            | Delete alert rule                       |
+
+### Other
+
+| Method | Path                  | Description  |
+| ------ | --------------------- | ------------ |
+| GET    | `/health`             | Health check |
+| GET    | `/swagger/index.html` | Swagger UI   |
+
+---
+
+## Alert Rule Request Format
+
+```json
+{
+  "name": "High Temperature Alert",
+  "sensor_id": 1,
+  "condition_type": "GT",
+  "threshold": 30.0,
+  "description": "Alert when temperature exceeds 30°C"
+}
+```
+
+`condition_type` is `"GT"` (greater than) or `"LT"` (less than).
+
+---
+
+## Event-Driven Alert Flow
+
+```
+Sensor reading stored
+  → Data Processing Service publishes to readings_exchange (RabbitMQ fanout)
+    → Alert Service consumes from alert_engine_queue
+      → Evaluates enabled rules for that sensor_id
+        → On match: saves Alert to DB, publishes to alerts_exchange
+          → Alert Dispatcher consumes, fetches user email via Auth gRPC, sends SMTP email
+          → API Gateway consumes, forwards alert payload over active WebSocket connections
+```
+
+---
 
 ## Architecture Decisions
 
-### Microservice Communication
+**gRPC for internal communication** — type safety and performance between services.
 
-- **gRPC** is used for internal service-to-service communication for performance and type safety
-- **REST/HTTP** is used for external client communication via the API gateway
+**RabbitMQ fanout exchanges** — `readings_exchange` fans out to both the alert engine queue and any future consumers. `alerts_exchange` fans out to the dispatcher and the gateway simultaneously without either blocking the other.
 
-### Authentication Flow
+**Per-service databases** — each service owns its schema and database credentials for isolation.
 
-1. Users register/login through the API gateway
-2. Auth service validates credentials and generates JWT tokens
-3. API gateway middleware validates JWT tokens for protected routes
-4. User information is extracted from JWT claims for authorization
+**TimescaleDB hypertables** — automatic time-based partitioning and a `(sensor_id, time DESC)` index make time-range and latest-reading queries efficient at scale.
 
-### Database Strategy
+**Ent ORM** — compile-time schema validation and type-safe queries across auth, sensor, and alert databases.
 
-- Each service has its own database for data isolation
-- TimescaleDB hypertables are used for efficient time-series data storage
-- Automatic data partitioning by time for optimal query performance
-- Ent ORM provides type-safe database operations
-- Schema migrations are handled automatically by Ent
-- Many-to-many relationships for sensor groups using junction tables
+**Many-to-many sensor groups** — junction table managed by Ent edges; deleting a group is non-destructive to sensors.
 
-### Sensor Group Architecture
+---
 
-- **Many-to-Many Relationship**: Sensors can belong to multiple groups, and groups can contain multiple sensors
-- **Visual Organization**: Each group has a color and icon for easy identification
-- **Flexible Categorization**: Groups can be created based on any criteria (location, type, priority, etc.)
-- **Non-Destructive**: Deleting a group does not affect the sensors in it
+## Linting
 
-### Data Generation
-
-- Simulates realistic sensor values with:
-  - Small random variations (±2%)
-  - Gaussian noise (1% of range)
-  - Drift toward midpoint (1%)
-  - Boundary enforcement
-
-## Testing
-
-The data generation service can be used for testing the system:
-
-1. Create sensor types with appropriate ranges
-2. Create sensors associated with those types
-3. (Optional) Create groups to organize sensors
-4. Set sensors to active
-5. The data generator will automatically start producing values every minute
-6. Connect to the WebSocket endpoint to receive real-time updates
-7. Use the API endpoints to query historical data
-
-## Use Cases for Sensor Groups
-
-### Location-Based Grouping
-
-```json
-{
-  "name": "Kitchen Sensors",
-  "description": "All sensors in the kitchen area",
-  "color": "#F59E0B",
-  "icon": "home",
-  "sensor_ids": [1, 2, 3]
-}
+```bash
+golangci-lint run
 ```
 
-### Type-Based Grouping
+Configuration is in `.golangci.yml`. Auto-fix is enabled where possible. Generated files (`*.pb.go`, `ent/`) are excluded.
 
-```json
-{
-  "name": "Temperature Monitors",
-  "description": "All temperature sensors across the building",
-  "color": "#EF4444",
-  "icon": "thermometer",
-  "sensor_ids": [1, 5, 9, 13]
-}
-```
-
-### Priority-Based Grouping
-
-```json
-{
-  "name": "Critical Infrastructure",
-  "description": "Mission-critical sensors requiring immediate attention",
-  "color": "#DC2626",
-  "icon": "alert-triangle",
-  "sensor_ids": [2, 7, 11]
-}
-```
-
-### Project-Based Grouping
-
-```json
-{
-  "name": "Smart Home Project",
-  "description": "Sensors for the smart home automation project",
-  "color": "#8B5CF6",
-  "icon": "star",
-  "sensor_ids": [1, 2, 3, 4, 5]
-}
-```
-
-## Production Deployment
-
-### VPS Deployment with systemd
-
-The system is deployed on a Linux VPS using systemd for service management. This provides:
-
-- **Automatic startup**: Services start automatically on system boot
-- **Auto-restart**: Failed services are automatically restarted
-- **Centralized logging**: All logs are managed by journald
-- **Resource management**: CPU and memory limits can be configured
-- **Easy management**: Start, stop, restart, and check status with systemctl commands
+---
 
 ## License
 
