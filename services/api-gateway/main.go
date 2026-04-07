@@ -3,12 +3,14 @@ package main
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	amqp "github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -183,7 +185,11 @@ func main() {
 		corsAllowedOrigins = []string{"http://localhost:5173"}
 	}
 
+	globalLimitReqs := getEnvAsInt("RATE_LIMIT_GLOBAL_REQUESTS", 100)
+	globalLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_GLOBAL_WINDOW", "1m"))
+
 	r := chi.NewRouter()
+	r.Use(httprate.LimitByIP(globalLimitReqs, globalLimitWindow))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.Recoverer)
@@ -240,4 +246,19 @@ func main() {
 	if err != nil {
 		logger.Fatal("Server failed to start", zap.Error(err))
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func getEnvAsInt(name string, defaultVal int) int {
+	valueStr := getEnv(name, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+	return defaultVal
 }
