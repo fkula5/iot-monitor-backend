@@ -41,6 +41,7 @@ linters-settings:
       - "github.com/skni-kod/iot-monitor-backend/pkg/logger.Sync"
       - "github.com/go-chi/chi/v5.Walk"
       - "(*github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent.Tx).Rollback"
+      - "fmt.Sscanf"
 
   govet:
     # Note: check-shadowing is deprecated, use 'shadow' linter instead

@@ -40,6 +40,11 @@ func (User) Fields() []ent.Field {
 			Sensitive(),
 		field.Time("refresh_token_expires").
 			Optional(),
+		field.String("reset_token").
+			Optional().
+			Sensitive(),
+		field.Time("reset_token_expires").
+			Optional(),
 	}
 }
 

@@ -37,7 +37,11 @@ type User struct {
 	RefreshToken string `json:"-"`
 	// RefreshTokenExpires holds the value of the "refresh_token_expires" field.
 	RefreshTokenExpires time.Time `json:"refresh_token_expires,omitempty"`
-	selectValues        sql.SelectValues
+	// ResetToken holds the value of the "reset_token" field.
+	ResetToken string `json:"-"`
+	// ResetTokenExpires holds the value of the "reset_token_expires" field.
+	ResetTokenExpires time.Time `json:"reset_token_expires,omitempty"`
+	selectValues      sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -49,9 +53,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldEmail, user.FieldUsername, user.FieldPasswordHash, user.FieldFirstName, user.FieldLastName, user.FieldRefreshToken:
+		case user.FieldEmail, user.FieldUsername, user.FieldPasswordHash, user.FieldFirstName, user.FieldLastName, user.FieldRefreshToken, user.FieldResetToken:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldRefreshTokenExpires:
+		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldRefreshTokenExpires, user.FieldResetTokenExpires:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -134,6 +138,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.RefreshTokenExpires = value.Time
 			}
+		case user.FieldResetToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field reset_token", values[i])
+			} else if value.Valid {
+				u.ResetToken = value.String
+			}
+		case user.FieldResetTokenExpires:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field reset_token_expires", values[i])
+			} else if value.Valid {
+				u.ResetTokenExpires = value.Time
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -197,6 +213,11 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("refresh_token_expires=")
 	builder.WriteString(u.RefreshTokenExpires.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("reset_token=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("reset_token_expires=")
+	builder.WriteString(u.ResetTokenExpires.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

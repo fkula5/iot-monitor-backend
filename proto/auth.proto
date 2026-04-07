@@ -9,11 +9,14 @@ import "google/protobuf/timestamp.proto";
 service AuthService{
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
-
+    rpc GetUser(GetUserRequest) returns (UserResponse) {}
+    rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {}
+    rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse) {}
+    rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
 }
 
 message User{
-    int32 id = 1;
+    int64 id = 1;
     string email = 2;
     string username = 3;
     string first_name = 4;
@@ -46,4 +49,37 @@ message LoginResponse {
     string token = 1;
     google.protobuf.Timestamp expires_at = 2;
     User user = 3;
+}
+
+message GetUserRequest {
+    int64 id = 1;
+}
+
+message UpdateUserRequest {
+    int64 id = 1;
+    string first_name = 2;
+    string last_name = 3;
+}
+
+message UserResponse{
+    User user = 1;
+}
+
+message ForgotPasswordRequest {
+    string email = 1;
+}
+
+message ForgotPasswordResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ResetPasswordRequest {
+    string token = 1;
+    string new_password = 2;
+}
+
+message ResetPasswordResponse {
+    bool success = 1;
+    string message = 2;
 }

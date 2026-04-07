@@ -99,13 +99,69 @@ func (h *AuthGrpcHandler) Register(ctx context.Context, req *pb.RegisterRequest)
 	}, nil
 }
 
+func (h *AuthGrpcHandler) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
+	if req.Id == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	user, err := h.authService.GetUserByID(ctx, int(req.Id))
+	if err != nil {
+		logger.Error("Failed to get user", zap.Error(err))
+		return nil, status.Error(codes.NotFound, "user not found")
+	}
+
+	return &pb.UserResponse{
+		User: convertEntUserToProto(user),
+	}, nil
+}
+
+func (h *AuthGrpcHandler) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+	if req.Id == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	updateData := &services.UpdateRequest{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+	}
+
+	user, err := h.authService.Update(ctx, int(req.Id), updateData)
+
+	if err != nil {
+		logger.Error("Failed to update user", zap.Error(err))
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.UserResponse{
+		User: convertEntUserToProto(user),
+	}, nil
+}
+
+func (h *AuthGrpcHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRequest) (*pb.ForgotPasswordResponse, error) {
+	err := h.authService.ForgotPassword(ctx, req.Email)
+	if err != nil {
+		logger.Error("Failed to send forgot password email", zap.Error(err))
+		return &pb.ForgotPasswordResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &pb.ForgotPasswordResponse{Success: true, Message: "Email sent"}, nil
+}
+
+func (h *AuthGrpcHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
+	err := h.authService.ResetPassword(ctx, req.Token, req.NewPassword)
+	if err != nil {
+		logger.Error("Failed to reset password", zap.Error(err))
+		return &pb.ResetPasswordResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &pb.ResetPasswordResponse{Success: true, Message: "Password reset successful"}, nil
+}
+
 func convertUserToProto(userInfo *services.UserInfo) *pb.User {
 	if userInfo == nil {
 		return nil
 	}
 
 	return &pb.User{
-		Id:        int32(userInfo.ID),
+		Id:        int64(userInfo.ID),
 		Email:     userInfo.Email,
 		Username:  userInfo.Username,
 		FirstName: userInfo.FirstName,
@@ -122,7 +178,7 @@ func convertEntUserToProto(user *ent.User) *pb.User {
 	}
 
 	return &pb.User{
-		Id:        int32(user.ID),
+		Id:        int64(user.ID),
 		Email:     user.Email,
 		Username:  user.Username,
 		FirstName: user.FirstName,

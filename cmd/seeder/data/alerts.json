@@ -1,0 +1,17 @@
+[
+  { "user_id": 1, "rule_id": 1, "value": 31.5, "message": "High Temperature Detected: 31.5", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 32.1, "message": "High Temperature Detected: 32.1", "is_read": true },
+  { "user_id": 1, "rule_id": 2, "value": 19.5, "message": "Low Humidity Detected: 19.5", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 30.8, "message": "High Temperature Detected: 30.8", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 33.2, "message": "High Temperature Detected: 33.2", "is_read": false },
+  { "user_id": 1, "rule_id": 2, "value": 18.0, "message": "Low Humidity Detected: 18.0", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 31.0, "message": "High Temperature Detected: 31.0", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 34.5, "message": "High Temperature Detected: 34.5", "is_read": false },
+  { "user_id": 1, "rule_id": 2, "value": 17.5, "message": "Low Humidity Detected: 17.5", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 32.0, "message": "High Temperature Detected: 32.0", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 31.2, "message": "High Temperature Detected: 31.2", "is_read": false },
+  { "user_id": 1, "rule_id": 2, "value": 19.0, "message": "Low Humidity Detected: 19.0", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 30.5, "message": "High Temperature Detected: 30.5", "is_read": false },
+  { "user_id": 1, "rule_id": 1, "value": 31.9, "message": "High Temperature Detected: 31.9", "is_read": false },
+  { "user_id": 1, "rule_id": 2, "value": 16.5, "message": "Low Humidity Detected: 16.5", "is_read": false }
+]

@@ -3,17 +3,21 @@ package main
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
+	amqp "github.com/rabbitmq/amqp091-go"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/auth"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -56,12 +60,65 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "api-gateway",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
+
+	rabbitURL := os.Getenv("RABBITMQ_URL")
+	if rabbitURL == "" {
+		rabbitURL = "amqp://guest:guest@localhost:5672/"
+	}
+
+	var alertMsgs <-chan amqp.Delivery
+	conn, err := amqp.Dial(rabbitURL)
+	if err != nil {
+		logger.Warn("Failed to connect to RabbitMQ, alerts will be disabled", zap.Error(err))
+	} else {
+		ch, err := conn.Channel()
+		if err != nil {
+			logger.Warn("Failed to open channel to RabbitMQ, alerts will be disabled", zap.Error(err))
+		} else {
+			q, err := ch.QueueDeclare(
+				"alerts", // name
+				true,     // durable
+				false,    // delete when unused
+				false,    // exclusive
+				false,    // no-wait
+				nil,      // arguments
+			)
+			if err != nil {
+				logger.Warn("Failed to declare alerts queue, alerts will be disabled", zap.Error(err))
+			} else {
+				err = ch.QueueBind(
+					q.Name,            // queue name
+					"",                // routing key
+					"alerts_exchange", // exchange
+					false,             // no-wait
+					nil,               // arguments
+				)
+				if err != nil {
+					logger.Warn("Failed to bind alerts queue, alerts will be disabled", zap.Error(err))
+				}
+
+				alertMsgs, err = ch.Consume(
+					q.Name, // queue
+					"",     // consumer
+					true,   //
+					false,  // exclusive
+					false,  // no-local
+					false,  // no-wait
+					nil,    // args
+				)
+				if err != nil {
+					logger.Warn("Failed to consume from alerts queue, alerts will be disabled", zap.Error(err))
+				}
+			}
+		}
+	}
 
 	authGrpcAddr := strings.TrimSpace(os.Getenv("AUTH_SERVICE_GRPC_ADDR"))
 	if authGrpcAddr == "" {
@@ -77,6 +134,13 @@ func main() {
 	}
 	logger.Info("Connecting to sensor service at", zap.String("address", sensorGrpcAddr))
 
+	alertGrpcAddr := strings.TrimSpace(os.Getenv("ALERT_SERVICE_GRPC_ADDR"))
+	if alertGrpcAddr == "" {
+		logger.Warn("WARNING: ALERT_SERVICE_GRPC_ADDR is empty, using default localhost:50054")
+		alertGrpcAddr = "localhost:50054"
+	}
+	logger.Info("Connecting to alert service at", zap.String("address", alertGrpcAddr))
+
 	sensorService, err := NewGrpcClient(sensorGrpcAddr)
 	if err != nil {
 		logger.Fatal("Failed to connect to sensor service", zap.Error(err))
@@ -90,6 +154,13 @@ func main() {
 	}
 	defer authService.Close()
 	authClient := auth.NewAuthServiceClient(authService)
+
+	alertService, err := NewGrpcClient(alertGrpcAddr)
+	if err != nil {
+		logger.Fatal("Failed to connect to alert service", zap.Error(err))
+	}
+	defer alertService.Close()
+	alertClient := alert_service.NewAlertServiceClient(alertService)
 
 	dataProcAddr := strings.TrimSpace(os.Getenv("DATA_SERVICE_GRPC_ADDR"))
 	if dataProcAddr == "" {
@@ -115,14 +186,22 @@ func main() {
 		corsAllowedOrigins = []string{"http://localhost:5173"}
 	}
 
+	globalLimitReqs := getEnvAsInt("RATE_LIMIT_GLOBAL_REQUESTS", 100)
+	globalLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_GLOBAL_WINDOW", "1m"))
+
+	authLimitReqs := getEnvAsInt("RATE_LIMIT_AUTH_REQUESTS", 5)
+	authLimitWindow, _ := time.ParseDuration(getEnv("RATE_LIMIT_AUTH_WINDOW", "1m"))
+
 	r := chi.NewRouter()
+	r.Use(httprate.LimitByIP(globalLimitReqs, globalLimitWindow))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   corsAllowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
@@ -139,7 +218,9 @@ func main() {
 	sensorTypeHandler := handlers.NewSensorTypeHandler(sensorClient)
 	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
-	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient)
+	alertHandler := handlers.NewAlertHandler(alertClient)
+	alertRuleHandler := handlers.NewAlertRuleHandler(alertClient)
+	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient, alertMsgs)
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.RequestID)
@@ -148,11 +229,14 @@ func main() {
 	routes.SetupSensorRoutes(apiRouter, sensorHandler)
 	routes.SetupSensorTypeRoutes(apiRouter, sensorTypeHandler)
 	routes.SetupSensorGroupRoutes(apiRouter, sensorGroupHandler)
+	routes.SetupAlertRoutes(apiRouter, alertHandler)
+	routes.SetupAlertRuleRoutes(apiRouter, alertRuleHandler)
 	routes.SetupDataRoutes(apiRouter, dataHandler)
 
 	r.Mount("/api", apiRouter)
 
 	authRouter := chi.NewRouter()
+	authRouter.Use(httprate.LimitByIP(authLimitReqs, authLimitWindow))
 	routes.SetupAuthRoutes(authRouter, authHandler)
 	r.Mount("/auth", authRouter)
 
@@ -167,4 +251,19 @@ func main() {
 	if err != nil {
 		logger.Fatal("Server failed to start", zap.Error(err))
 	}
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func getEnvAsInt(name string, defaultVal int) int {
+	valueStr := getEnv(name, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+	return defaultVal
 }

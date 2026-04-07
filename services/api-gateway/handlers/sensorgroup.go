@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
@@ -23,32 +24,12 @@ func NewSensorGroupHandler(client pb.SensorServiceClient) *SensorGroupHandler {
 	return &SensorGroupHandler{client: client}
 }
 
-type CreateGroupRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Color       string  `json:"color"`
-	Icon        string  `json:"icon"`
-	SensorIDs   []int64 `json:"sensor_ids"`
-}
-
-type UpdateGroupRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Color       string  `json:"color"`
-	Icon        string  `json:"icon"`
-	SensorIDs   []int64 `json:"sensor_ids"`
-}
-
-type AddSensorsRequest struct {
-	SensorIDs []int64 `json:"sensor_ids"`
-}
-
 // @Summary List sensor groups
 // @Description Get all sensor groups for the authenticated user
 // @Tags SensorGroups
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} string
+// @Success 200 {array} types.SensorGroupResponse
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /api/sensor-groups [get]
@@ -70,8 +51,18 @@ func (h *SensorGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	groupResponses := make([]types.SensorGroupResponse, 0, len(res.Groups))
+	for _, item := range res.Groups {
+		mappedSensors := make([]types.SensorResponse, 0, len(item.Sensors))
+		for _, s := range item.Sensors {
+			mappedSensors = append(mappedSensors, types.MapSensorFromProto(s))
+		}
+
+		groupResponses = append(groupResponses, types.MapSensorGroupFromProto(item.Group, mappedSensors))
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res.Groups)
+	json.NewEncoder(w).Encode(groupResponses)
 }
 
 // @Summary Get sensor group
@@ -80,7 +71,7 @@ func (h *SensorGroupHandler) ListGroups(w http.ResponseWriter, r *http.Request) 
 // @Produce json
 // @Param id path int true "Group ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -108,8 +99,15 @@ func (h *SensorGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mappedSensors := make([]types.SensorResponse, 0, len(res.Sensors))
+	for _, s := range res.Sensors {
+		mappedSensors = append(mappedSensors, types.MapSensorFromProto(s))
+	}
+
+	response := types.MapSensorGroupFromProto(res.Group, mappedSensors)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Create sensor group
@@ -117,7 +115,7 @@ func (h *SensorGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 // @Tags SensorGroups
 // @Accept json
 // @Produce json
-// @Param group body CreateGroupRequest true "Group data"
+// @Param group body types.CreateGroupRequest true "Group data"
 // @Security ApiKeyAuth
 // @Success 201 {object} string
 // @Failure 400 {object} map[string]string
@@ -134,7 +132,7 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var req CreateGroupRequest
+	var req types.CreateGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -158,9 +156,11 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	response := types.MapSensorGroupFromProto(res.Group, nil)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(res.Group)
+	json.NewEncoder(w).Encode(response)
 }
 
 // @Summary Update sensor group
@@ -169,9 +169,9 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param group body UpdateGroupRequest true "Group data"
+// @Param group body types.UpdateGroupRequest true "Group data"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -188,7 +188,7 @@ func (h *SensorGroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var req UpdateGroupRequest
+	var req types.UpdateGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -263,9 +263,9 @@ func (h *SensorGroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param sensors body AddSensorsRequest true "Sensor IDs"
+// @Param sensors body types.AddSensorsRequest true "Sensor IDs to add"
 // @Security ApiKeyAuth
-// @Success 200 {object} string
+// @Success 200 {object} types.SensorGroupResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -282,7 +282,7 @@ func (h *SensorGroupHandler) AddSensorsToGroup(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var req AddSensorsRequest
+	var req types.AddSensorsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -312,7 +312,7 @@ func (h *SensorGroupHandler) AddSensorsToGroup(w http.ResponseWriter, r *http.Re
 // @Accept json
 // @Produce json
 // @Param id path int true "Group ID"
-// @Param sensors body AddSensorsRequest true "Sensor IDs"
+// @Param sensors body types.AddSensorsRequest true "Sensor IDs"
 // @Security ApiKeyAuth
 // @Success 200 {object} string
 // @Failure 400 {object} map[string]string
@@ -331,7 +331,7 @@ func (h *SensorGroupHandler) RemoveSensorsFromGroup(w http.ResponseWriter, r *ht
 		return
 	}
 
-	var req AddSensorsRequest
+	var req types.AddSensorsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return

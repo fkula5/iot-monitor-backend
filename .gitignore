@@ -3,3 +3,5 @@ bin/
 nginx/certs/*.crt
 nginx/certs/*.key
 nginx/certs/*.pem
+.worktrees/
+.docs/

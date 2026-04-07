@@ -22,6 +22,351 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/alert-rules": {
+            "get": {
+                "description": "Get a list of alert rules for the authenticated user with pagination support",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "List Alert Rules",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of alert rules",
+                        "schema": {
+                            "$ref": "#/definitions/types.PaginatedAlertRuleResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new alert rule for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Create Alert Rule",
+                "parameters": [
+                    {
+                        "description": "Alert Rule Request",
+                        "name": "alertRule",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alert-rules/{id}": {
+            "get": {
+                "description": "Get an alert rule by ID",
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Get Alert Rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing alert rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Update Alert Rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Alert Rule Request",
+                        "name": "updateRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.UpdateAlertRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.AlertRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an alert rule by ID",
+                "tags": [
+                    "Alert Rules"
+                ],
+                "summary": "Delete Alert Rule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Alert Rule ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches all alerts from the Alert Service with pagination support.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "ListAlerts retrieves a list of all alerts for the authenticated user.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of alerts",
+                        "schema": {
+                            "$ref": "#/definitions/types.PaginatedAlertResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/{id}/read": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Updates the alert status to read in the Alert Service.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Alerts"
+                ],
+                "summary": "MarkAlertAsRead marks an alert as read.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Alert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success status",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/data/readings": {
             "post": {
                 "description": "Sends a sensor reading to the data processing service",
@@ -42,7 +387,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.StoreReadingRequest"
+                            "$ref": "#/definitions/types.StoreReadingRequest"
                         }
                     }
                 ],
@@ -197,7 +542,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/types.SensorGroupResponse"
                             }
                         }
                     },
@@ -242,7 +587,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateGroupRequest"
+                            "$ref": "#/definitions/types.CreateGroupRequest"
                         }
                     }
                 ],
@@ -308,7 +653,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.SensorGroupResponse"
                         }
                     },
                     "400": {
@@ -377,7 +722,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateGroupRequest"
+                            "$ref": "#/definitions/types.UpdateGroupRequest"
                         }
                     }
                 ],
@@ -385,7 +730,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.SensorGroupResponse"
                         }
                     },
                     "400": {
@@ -510,12 +855,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Sensor IDs",
+                        "description": "Sensor IDs to add",
                         "name": "sensors",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.AddSensorsRequest"
+                            "$ref": "#/definitions/types.AddSensorsRequest"
                         }
                     }
                 ],
@@ -523,7 +868,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.SensorGroupResponse"
                         }
                     },
                     "400": {
@@ -592,7 +937,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.AddSensorsRequest"
+                            "$ref": "#/definitions/types.AddSensorsRequest"
                         }
                     }
                 ],
@@ -660,7 +1005,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.SensorTypeResponse"
+                                "$ref": "#/definitions/types.SensorTypeResponse"
                             }
                         }
                     },
@@ -771,7 +1116,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Sensor type details",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SensorTypeResponse"
+                            "$ref": "#/definitions/types.SensorTypeResponse"
                         }
                     },
                     "400": {
@@ -967,7 +1312,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.SensorResponse"
+                                "$ref": "#/definitions/types.SensorResponse"
                             }
                         }
                     },
@@ -1009,7 +1354,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CreateSensorRequest"
+                            "$ref": "#/definitions/types.CreateSensorRequest"
                         }
                     }
                 ],
@@ -1069,7 +1414,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Sensor details",
                         "schema": {
-                            "$ref": "#/definitions/handlers.SensorResponse"
+                            "$ref": "#/definitions/types.SensorResponse"
                         }
                     },
                     "400": {
@@ -1129,7 +1474,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.UpdateSensorRequest"
+                            "$ref": "#/definitions/types.UpdateSensorRequest"
                         }
                     }
                 ],
@@ -1267,6 +1612,53 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "description": "Request a password reset email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "Email address",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     }
                 }
@@ -1416,10 +1808,150 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Reset password using a token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reset Password",
+                "parameters": [
+                    {
+                        "description": "Reset data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "new_password": {
+                                    "type": "string"
+                                },
+                                "token": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "success": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/user": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get current user profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get User",
+                "responses": {
+                    "200": {
+                        "description": "User Profile",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update current user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update Profile",
+                "parameters": [
+                    {
+                        "description": "Update data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "first_name": {
+                                    "type": "string"
+                                },
+                                "last_name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated User",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "handlers.AddSensorsRequest": {
+        "handlers.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.AddSensorsRequest": {
             "type": "object",
             "properties": {
                 "sensor_ids": {
@@ -1430,7 +1962,85 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateGroupRequest": {
+        "types.AlertResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_read": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "rule_id": {
+                    "type": "integer"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "triggered_at": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "types.AlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "condition_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                }
+            }
+        },
+        "types.AlertRuleResponse": {
+            "type": "object",
+            "properties": {
+                "condition_type": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.CreateGroupRequest": {
             "type": "object",
             "properties": {
                 "color": {
@@ -1453,7 +2063,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.CreateSensorRequest": {
+        "types.CreateSensorRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1470,7 +2080,85 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.SensorResponse": {
+        "types.PaginatedAlertResponse": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.AlertResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.PaginatedAlertRuleResponse": {
+            "type": "object",
+            "properties": {
+                "alert_rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.AlertRuleResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.SensorGroupResponse": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor_count": {
+                    "type": "integer"
+                },
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.SensorResponse"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.SensorResponse": {
             "type": "object",
             "properties": {
                 "active": {
@@ -1495,14 +2183,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sensor_type": {
-                    "$ref": "#/definitions/handlers.SensorTypeResponse"
+                    "$ref": "#/definitions/types.SensorTypeResponse"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "handlers.SensorTypeResponse": {
+        "types.SensorTypeResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -1534,7 +2222,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.StoreReadingRequest": {
+        "types.StoreReadingRequest": {
             "type": "object",
             "properties": {
                 "sensor_id": {
@@ -1548,7 +2236,33 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.UpdateGroupRequest": {
+        "types.UpdateAlertRuleRequest": {
+            "type": "object",
+            "properties": {
+                "condition_type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_enabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number"
+                }
+            }
+        },
+        "types.UpdateGroupRequest": {
             "type": "object",
             "properties": {
                 "color": {
@@ -1571,7 +2285,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.UpdateSensorRequest": {
+        "types.UpdateSensorRequest": {
             "type": "object",
             "properties": {
                 "active": {

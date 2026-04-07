@@ -5,10 +5,14 @@ import (
 	"sync"
 	"time"
 
+	"encoding/json"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/rabbitmq/amqp091-go"
 
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
@@ -22,13 +26,26 @@ type DataGrpcHandler struct {
 	sensorClient  pb_sensor.SensorServiceClient
 	subscribers   map[string]chan *pb_data.ReadingUpdate
 	subscribersMu sync.RWMutex
+	channel       *amqp091.Channel
+	queue         amqp091.Queue
 }
 
-func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorClient pb_sensor.SensorServiceClient) {
+type SensorReading struct {
+	SensorId   int64     `json:"sensor_id"`
+	Value      float64   `json:"value"`
+	Timestamp  time.Time `json:"timestamp"`
+	SensorName string    `json:"sensor_name,omitempty"`
+	Location   string    `json:"location,omitempty"`
+	Unit       string    `json:"unit,omitempty"`
+}
+
+func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorClient pb_sensor.SensorServiceClient, channel *amqp091.Channel, queue amqp091.Queue) {
 	handler := &DataGrpcHandler{
 		store:        store,
 		sensorClient: sensorClient,
 		subscribers:  make(map[string]chan *pb_data.ReadingUpdate),
+		channel:      channel,
+		queue:        queue,
 	}
 	pb_data.RegisterDataServiceServer(s, handler)
 }
@@ -59,6 +76,33 @@ func (h *DataGrpcHandler) StoreReading(ctx context.Context, req *pb_data.StoreRe
 		}
 
 		h.broadcastUpdate(update)
+		reading := SensorReading{
+			SensorId:   req.SensorId,
+			Value:      float64(req.Value),
+			Timestamp:  req.Timestamp.AsTime(),
+			SensorName: sensor.Sensor.Name,
+			Location:   sensor.Sensor.Location,
+			Unit:       update.Unit,
+		}
+
+		body, err := json.Marshal(reading)
+		if err != nil {
+			logger.Error("Failed to marshal reading", zap.Error(err))
+		} else {
+			err = h.channel.Publish(
+				"readings_exchange",
+				"",
+				false,
+				false,
+				amqp091.Publishing{
+					ContentType: "application/json",
+					Body:        body,
+				},
+			)
+			if err != nil {
+				logger.Error("Failed to publish update to RabbitMQ", zap.Error(err))
+			}
+		}
 	}
 
 	return &pb_data.StoreReadingResponse{}, nil

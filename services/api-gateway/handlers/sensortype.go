@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
+	"github.com/skni-kod/iot-monitor-backend/internal/types"
 )
 
 type SensorTypeHandler struct {
@@ -27,7 +28,7 @@ func NewSensorTypeHandler(client pb.SensorServiceClient) *SensorTypeHandler {
 // @Tags SensorTypes
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {array} SensorTypeResponse "List of sensor types"
+// @Success 200 {array} types.SensorTypeResponse "List of sensor types"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 500 {object} map[string]string
 // @Router /api/sensor-types [get]
@@ -41,9 +42,9 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	sensorTypeResponses := make([]SensorTypeResponse, 0, len(res.SensorTypes))
+	sensorTypeResponses := make([]types.SensorTypeResponse, 0, len(res.SensorTypes))
 	for _, st := range res.SensorTypes {
-		sensorTypeResponses = append(sensorTypeResponses, SensorTypeResponse{
+		sensorTypeResponses = append(sensorTypeResponses, types.SensorTypeResponse{
 			ID:           st.Id,
 			Name:         st.Name,
 			Model:        st.Model,
@@ -68,7 +69,7 @@ func (h *SensorTypeHandler) ListSensorTypes(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param id path int true "Sensor Type ID"
 // @Security ApiKeyAuth
-// @Success 200 {object} SensorTypeResponse "Sensor type details"
+// @Success 200 {object} types.SensorTypeResponse "Sensor type details"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 404 {object} map[string]string
@@ -96,7 +97,7 @@ func (h *SensorTypeHandler) GetSensorType(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	sensorType := SensorTypeResponse{
+	sensorType := types.SensorTypeResponse{
 		ID:           res.SensorType.Id,
 		Name:         res.SensorType.Name,
 		Model:        res.SensorType.Model,

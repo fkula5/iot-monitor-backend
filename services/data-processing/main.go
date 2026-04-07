@@ -12,6 +12,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	amqp "github.com/rabbitmq/amqp091-go"
+
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/data-processing/handlers"
@@ -54,18 +56,61 @@ func main() {
 		dbPass = "datapassword"
 	}
 
+	rabbitMQURL := os.Getenv("RABBITMQ_URL")
+	if rabbitMQURL == "" {
+		rabbitMQURL = "amqp://guest:guest@localhost:5672/"
+	}
+
 	environment := os.Getenv("ENVIRONMENT")
 	logLevel := os.Getenv("LOG_LEVEL")
 
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "data-processing",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
 	}
 	defer logger.Sync()
+
+	conn, err := amqp.Dial(rabbitMQURL)
+	if err != nil {
+		logger.Fatal("Failed to connect to RabbitMQ", zap.Error(err))
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		logger.Fatal("Failed to open a channel", zap.Error(err))
+	}
+	defer ch.Close()
+
+	err = ch.ExchangeDeclare(
+		"readings_exchange", // name
+		"fanout",            // type
+		true,                // durable
+		false,               // auto-deleted
+		false,               // internal
+		false,               // no-wait
+		nil,                 // arguments
+	)
+	if err != nil {
+		logger.Fatal("Failed to declare exchange", zap.Error(err))
+	}
+
+	q, err := ch.QueueDeclare(
+		"readings_queue", // name
+		false,            // durable
+		true,             // delete when unused
+		true,             // exclusive
+		false,            // no-wait
+		nil,              // arguments
+	)
+	if err != nil {
+		logger.Fatal("Failed to declare queue", zap.Error(err))
+	}
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPass, dbName)
@@ -99,7 +144,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	dataStore := storage.NewTimescaleStorage(db)
-	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient)
+	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient, ch, q)
 
 	logger.Info("Starting Data Service gRPC server on port", zap.String("port", grpcPort))
 	if err := grpcServer.Serve(lis); err != nil {
