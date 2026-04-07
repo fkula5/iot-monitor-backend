@@ -37,6 +37,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "data-generation-service",
 		OutputPaths: []string{"stdout"},
 	})
 	if err != nil {

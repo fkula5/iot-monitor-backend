@@ -47,6 +47,7 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
+		ServiceName: "auth",
 		OutputPaths: []string{"stdout"},
 	})
 
