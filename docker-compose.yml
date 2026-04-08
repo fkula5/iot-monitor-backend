@@ -113,25 +113,25 @@ services:
     networks:
       - iot-net
 
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: nginx_proxy
-  #   restart: always
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   environment:
-  #     NGINX_HOST: ${NGINX_HOST}
-  #     SSL_CERT: ${SSL_CERT}
-  #     SSL_KEY: ${SSL_KEY}
-  #     API_GATEWAY_PORT: ${API_GATEWAY_PORT}
-  #   volumes:
-  #     - ./nginx/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
-  #     - ./nginx/certs:/etc/nginx/certs:ro
-  #   networks:
-  #     - iot-net
-  #   depends_on:
-  #     - api-gateway
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      NGINX_HOST: ${NGINX_HOST}
+      SSL_CERT: ${SSL_CERT}
+      SSL_KEY: ${SSL_KEY}
+      API_GATEWAY_PORT: ${API_GATEWAY_PORT}
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - iot-net
+    depends_on:
+      - api-gateway
 
   data-processing-service:
     build:
