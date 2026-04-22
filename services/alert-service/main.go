@@ -165,7 +165,11 @@ func setupRabbitMQ(ch *amqp.Channel) {
 	}
 }
 
-func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
+type IMessagePublisher interface {
+	PublishWithContext(ctx context.Context, exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error
+}
+
+func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 	var data SensorData
 	if err := json.Unmarshal(body, &data); err != nil {
 		logger.Error("Error decoding JSON", zap.Error(err))
@@ -203,7 +207,9 @@ func processMessage(client *ent.Client, ch *amqp.Channel, body []byte) {
 				continue
 			}
 
-			publishAlert(ch, ctx, savedAlert, rule, data.Value)
+			if ch != nil {
+				publishAlert(ch, ctx, savedAlert, rule, data.Value)
+			}
 		}
 	}
 }
@@ -218,7 +224,7 @@ func isTriggered(rule *ent.AlertRule, value float64) bool {
 	return false
 }
 
-func publishAlert(ch *amqp.Channel, ctx context.Context, a *ent.Alert, rule *ent.AlertRule, val float64) {
+func publishAlert(ch IMessagePublisher, ctx context.Context, a *ent.Alert, rule *ent.AlertRule, val float64) {
 	event := AlertEvent{
 		AlertID:   a.ID,
 		RuleID:    rule.ID,
