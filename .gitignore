@@ -5,3 +5,4 @@ nginx/certs/*.key
 nginx/certs/*.pem
 .worktrees/
 .docs/
+.worktrees/
