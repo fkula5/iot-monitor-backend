@@ -63,6 +63,43 @@ func TestIsTriggered(t *testing.T) {
 	}
 }
 
+func TestFormatAlertMessage(t *testing.T) {
+	tests := []struct {
+		name          string
+		ruleName      string
+		conditionType string
+		threshold     float64
+		value         float64
+		expected      string
+	}{
+		{
+			name:          "GT triggered",
+			ruleName:      "High Temp",
+			conditionType: "GT",
+			threshold:     30.0,
+			value:         35.5,
+			expected:      "Alert: The 'High Temp' rule was triggered. Current value: 35.50 (Threshold: 30.00)",
+		},
+		{
+			name:          "LT triggered",
+			ruleName:      "Low Humidity",
+			conditionType: "LT",
+			threshold:     20.0,
+			value:         15.2,
+			expected:      "Alert: The 'Low Humidity' rule was triggered. Current value: 15.20 (Threshold: 20.00)",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := formatAlertMessage(tt.ruleName, tt.conditionType, tt.threshold, tt.value)
+			if got != tt.expected {
+				t.Errorf("formatAlertMessage() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestProcessMessage(t *testing.T) {
 	db, err := sql.Open("sqlite", "file:ent?mode=memory&cache=shared&_pragma=foreign_keys(1)")
 	if err != nil {
