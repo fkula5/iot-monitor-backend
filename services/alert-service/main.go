@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -30,14 +31,20 @@ type SensorData struct {
 }
 
 type AlertEvent struct {
-	AlertID   int       `json:"alert_id"`
-	RuleID    int       `json:"rule_id"`
-	UserID    int64     `json:"user_id"`
-	SensorID  int64     `json:"sensor_id"`
-	Message   string    `json:"message"`
-	Value     float64   `json:"value"`
-	Timestamp time.Time `json:"timestamp"`
+	AlertID    int       `json:"alert_id"`
+	RuleID     int       `json:"rule_id"`
+	UserID     int64     `json:"user_id"`
+	SensorID   int64     `json:"sensor_id"`
+	Message    string    `json:"message"`
+	Value      float64   `json:"value"`
+	Timestamp  time.Time `json:"timestamp"`
+	IsResolved bool      `json:"is_resolved"`
 }
+
+var (
+	ruleStateMap   = make(map[int]bool)
+	ruleStateMutex sync.RWMutex
+)
 
 func getEnvOrFail(key string) string {
 	value := os.Getenv(key)
@@ -187,7 +194,14 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 	}
 
 	for _, rule := range rules {
-		if isTriggered(rule, data.Value) {
+		triggered := isTriggered(rule, data.Value)
+
+		ruleStateMutex.Lock()
+		wasTriggered := ruleStateMap[rule.ID]
+		ruleStateMap[rule.ID] = triggered
+		ruleStateMutex.Unlock()
+
+		if triggered {
 			logger.Info("Alert triggered",
 				zap.Int64("sensor_id", data.SensorID),
 				zap.String("rule_name", rule.Name),
@@ -208,7 +222,17 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 			}
 
 			if ch != nil {
-				publishAlert(ch, ctx, savedAlert, rule, data.Value)
+				publishAlert(ch, ctx, savedAlert.ID, rule, data.Value, false)
+			}
+		} else if wasTriggered && !triggered {
+			logger.Info("Alert resolved",
+				zap.Int64("sensor_id", data.SensorID),
+				zap.String("rule_name", rule.Name),
+				zap.Float64("value", data.Value),
+				zap.Float64("threshold", rule.Threshold),
+			)
+			if ch != nil {
+				publishAlert(ch, ctx, 0, rule, data.Value, true)
 			}
 		}
 	}
@@ -229,15 +253,20 @@ func isTriggered(rule *ent.AlertRule, value float64) bool {
 	return false
 }
 
-func publishAlert(ch IMessagePublisher, ctx context.Context, a *ent.Alert, rule *ent.AlertRule, val float64) {
+func publishAlert(ch IMessagePublisher, ctx context.Context, alertID int, rule *ent.AlertRule, val float64, isResolved bool) {
+	msgStr := rule.Name + " Alert"
+	if isResolved {
+		msgStr = rule.Name + " Resolved"
+	}
 	event := AlertEvent{
-		AlertID:   a.ID,
-		RuleID:    rule.ID,
-		UserID:    rule.UserID,
-		SensorID:  rule.SensorID,
-		Message:   a.Message,
-		Value:     val,
-		Timestamp: time.Now(),
+		AlertID:    alertID,
+		RuleID:     rule.ID,
+		UserID:     rule.UserID,
+		SensorID:   rule.SensorID,
+		Message:    msgStr,
+		Value:      val,
+		Timestamp:  time.Now(),
+		IsResolved: isResolved,
 	}
 	body, _ := json.Marshal(event)
 	err := ch.PublishWithContext(ctx, "alerts_exchange", "", false, false, amqp.Publishing{

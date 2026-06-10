@@ -122,6 +122,7 @@ func TestProcessMessage(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("Triggers and Saves Alert", func(t *testing.T) {
+		ruleStateMap = make(map[int]bool)
 		mockPub := new(MockPublisher)
 		
 		data := SensorData{
@@ -134,7 +135,7 @@ func TestProcessMessage(t *testing.T) {
 		mockPub.On("PublishWithContext", mock.Anything, "alerts_exchange", "", false, false, mock.MatchedBy(func(p amqp.Publishing) bool {
 			var event AlertEvent
 			json.Unmarshal(p.Body, &event)
-			return event.Value == 35.0 && event.SensorID == 1
+			return event.Value == 35.0 && event.SensorID == 1 && !event.IsResolved
 		})).Return(nil)
 
 		processMessage(client, mockPub, body)
@@ -149,6 +150,7 @@ func TestProcessMessage(t *testing.T) {
 	})
 
 	t.Run("Does Not Trigger Below Threshold", func(t *testing.T) {
+		ruleStateMap = make(map[int]bool)
 		mockPub := new(MockPublisher)
 		
 		data := SensorData{
@@ -164,5 +166,30 @@ func TestProcessMessage(t *testing.T) {
 		assert.Equal(t, 1, count)
 
 		mockPub.AssertNotCalled(t, "PublishWithContext", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("Transition from Triggered to Resolved", func(t *testing.T) {
+		ruleStateMap = make(map[int]bool)
+		// Set rule as triggered
+		ruleStateMap[1] = true
+		mockPub := new(MockPublisher)
+		
+		data := SensorData{
+			SensorID:  1,
+			Value:     25.0,
+			Timestamp: time.Now(),
+		}
+		body, _ := json.Marshal(data)
+
+		mockPub.On("PublishWithContext", mock.Anything, "alerts_exchange", "", false, false, mock.MatchedBy(func(p amqp.Publishing) bool {
+			var event AlertEvent
+			json.Unmarshal(p.Body, &event)
+			return event.Value == 25.0 && event.SensorID == 1 && event.IsResolved
+		})).Return(nil)
+
+		processMessage(client, mockPub, body)
+
+		mockPub.AssertExpectations(t)
+		assert.False(t, ruleStateMap[1]) // map should be updated to false (resolved)
 	})
 }

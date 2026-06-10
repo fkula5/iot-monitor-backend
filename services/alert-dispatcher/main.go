@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"sync"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -20,13 +21,24 @@ import (
 )
 
 type AlertEvent struct {
-        AlertID   int       `json:"alert_id"`
-        RuleID    int       `json:"rule_id"`
-        UserID    int64     `json:"user_id"`
-        SensorID  int64     `json:"sensor_id"`
-        Message   string    `json:"message"`
-        Value     float64   `json:"value"`
-        Timestamp time.Time `json:"timestamp"`
+	AlertID    int       `json:"alert_id"`
+	RuleID     int       `json:"rule_id"`
+	UserID     int64     `json:"user_id"`
+	SensorID   int64     `json:"sensor_id"`
+	Message    string    `json:"message"`
+	Value      float64   `json:"value"`
+	Timestamp  time.Time `json:"timestamp"`
+	IsResolved bool      `json:"is_resolved"`
+}
+
+var (
+	cooldowns      = make(map[int]time.Time)
+	cooldownsMutex sync.Mutex
+	cooldownPeriod = 15 * time.Minute
+)
+
+type IMailer interface {
+	SendAlertEmail(to string, event AlertEvent) error
 }
 func main() {
 	environment := os.Getenv("ENVIRONMENT")
@@ -51,6 +63,15 @@ func main() {
 	defer logger.Sync()
 
 	logger.Info("Starting Alert Dispatcher Service")
+
+	if durationStr := os.Getenv("ALERT_COOLDOWN_DURATION"); durationStr != "" {
+		if d, err := time.ParseDuration(durationStr); err == nil {
+			cooldownPeriod = d
+			logger.Info("Configured custom alert cooldown duration", zap.Duration("duration", d))
+		} else {
+			logger.Warn("Invalid ALERT_COOLDOWN_DURATION format, using default 15m", zap.Error(err))
+		}
+	}
 
 	rabbitURL := os.Getenv("RABBITMQ_URL")
 	if rabbitURL == "" {
@@ -163,30 +184,52 @@ func main() {
 	logger.Info("Shutting down Alert Dispatcher Service")
 }
 
-func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer *Mailer) {
+func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer IMailer) {
 	var event AlertEvent
 	if err := json.Unmarshal(body, &event); err != nil {
 		logger.Error("Failed to unmarshal alert event", zap.Error(err))
 		return
 	}
 
-	logger.Info("Received alert event",
-		zap.Int("alert_id", event.AlertID),
-		zap.Int64("user_id", event.UserID),
-		zap.String("message", event.Message),
-	)
+	cooldownsMutex.Lock()
+	if event.IsResolved {
+		delete(cooldowns, event.RuleID)
+		cooldownsMutex.Unlock()
+		logger.Info("Reset cooldown for rule", zap.Int("rule_id", event.RuleID))
+		
+		sendEmail(event, authClient, mailer)
+		return
+	}
 
+	lastSent, exists := cooldowns[event.RuleID]
+	if exists && time.Since(lastSent) < cooldownPeriod {
+		cooldownsMutex.Unlock()
+		logger.Info("Alert suppressed due to cooldown", 
+			zap.Int("rule_id", event.RuleID), 
+			zap.Duration("elapsed", time.Since(lastSent)),
+		)
+		return
+	}
+
+	cooldowns[event.RuleID] = time.Now()
+	cooldownsMutex.Unlock()
+
+	sendEmail(event, authClient, mailer)
+}
+
+func sendEmail(event AlertEvent, authClient pb_auth.AuthServiceClient, mailer IMailer) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	userRes, err := authClient.GetUser(ctx, &pb_auth.GetUserRequest{Id: event.UserID})
 	if err != nil {
-	        logger.Error("Failed to fetch user details", zap.Int64("user_id", event.UserID), zap.Error(err))
-	        return
+		logger.Error("Failed to fetch user details", zap.Int64("user_id", event.UserID), zap.Error(err))
+		return
 	}
 	logger.Info("Dispatching alert to user",
 		zap.String("email", userRes.User.Email),
 		zap.String("username", userRes.User.Username),
+		zap.Bool("is_resolved", event.IsResolved),
 	)
 
 	if err := mailer.SendAlertEmail(userRes.User.Email, event); err != nil {
