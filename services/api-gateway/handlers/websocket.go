@@ -22,6 +22,7 @@ import (
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/pkg/validator"
 )
 
 var upgrader = websocket.Upgrader{
@@ -369,6 +370,13 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if errs := validator.ValidateStruct(req); errs != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Validation failed", "details": errs})
+		return
+	}
+
 	// Domyślny timestamp, jeśli nie podano
 	if req.Timestamp.IsZero() {
 		req.Timestamp = time.Now()
@@ -380,7 +388,7 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 	// Wywołanie usługi gRPC data-processing
 	_, err := h.dataClient.StoreReading(ctx, &pb_data.StoreReadingRequest{
 		SensorId:  req.SensorID,
-		Value:     req.Value,
+		Value:     *req.Value,
 		Timestamp: timestamppb.New(req.Timestamp),
 	})
 

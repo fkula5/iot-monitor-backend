@@ -199,7 +199,7 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 				SetRule(rule).
 				SetUserID(rule.UserID).
 				SetValue(data.Value).
-				SetMessage(fmt.Sprintf("Rule '%s' violated: val %f", rule.Name, data.Value)).
+				SetMessage(formatAlertMessage(rule.Name, rule.ConditionType, rule.Threshold, data.Value)).
 				Save(ctx)
 
 			if err != nil {
@@ -212,6 +212,11 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 			}
 		}
 	}
+}
+
+func formatAlertMessage(ruleName string, _ string, threshold float64, value float64) string {
+	return fmt.Sprintf("Alert: The '%s' rule was triggered. Current value: %.2f (Threshold: %.2f)",
+		ruleName, value, threshold)
 }
 
 func isTriggered(rule *ent.AlertRule, value float64) bool {
