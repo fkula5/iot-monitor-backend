@@ -7,17 +7,17 @@ import (
 )
 
 type CreateSensorRequest struct {
-	Name         string `json:"name" validate:"required,min=3,max=100"`
-	Location     string `json:"location" validate:"max=255"`
-	Description  string `json:"description" validate:"max=500"`
-	SensorTypeId int64  `json:"sensor_type_id" validate:"required,gt=0"`
+	Name         string `json:"name"`
+	Location     string `json:"location"`
+	Description  string `json:"description"`
+	SensorTypeId int64  `json:"sensor_type_id"`
 }
 
 type UpdateSensorRequest struct {
-	Name         *string `json:"name,omitempty" validate:"omitempty,min=3,max=100"`
-	Location     *string `json:"location,omitempty" validate:"omitempty,max=255"`
-	Description  *string `json:"description,omitempty" validate:"omitempty,max=500"`
-	SensorTypeId *int64  `json:"sensor_type_id,omitempty" validate:"omitempty,gt=0"`
+	Name         *string `json:"name,omitempty"`
+	Location     *string `json:"location,omitempty"`
+	Description  *string `json:"description,omitempty"`
+	SensorTypeId *int64  `json:"sensor_type_id,omitempty"`
 	Active       *bool   `json:"active,omitempty"`
 }
 
