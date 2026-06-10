@@ -380,7 +380,7 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 	// Wywołanie usługi gRPC data-processing
 	_, err := h.dataClient.StoreReading(ctx, &pb_data.StoreReadingRequest{
 		SensorId:  req.SensorID,
-		Value:     req.Value,
+		Value:     *req.Value,
 		Timestamp: timestamppb.New(req.Timestamp),
 	})
 

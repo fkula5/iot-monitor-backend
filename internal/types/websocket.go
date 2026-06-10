@@ -18,7 +18,7 @@ type SubscribeMessage struct {
 
 type StoreReadingRequest struct {
 	SensorID  int64     `json:"sensor_id" validate:"required,gt=0"`
-	Value     float32   `json:"value" validate:"required"`
+	Value     *float32  `json:"value" validate:"required"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
