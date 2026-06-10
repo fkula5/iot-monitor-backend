@@ -14,6 +14,7 @@ import (
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
+	"github.com/skni-kod/iot-monitor-backend/pkg/validator"
 )
 
 type SensorHandler struct {
@@ -168,12 +169,10 @@ func (h *SensorHandler) CreateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Name == "" {
-		http.Error(w, "Name is required", http.StatusBadRequest)
-		return
-	}
-	if req.SensorTypeId <= 0 {
-		http.Error(w, "Valid sensor_type_id is required", http.StatusBadRequest)
+	if errs := validator.ValidateStruct(req); errs != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Validation failed", "details": errs})
 		return
 	}
 
@@ -232,6 +231,13 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if errs := validator.ValidateStruct(req); errs != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Validation failed", "details": errs})
+		return
+	}
+
 	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -278,15 +284,6 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		grpcReq.SensorTypeId = *req.SensorTypeId
-	}
-
-	if grpcReq.Name == "" {
-		http.Error(w, "Name cannot be empty", http.StatusBadRequest)
-		return
-	}
-	if grpcReq.SensorTypeId <= 0 {
-		http.Error(w, "Valid SensorTypeID is required", http.StatusBadRequest)
-		return
 	}
 
 	res, err := h.client.UpdateSensor(ctx, grpcReq)
