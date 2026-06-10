@@ -22,15 +22,23 @@ func (m *Mailer) SendAlertEmail(to string, event AlertEvent) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", m.from)
 	msg.SetHeader("To", to)
-	msg.SetHeader("Subject", "IOT Alert: "+event.Message)
+	
+	subject := "IOT Alert: " + event.Message
+	title := "IOT Alert Triggered"
+	if event.IsResolved {
+		subject = "IOT Resolved: " + event.Message
+		title = "IOT Alert Resolved"
+	}
+	msg.SetHeader("Subject", subject)
+
 	msg.SetBody("text/html", fmt.Sprintf(`
-		<h2>IOT Alert Triggered</h2>
+		<h2>%s</h2>
 		<p><strong>Message:</strong> %s</p>
 		<p><strong>Sensor ID:</strong> %d</p>
 		<p><strong>Value:</strong> %f</p>
 		<p><strong>Time:</strong> %s</p>
-		`, event.Message, event.SensorID, event.Value, event.Timestamp.Format(time.RFC1123)))
+		`, title, event.Message, event.SensorID, event.Value, event.Timestamp.Format(time.RFC1123)))
 
-		return m.dialer.DialAndSend(msg)
-		}
+	return m.dialer.DialAndSend(msg)
+}
 
