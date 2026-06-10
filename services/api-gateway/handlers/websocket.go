@@ -22,6 +22,7 @@ import (
 	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/pkg/validator"
 )
 
 var upgrader = websocket.Upgrader{
@@ -366,6 +367,13 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 	var req types.StoreReadingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if errs := validator.ValidateStruct(req); errs != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Validation failed", "details": errs})
 		return
 	}
 
