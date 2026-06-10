@@ -214,7 +214,7 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 	}
 }
 
-func formatAlertMessage(ruleName string, conditionType string, threshold float64, value float64) string {
+func formatAlertMessage(ruleName string, _ string, threshold float64, value float64) string {
 	return fmt.Sprintf("Alert: The '%s' rule was triggered. Current value: %.2f (Threshold: %.2f)",
 		ruleName, value, threshold)
 }
