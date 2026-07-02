@@ -1,0 +1,40 @@
+name: PR Checks
+
+on:
+  push:
+    branches: [ "main", "master", "dev" ]
+  pull_request:
+    branches: [ "main", "master", "dev" ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: false # golangci-lint-action has its own caching mechanism
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59 # You can change this to latest or any specific version you need
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Run tests
+        run: go test -v -race ./...
