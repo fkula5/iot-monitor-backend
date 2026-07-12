@@ -22,7 +22,9 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.59 # You can change this to latest or any specific version you need
+          version: latest
+          args: --timeout=5m
+          only-new-issues: false
 
   test:
     name: Test
