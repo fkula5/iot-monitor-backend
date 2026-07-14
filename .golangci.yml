@@ -1,28 +1,24 @@
+version: "2"
 run:
-  timeout: 10m
+  go: "1.24"
   issues-exit-code: 1
   tests: true
-  go: "1.24"
-
-
-
 linters:
-  disable-all: true
+  default: none
   enable:
-    # Default linters
     - errcheck
     - govet
     - ineffassign
-    - staticcheck
-    - unused
-
-    # Additional recommended linters
     - misspell
     - revive
+    - staticcheck
     - unconvert
     - unparam
-
-linters-settings:
+    - unused
+  settings:
+    misspell:
+      ignore-words:
+        - nowe
     errcheck:
       check-type-assertions: false
       check-blank: false
@@ -46,7 +42,6 @@ linters-settings:
         - (*google.golang.org/grpc.ClientConn).Close
         - (*github.com/rabbitmq/amqp091-go.Connection).Close
         - (*github.com/rabbitmq/amqp091-go.Channel).Close
-
     govet:
       enable:
         - assign
@@ -69,42 +64,45 @@ linters-settings:
         - unreachable
         - unsafeptr
         - unusedresult
-
     revive:
       severity: warning
       rules:
         - name: exported
-          disabled: true # Disable if you don't want to require comments on all exports
-
+          disabled: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - errcheck
+          - unparam
+        path: _test\.go
+      - linters:
+          - all
+        path: \.pb\.go$
+      - linters:
+          - all
+        path: ent/
+      - linters:
+          - errcheck
+        text: Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*print(f|ln)?|os\.(Un)?Setenv). is not checked
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  max-issues-per-linter: 0 # 0 = unlimited
-  max-same-issues: 0 # 0 = unlimited
-  new: false # Report all issues, not just new ones
-  fix: true # Auto-fix issues when possible
-  exclude-rules:
-    # Exclude some linters from running on test files
-    - path: _test\.go
-      linters:
-        - errcheck
-        - unparam
-
-    # Exclude generated files
-    - path: '\.pb\.go$'
-      linters:
-        - all
-
-    - path: "ent/"
-      linters:
-        - all
-
-    # Exclude common false positives
-    - linters:
-        - errcheck
-      text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print(f|ln)?|os\\.(Un)?Setenv). is not checked"
-
-output:
-  formats:
-    - format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-  sort-results: true
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  fix: false
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
