@@ -461,6 +461,8 @@ All endpoints are prefixed as shown. Protected routes require `Authorization: Be
 
 ### Data — `/api/data`
 
+All data routes require authentication and only expose the caller's own sensors. Browsers cannot send headers on a WebSocket handshake, so the WebSocket endpoint also accepts the JWT as a `token` query parameter (e.g. `/api/data/ws/readings?token=<jwt>`). Alerts sent over the WebSocket are limited to the connected user.
+
 | Method | Path                                                             | Description                            |
 | ------ | ---------------------------------------------------------------- | -------------------------------------- |
 | GET    | `/api/data/ws/readings?sensor_ids=1,2,3`                         | WebSocket: real-time readings + alerts |

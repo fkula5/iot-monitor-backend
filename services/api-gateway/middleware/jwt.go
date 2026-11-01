@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 
 	"github.com/skni-kod/iot-monitor-backend/internal/auth"
@@ -43,6 +44,12 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			if err == nil {
 				token = cookie.Value
 			}
+		}
+
+		// Browsers cannot set headers on WebSocket handshakes, so allow the
+		// token as a query parameter for upgrade requests only.
+		if token == "" && websocket.IsWebSocketUpgrade(r) {
+			token = r.URL.Query().Get("token")
 		}
 
 		if token == "" {
