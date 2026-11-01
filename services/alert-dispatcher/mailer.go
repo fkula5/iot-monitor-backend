@@ -1,11 +1,12 @@
 package main
 
 import (
-        "fmt"
-        "time"
+	"fmt"
+	"time"
 
-        "gopkg.in/gomail.v2"
+	"gopkg.in/gomail.v2"
 )
+
 type Mailer struct {
 	dialer *gomail.Dialer
 	from   string
@@ -22,7 +23,7 @@ func (m *Mailer) SendAlertEmail(to string, event AlertEvent) error {
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", m.from)
 	msg.SetHeader("To", to)
-	
+
 	subject := "IOT Alert: " + event.Message
 	title := "IOT Alert Triggered"
 	if event.IsResolved {
@@ -41,4 +42,3 @@ func (m *Mailer) SendAlertEmail(to string, event AlertEvent) error {
 
 	return m.dialer.DialAndSend(msg)
 }
-
