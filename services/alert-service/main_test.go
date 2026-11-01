@@ -124,7 +124,7 @@ func TestProcessMessage(t *testing.T) {
 	t.Run("Triggers and Saves Alert", func(t *testing.T) {
 		ruleStateMap = make(map[int]bool)
 		mockPub := new(MockPublisher)
-		
+
 		data := SensorData{
 			SensorID:  1,
 			Value:     35.0,
@@ -152,7 +152,7 @@ func TestProcessMessage(t *testing.T) {
 	t.Run("Does Not Trigger Below Threshold", func(t *testing.T) {
 		ruleStateMap = make(map[int]bool)
 		mockPub := new(MockPublisher)
-		
+
 		data := SensorData{
 			SensorID:  1,
 			Value:     25.0,
@@ -173,7 +173,7 @@ func TestProcessMessage(t *testing.T) {
 		// Set rule as triggered
 		ruleStateMap[1] = true
 		mockPub := new(MockPublisher)
-		
+
 		data := SensorData{
 			SensorID:  1,
 			Value:     25.0,

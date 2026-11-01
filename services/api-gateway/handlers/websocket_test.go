@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
-	
+
 	pb_data "github.com/skni-kod/iot-monitor-backend/internal/proto/data_service"
 )
 
@@ -51,7 +51,7 @@ func TestStoreReading_Validation(t *testing.T) {
 		handler.StoreReading(rr, req)
 
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		
+
 		var resp map[string]interface{}
 		json.Unmarshal(rr.Body.Bytes(), &resp)
 		assert.Equal(t, "Validation failed", resp["error"])
@@ -70,7 +70,7 @@ func TestStoreReading_Validation(t *testing.T) {
 		handler.StoreReading(rr, req)
 
 		assert.Equal(t, http.StatusBadRequest, rr.Code)
-		
+
 		var resp map[string]interface{}
 		json.Unmarshal(rr.Body.Bytes(), &resp)
 		assert.Equal(t, "Validation failed", resp["error"])
@@ -91,7 +91,7 @@ func TestStoreReading_Validation(t *testing.T) {
 		handler.StoreReading(rr, req)
 
 		assert.Equal(t, http.StatusOK, rr.Code)
-		
+
 		var resp map[string]string
 		json.Unmarshal(rr.Body.Bytes(), &resp)
 		assert.Equal(t, "success", resp["status"])

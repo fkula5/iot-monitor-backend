@@ -13,8 +13,8 @@ import (
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
-	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 	"github.com/skni-kod/iot-monitor-backend/pkg/validator"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type SensorHandler struct {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
 	"sync"
+	"syscall"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -40,6 +40,7 @@ var (
 type IMailer interface {
 	SendAlertEmail(to string, event AlertEvent) error
 }
+
 func main() {
 	environment := os.Getenv("ENVIRONMENT")
 	if environment == "" {
@@ -196,7 +197,7 @@ func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer IMai
 		delete(cooldowns, event.RuleID)
 		cooldownsMutex.Unlock()
 		logger.Info("Reset cooldown for rule", zap.Int("rule_id", event.RuleID))
-		
+
 		sendEmail(event, authClient, mailer)
 		return
 	}
@@ -204,8 +205,8 @@ func processAlert(body []byte, authClient pb_auth.AuthServiceClient, mailer IMai
 	lastSent, exists := cooldowns[event.RuleID]
 	if exists && time.Since(lastSent) < cooldownPeriod {
 		cooldownsMutex.Unlock()
-		logger.Info("Alert suppressed due to cooldown", 
-			zap.Int("rule_id", event.RuleID), 
+		logger.Info("Alert suppressed due to cooldown",
+			zap.Int("rule_id", event.RuleID),
 			zap.Duration("elapsed", time.Since(lastSent)),
 		)
 		return

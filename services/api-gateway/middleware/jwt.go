@@ -58,7 +58,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
+		if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
 			logger.Warn("Token expired", zap.Int("userId", claims.UserId), zap.String("path", r.URL.Path))
 			http.Error(w, "Token expired", http.StatusUnauthorized)
 			return
