@@ -92,9 +92,11 @@ func TestStoreReading_Validation(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rr.Code)
 
-		var resp map[string]string
+		var resp struct {
+			Data map[string]string `json:"data"`
+		}
 		json.Unmarshal(rr.Body.Bytes(), &resp)
-		assert.Equal(t, "success", resp["status"])
+		assert.Equal(t, "success", resp.Data["status"])
 		mockDataClient.AssertExpectations(t)
 	})
 }
