@@ -27,10 +27,11 @@ func (m *Mailer) SendResetPasswordEmail(to, token string) error {
 	msg.SetHeader("From", m.from)
 	msg.SetHeader("To", to)
 	msg.SetHeader("Subject", "Reset Twojego hasła - IOT Monitor")
+	//nolint:misspell // Polish text
 	msg.SetBody("text/html", fmt.Sprintf(`
 		<h2>Odzyskiwanie hasła</h2>
 		<p>Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.</p>
-		<p>Kliknij w poniższy link, aby ustawić now hasło (link jest ważny przez 1 godzinę):</p>
+		<p>Kliknij w poniższy link, aby ustawić nowe hasło (link jest ważny przez 1 godzinę):</p>
 		<p><a href="%s">%s</a></p>
 		<p>Jeśli to nie Ty prosiłeś o zmianę hasła, możesz zignorować tę wiadomość.</p>
 		`, resetLink, resetLink))
