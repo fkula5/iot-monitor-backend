@@ -20,6 +20,7 @@ import (
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/pkg/validator"
+	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,7 +34,7 @@ var upgrader = websocket.Upgrader{
 type WebSocketHandler struct {
 	dataClient   pb_data.DataServiceClient
 	sensorClient pb_sensor.SensorServiceClient
-	clients      map[*websocket.Conn]bool
+	clients      map[*websocket.Conn]int64 // connection -> user ID
 	clientsMu    sync.RWMutex
 }
 
@@ -41,7 +42,7 @@ func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_s
 	h := &WebSocketHandler{
 		dataClient:   dataClient,
 		sensorClient: sensorClient,
-		clients:      make(map[*websocket.Conn]bool),
+		clients:      make(map[*websocket.Conn]int64),
 	}
 
 	if alertMsgs != nil {
@@ -57,29 +58,34 @@ func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_s
 // @Param sensor_ids query string false "Comma-separated sensor IDs"
 // @Router /api/data/ws/readings [get]
 func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request) {
-	sensorIDsParam := r.URL.Query().Get("sensor_ids")
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		Error(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	userID := int64(claims.UserId)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	owned, err := h.userSensors(ctx, userID)
+	cancel()
+	if err != nil {
+		Error(w, http.StatusInternalServerError, "Failed to fetch sensors")
+		return
+	}
+
 	var sensorIDs []int64
-	if sensorIDsParam != "" {
+	if sensorIDsParam := r.URL.Query().Get("sensor_ids"); sensorIDsParam != "" {
 		for _, idStr := range strings.Split(sensorIDsParam, ",") {
 			id, err := strconv.ParseInt(strings.TrimSpace(idStr), 10, 64)
 			if err == nil {
 				sensorIDs = append(sensorIDs, id)
 			}
 		}
-	}
-
-	if len(sensorIDs) == 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		for userId := int64(1); userId <= 10; userId++ {
-			sensors, err := h.sensorClient.ListSensors(ctx, &pb_sensor.ListSensorsRequest{UserId: userId})
-			if err == nil && sensors.Sensors != nil {
-				for _, sensor := range sensors.Sensors {
-					if sensor.Active {
-						sensorIDs = append(sensorIDs, sensor.Id)
-					}
-				}
+		sensorIDs = filterOwned(sensorIDs, owned)
+	} else {
+		for id, active := range owned {
+			if active {
+				sensorIDs = append(sensorIDs, id)
 			}
 		}
 	}
@@ -91,7 +97,7 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 	}
 
 	h.clientsMu.Lock()
-	h.clients[conn] = true
+	h.clients[conn] = userID
 	h.clientsMu.Unlock()
 
 	defer func() {
@@ -111,10 +117,59 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 			break
 		}
 
-		if msg.Type == "subscribe" && len(msg.SensorIDs) > 0 {
-			go h.streamToClient(conn, msg.SensorIDs)
+		if msg.Type == "subscribe" {
+			if ids := filterOwned(msg.SensorIDs, owned); len(ids) > 0 {
+				go h.streamToClient(conn, ids)
+			}
 		}
 	}
+}
+
+// userSensors returns the IDs of the user's sensors mapped to their active flag.
+func (h *WebSocketHandler) userSensors(ctx context.Context, userID int64) (map[int64]bool, error) {
+	res, err := h.sensorClient.ListSensors(ctx, &pb_sensor.ListSensorsRequest{UserId: userID})
+	if err != nil {
+		return nil, err
+	}
+	owned := make(map[int64]bool, len(res.Sensors))
+	for _, s := range res.Sensors {
+		owned[s.Id] = s.Active
+	}
+	return owned, nil
+}
+
+func filterOwned(ids []int64, owned map[int64]bool) []int64 {
+	result := make([]int64, 0, len(ids))
+	for _, id := range ids {
+		if _, ok := owned[id]; ok {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
+// authorizeSensors writes an error response and returns false unless every
+// sensor ID belongs to the authenticated user.
+func (h *WebSocketHandler) authorizeSensors(w http.ResponseWriter, r *http.Request, ids ...int64) bool {
+	claims, ok := authMiddleware.GetUserFromContext(r.Context())
+	if !ok {
+		Error(w, http.StatusUnauthorized, "Unauthorized")
+		return false
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	owned, err := h.userSensors(ctx, int64(claims.UserId))
+	if err != nil {
+		Error(w, http.StatusInternalServerError, "Failed to fetch sensors")
+		return false
+	}
+	if len(filterOwned(ids, owned)) != len(ids) {
+		Error(w, http.StatusNotFound, "Sensor not found")
+		return false
+	}
+	return true
 }
 
 func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int64) {
@@ -144,7 +199,7 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 		}
 
 		h.clientsMu.RLock()
-		clientExists := h.clients[conn]
+		_, clientExists := h.clients[conn]
 		h.clientsMu.RUnlock()
 
 		if !clientExists {
@@ -171,6 +226,9 @@ func (h *WebSocketHandler) GetHistoricalReadings(w http.ResponseWriter, r *http.
 	sensorID, err := strconv.ParseInt(chi.URLParam(r, "sensor_id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid sensor_id")
+		return
+	}
+	if !h.authorizeSensors(w, r, sensorID) {
 		return
 	}
 
@@ -238,6 +296,9 @@ func (h *WebSocketHandler) GetLatestReadings(w http.ResponseWriter, r *http.Requ
 		}
 		sensorIDs = append(sensorIDs, id)
 	}
+	if !h.authorizeSensors(w, r, sensorIDs...) {
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
@@ -266,6 +327,9 @@ func (h *WebSocketHandler) GetSensorLatestReadings(w http.ResponseWriter, r *htt
 	sensorID, err := strconv.ParseInt(chi.URLParam(r, "sensor_id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid sensor_id")
+		return
+	}
+	if !h.authorizeSensors(w, r, sensorID) {
 		return
 	}
 
@@ -314,6 +378,9 @@ func (h *WebSocketHandler) StoreReading(w http.ResponseWriter, r *http.Request) 
 		json.NewEncoder(w).Encode(map[string]interface{}{"error": "Validation failed", "details": errs})
 		return
 	}
+	if !h.authorizeSensors(w, r, req.SensorID) {
+		return
+	}
 
 	if req.Timestamp.IsZero() {
 		req.Timestamp = time.Now()
@@ -341,6 +408,12 @@ func (h *WebSocketHandler) broadcastAlerts(alertMsgs <-chan amqp.Delivery) {
 		if err := json.Unmarshal(m.Body, &alert); err != nil {
 			continue
 		}
+		var owner struct {
+			UserID int64 `json:"user_id"`
+		}
+		if err := json.Unmarshal(m.Body, &owner); err != nil || owner.UserID == 0 {
+			continue
+		}
 
 		wsMsg := types.AlertMessage{
 			Type:    "alert",
@@ -348,7 +421,10 @@ func (h *WebSocketHandler) broadcastAlerts(alertMsgs <-chan amqp.Delivery) {
 		}
 
 		h.clientsMu.RLock()
-		for client := range h.clients {
+		for client, userID := range h.clients {
+			if userID != owner.UserID {
+				continue
+			}
 			if err := client.WriteJSON(wsMsg); err != nil {
 				client.Close()
 				h.clientsMu.RUnlock()
