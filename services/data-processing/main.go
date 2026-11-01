@@ -67,8 +67,8 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "data-processing",
 		OutputPaths: []string{"stdout"},
+		ServiceName: "data-processing-service",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
@@ -142,7 +142,9 @@ func main() {
 		)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 	dataStore := storage.NewTimescaleStorage(db)
 	handlers.NewDataGrpcHandler(grpcServer, dataStore, sensorClient, ch, q)
 

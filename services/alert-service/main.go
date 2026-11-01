@@ -68,8 +68,8 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "alert-service",
 		OutputPaths: []string{"stdout"},
+		ServiceName: "alert-service",
 	})
 	if err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
@@ -89,7 +89,10 @@ func main() {
 	dbName := getEnvOrFail("ALERT_SERVICE_DB_NAME")
 	grpcPort := getEnvOrFail("ALERT_SERVICE_GRPC_PORT")
 
-	drv := database.NewDriver(dbHost, dbPort, dbUser, dbPass, dbName)
+	drv, err := database.NewDriver(dbHost, dbPort, dbUser, dbPass, dbName)
+	if err != nil {
+		logger.Fatal("failed to create database driver", zap.Error(err))
+	}
 	client := ent.NewClient(ent.Driver(drv))
 	defer client.Close()
 
@@ -109,7 +112,9 @@ func main() {
 		logger.Fatal("failed to listen", zap.String("port", grpcPort), zap.Error(err))
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 	pb.RegisterAlertServiceServer(s, handler)
 
 	go func() {

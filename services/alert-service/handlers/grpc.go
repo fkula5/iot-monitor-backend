@@ -3,11 +3,9 @@ package handlers
 import (
 	"context"
 
-	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
-	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
 	"github.com/skni-kod/iot-monitor-backend/services/alert-service/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/alert-service/service"
 )
@@ -26,20 +24,16 @@ func NewAlertGrpcHandler(alertService *service.AlertService, alertRuleService *s
 }
 
 func (h *AlertGrpcHandler) GetAlert(ctx context.Context, req *pb.GetAlertRequest) (*pb.GetAlertResponse, error) {
-	logger.Info("gRPC GetAlert", zap.Int64("id", req.Id))
 	a, err := h.alertService.GetAlert(ctx, int(req.Id))
 	if err != nil {
-		logger.Error("Failed to get alert", zap.Error(err), zap.Int64("id", req.Id))
 		return nil, err
 	}
 	return &pb.GetAlertResponse{Alert: h.mapAlert(a)}, nil
 }
 
 func (h *AlertGrpcHandler) ListAlerts(ctx context.Context, req *pb.ListAlertsRequest) (*pb.ListAlertsResponse, error) {
-	logger.Info("gRPC ListAlerts", zap.Int64("userId", req.UserId), zap.Int32("limit", req.Limit), zap.Int32("offset", req.Offset))
 	alerts, totalCount, err := h.alertService.ListAlerts(ctx, req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
-		logger.Error("Failed to list alerts", zap.Error(err), zap.Int64("userId", req.UserId))
 		return nil, err
 	}
 	res := make([]*pb.Alert, len(alerts))
@@ -53,20 +47,16 @@ func (h *AlertGrpcHandler) ListAlerts(ctx context.Context, req *pb.ListAlertsReq
 }
 
 func (h *AlertGrpcHandler) MarkAlertAsRead(ctx context.Context, req *pb.MarkAlertAsReadRequest) (*pb.MarkAlertAsReadResponse, error) {
-	logger.Info("gRPC MarkAlertAsRead", zap.Int64("id", req.Id))
 	success, err := h.alertService.MarkAsRead(ctx, int(req.Id))
 	if err != nil {
-		logger.Error("Failed to mark alert as read", zap.Error(err), zap.Int64("id", req.Id))
 		return nil, err
 	}
 	return &pb.MarkAlertAsReadResponse{Success: success}, nil
 }
 
 func (h *AlertGrpcHandler) ListAlertRules(ctx context.Context, req *pb.ListAlertRulesRequest) (*pb.ListAlertRulesResponse, error) {
-	logger.Info("gRPC ListAlertRules", zap.Int64("userId", req.UserId), zap.Int32("limit", req.Limit), zap.Int32("offset", req.Offset))
 	rules, totalCount, err := h.alertRuleService.ListAlertRules(ctx, req.UserId, int(req.Limit), int(req.Offset))
 	if err != nil {
-		logger.Error("Failed to list alert rules", zap.Error(err), zap.Int64("userId", req.UserId))
 		return nil, err
 	}
 	res := make([]*pb.AlertRule, len(rules))
@@ -80,7 +70,6 @@ func (h *AlertGrpcHandler) ListAlertRules(ctx context.Context, req *pb.ListAlert
 }
 
 func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAlertRuleRequest) (*pb.CreateAlertRuleResponse, error) {
-	logger.Info("gRPC CreateAlertRule", zap.Int64("userId", req.UserId), zap.Int64("sensorId", req.SensorId))
 	rule, err := h.alertRuleService.CreateAlertRule(ctx, &ent.AlertRule{
 		Name:          req.Name,
 		SensorID:      req.SensorId,
@@ -90,7 +79,6 @@ func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAl
 		UserID:        req.UserId,
 	})
 	if err != nil {
-		logger.Error("Failed to create alert rule", zap.Error(err), zap.Int64("userId", req.UserId), zap.Int64("sensorId", req.SensorId))
 		return nil, err
 	}
 	return &pb.CreateAlertRuleResponse{
@@ -99,20 +87,16 @@ func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAl
 }
 
 func (h *AlertGrpcHandler) DeleteAlertRule(ctx context.Context, req *pb.DeleteAlertRuleRequest) (*pb.DeleteAlertRuleResponse, error) {
-	logger.Info("gRPC DeleteAlertRule", zap.Int64("id", req.Id))
 	err := h.alertRuleService.DeleteAlertRule(ctx, req.Id)
 	if err != nil {
-		logger.Error("Failed to delete alert rule", zap.Error(err), zap.Int64("id", req.Id))
 		return nil, err
 	}
 	return &pb.DeleteAlertRuleResponse{}, nil
 }
 
 func (h *AlertGrpcHandler) GetAlertRule(ctx context.Context, req *pb.GetAlertRuleRequest) (*pb.GetAlertRuleResponse, error) {
-	logger.Info("gRPC GetAlertRule", zap.Int64("id", req.Id))
 	rule, err := h.alertRuleService.GetAlertRule(ctx, req.Id)
 	if err != nil {
-		logger.Error("Failed to get alert rule", zap.Error(err), zap.Int64("id", req.Id))
 		return nil, err
 	}
 	return &pb.GetAlertRuleResponse{
@@ -121,7 +105,6 @@ func (h *AlertGrpcHandler) GetAlertRule(ctx context.Context, req *pb.GetAlertRul
 }
 
 func (h *AlertGrpcHandler) UpdateAlertRule(ctx context.Context, req *pb.UpdateAlertRuleRequest) (*pb.UpdateAlertRuleResponse, error) {
-	logger.Info("gRPC UpdateAlertRule", zap.Int64("id", req.Id))
 	rule, err := h.alertRuleService.UpdateAlertRule(ctx, &ent.AlertRule{
 		ID:            int(req.Id),
 		Name:          req.Name,
@@ -133,7 +116,6 @@ func (h *AlertGrpcHandler) UpdateAlertRule(ctx context.Context, req *pb.UpdateAl
 	})
 
 	if err != nil {
-		logger.Error("Failed to update alert rule", zap.Error(err), zap.Int64("id", req.Id))
 		return nil, err
 	}
 	return &pb.UpdateAlertRuleResponse{

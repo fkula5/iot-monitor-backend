@@ -11,6 +11,7 @@ import (
 
 	"github.com/skni-kod/iot-monitor-backend/internal/database"
 	"github.com/skni-kod/iot-monitor-backend/pkg/logger"
+	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/ent"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/handlers"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/services"
 	"github.com/skni-kod/iot-monitor-backend/services/sensor-service/storage"
@@ -38,8 +39,8 @@ func main() {
 	err := logger.Init(logger.Config{
 		Level:       logLevel,
 		Environment: environment,
-		ServiceName: "sensor-service",
 		OutputPaths: []string{"stdout"},
+		ServiceName: "sensor-service",
 	})
 	if err != nil {
 		logger.Fatal("Failed to initialize logger", zap.Error(err))
@@ -65,13 +66,17 @@ func main() {
 		zap.String("user", user),
 	)
 
-	db := database.NewSensorDB(host, port, user, password, dbname)
-	defer db.Close()
+	drv, err := database.NewDriver(host, port, user, password, dbname)
+	if err != nil {
+		logger.Fatal("Failed to create database driver", zap.Error(err))
+	}
+	client := ent.NewClient(ent.Driver(drv))
+	defer client.Close()
 
 	ctx := context.Background()
 
 	logger.Info("Creating database schema")
-	if err := db.Schema.Create(ctx); err != nil {
+	if err := client.Schema.Create(ctx); err != nil {
 		logger.Fatal("Failed to create schema", zap.Error(err))
 	}
 	logger.Info("Database schema created successfully")
@@ -84,11 +89,13 @@ func main() {
 		)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(logger.UnaryServerInterceptor()),
+	)
 
-	sensorsStore := storage.NewSensorStorage(db)
-	sensorsTypeStore := storage.NewSensorTypeStorage(db)
-	sensorsGroupStore := storage.NewSensorGroupStorage(db)
+	sensorsStore := storage.NewSensorStorage(client)
+	sensorsTypeStore := storage.NewSensorTypeStorage(client)
+	sensorsGroupStore := storage.NewSensorGroupStorage(client)
 	sensorsService := services.NewSensorService(sensorsStore)
 	sensorsTypeService := services.NewSensorTypeService(sensorsTypeStore)
 	sensorsGroupService := services.NewSensorGroupService(sensorsGroupStore)
