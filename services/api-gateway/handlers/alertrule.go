@@ -10,16 +10,28 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
+	pb_sensor "github.com/skni-kod/iot-monitor-backend/internal/proto/sensor_service"
 	"github.com/skni-kod/iot-monitor-backend/internal/types"
 	authMiddleware "github.com/skni-kod/iot-monitor-backend/services/api-gateway/middleware"
 )
 
 type AlertRuleHandler struct {
-	client pb.AlertServiceClient
+	client       pb.AlertServiceClient
+	sensorClient pb_sensor.SensorServiceClient
 }
 
-func NewAlertRuleHandler(client pb.AlertServiceClient) *AlertRuleHandler {
-	return &AlertRuleHandler{client: client}
+func NewAlertRuleHandler(client pb.AlertServiceClient, sensorClient pb_sensor.SensorServiceClient) *AlertRuleHandler {
+	return &AlertRuleHandler{client: client, sensorClient: sensorClient}
+}
+
+// authorizeSensor writes an error response and returns false unless the sensor
+// belongs to the user.
+func (h *AlertRuleHandler) authorizeSensor(ctx context.Context, w http.ResponseWriter, sensorID, userID int64) bool {
+	if _, err := h.sensorClient.GetSensor(ctx, &pb_sensor.GetSensorRequest{Id: sensorID, UserId: userID}); err != nil {
+		grpcError(w, err, "Sensor not found", "Failed to verify sensor")
+		return false
+	}
+	return true
 }
 
 // @Summary List Alert Rules
@@ -107,6 +119,9 @@ func (h *AlertRuleHandler) CreateAlertRule(w http.ResponseWriter, r *http.Reques
 		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
+	if !h.authorizeSensor(ctx, w, req.SensorID, int64(claims.UserId)) {
+		return
+	}
 
 	res, err := h.client.CreateAlertRule(ctx, &pb.CreateAlertRuleRequest{
 		Name:          req.Name,
@@ -137,8 +152,8 @@ func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Reques
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
-		Error(w, http.StatusUnauthorized, "Unauthorized")
+	userID, ok := currentUserID(w, r)
+	if !ok {
 		return
 	}
 
@@ -148,8 +163,8 @@ func (h *AlertRuleHandler) DeleteAlertRule(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if _, err = h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{Id: id}); err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to delete alert rule")
+	if _, err = h.client.DeleteAlertRule(ctx, &pb.DeleteAlertRuleRequest{Id: id, UserId: userID}); err != nil {
+		grpcError(w, err, "Alert rule not found", "Failed to delete alert rule")
 		return
 	}
 
@@ -172,8 +187,8 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
-		Error(w, http.StatusUnauthorized, "Unauthorized")
+	userID, ok := currentUserID(w, r)
+	if !ok {
 		return
 	}
 
@@ -188,6 +203,9 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 		Error(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
+	if !h.authorizeSensor(ctx, w, req.SensorID, userID) {
+		return
+	}
 
 	res, err := h.client.UpdateAlertRule(ctx, &pb.UpdateAlertRuleRequest{
 		Id:            id,
@@ -197,9 +215,10 @@ func (h *AlertRuleHandler) UpdateAlertRule(w http.ResponseWriter, r *http.Reques
 		Threshold:     req.Threshold,
 		Description:   req.Description,
 		IsEnabled:     req.IsEnabled,
+		UserId:        userID,
 	})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to update alert rule")
+		grpcError(w, err, "Alert rule not found", "Failed to update alert rule")
 		return
 	}
 
@@ -219,8 +238,8 @@ func (h *AlertRuleHandler) GetAlertRule(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	if _, ok := authMiddleware.GetUserFromContext(r.Context()); !ok {
-		Error(w, http.StatusUnauthorized, "Unauthorized")
+	userID, ok := currentUserID(w, r)
+	if !ok {
 		return
 	}
 
@@ -230,9 +249,9 @@ func (h *AlertRuleHandler) GetAlertRule(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	res, err := h.client.GetAlertRule(ctx, &pb.GetAlertRuleRequest{Id: id})
+	res, err := h.client.GetAlertRule(ctx, &pb.GetAlertRuleRequest{Id: id, UserId: userID})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to get alert rule")
+		grpcError(w, err, "Alert rule not found", "Failed to get alert rule")
 		return
 	}
 

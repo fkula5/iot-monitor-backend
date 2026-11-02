@@ -219,7 +219,7 @@ func main() {
 	sensorGroupHandler := handlers.NewSensorGroupHandler(sensorClient)
 	authHandler := handlers.NewAuthHandler(authClient)
 	alertHandler := handlers.NewAlertHandler(alertClient)
-	alertRuleHandler := handlers.NewAlertRuleHandler(alertClient)
+	alertRuleHandler := handlers.NewAlertRuleHandler(alertClient, sensorClient)
 	dataHandler := handlers.NewWebSocketHandler(dataProcClient, sensorClient, alertMsgs)
 
 	apiRouter := chi.NewRouter()

@@ -74,6 +74,11 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -81,9 +86,9 @@ func (h *SensorHandler) GetSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
+	res, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id), UserId: userID})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to fetch sensor")
+		grpcError(w, err, "Sensor not found", "Failed to fetch sensor")
 		return
 	}
 
@@ -110,6 +115,11 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -118,10 +128,11 @@ func (h *SensorHandler) SetSensorActive(w http.ResponseWriter, r *http.Request) 
 	}
 
 	res, err := h.client.SetSensorActive(ctx, &pb.SetSensorActiveRequest{
-		Id: int64(id),
+		Id:     int64(id),
+		UserId: userID,
 	})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to update sensor: "+err.Error())
+		grpcError(w, err, "Sensor not found", "Failed to update sensor")
 		return
 	}
 
@@ -197,6 +208,11 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -217,7 +233,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id)})
+	currentSensorRes, err := h.client.GetSensor(ctx, &pb.GetSensorRequest{Id: int64(id), UserId: userID})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
@@ -236,6 +252,7 @@ func (h *SensorHandler) UpdateSensor(w http.ResponseWriter, r *http.Request) {
 		Description:  currentSensor.Description,
 		Active:       currentSensor.Active,
 		SensorTypeId: currentSensor.SensorTypeId,
+		UserId:       userID,
 	}
 
 	if req.Name != nil {
@@ -292,6 +309,11 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -299,7 +321,7 @@ func (h *SensorHandler) DeleteSensor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id)}); err != nil {
+	if _, err = h.client.DeleteSensor(ctx, &pb.DeleteSensorRequest{Id: int64(id), UserId: userID}); err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
 			Error(w, http.StatusNotFound, "Sensor not found")

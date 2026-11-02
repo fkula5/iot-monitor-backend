@@ -30,6 +30,7 @@ message Alert {
 
 message GetAlertRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message GetAlertResponse {
@@ -44,6 +45,7 @@ message ListAlertsRequest {
 
 message MarkAlertAsReadRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message MarkAlertAsReadResponse {
@@ -82,6 +84,7 @@ message CreateAlertRuleResponse {
 
 message GetAlertRuleRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message GetAlertRuleResponse {
@@ -107,6 +110,7 @@ message UpdateAlertRuleRequest {
     double threshold = 5;
     string description = 6;
     bool is_enabled = 7;
+    int64 user_id = 8;
 }
 
 message UpdateAlertRuleResponse {
@@ -115,6 +119,7 @@ message UpdateAlertRuleResponse {
 
 message DeleteAlertRuleRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message DeleteAlertRuleResponse {}

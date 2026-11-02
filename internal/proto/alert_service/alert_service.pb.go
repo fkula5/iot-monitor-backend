@@ -117,6 +117,7 @@ func (x *Alert) GetTriggeredAt() *timestamppb.Timestamp {
 type GetAlertRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,6 +155,13 @@ func (*GetAlertRequest) Descriptor() ([]byte, []int) {
 func (x *GetAlertRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *GetAlertRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -265,6 +273,7 @@ func (x *ListAlertsRequest) GetOffset() int32 {
 type MarkAlertAsReadRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -302,6 +311,13 @@ func (*MarkAlertAsReadRequest) Descriptor() ([]byte, []int) {
 func (x *MarkAlertAsReadRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *MarkAlertAsReadRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -641,6 +657,7 @@ func (x *CreateAlertRuleResponse) GetAlertRule() *AlertRule {
 type GetAlertRuleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -678,6 +695,13 @@ func (*GetAlertRuleRequest) Descriptor() ([]byte, []int) {
 func (x *GetAlertRuleRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *GetAlertRuleRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -847,6 +871,7 @@ type UpdateAlertRuleRequest struct {
 	Threshold     float64                `protobuf:"fixed64,5,opt,name=threshold,proto3" json:"threshold,omitempty"`
 	Description   string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
 	IsEnabled     bool                   `protobuf:"varint,7,opt,name=is_enabled,json=isEnabled,proto3" json:"is_enabled,omitempty"`
+	UserId        int64                  `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -930,6 +955,13 @@ func (x *UpdateAlertRuleRequest) GetIsEnabled() bool {
 	return false
 }
 
+func (x *UpdateAlertRuleRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type UpdateAlertRuleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AlertRule     *AlertRule             `protobuf:"bytes,1,opt,name=alert_rule,json=alertRule,proto3" json:"alert_rule,omitempty"`
@@ -977,6 +1009,7 @@ func (x *UpdateAlertRuleResponse) GetAlertRule() *AlertRule {
 type DeleteAlertRuleRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1014,6 +1047,13 @@ func (*DeleteAlertRuleRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteAlertRuleRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *DeleteAlertRuleRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -1066,17 +1106,19 @@ const file_alert_service_proto_rawDesc = "" +
 	"\amessage\x18\x04 \x01(\tR\amessage\x12\x14\n" +
 	"\x05value\x18\x05 \x01(\x01R\x05value\x12\x17\n" +
 	"\ais_read\x18\x06 \x01(\bR\x06isRead\x12=\n" +
-	"\ftriggered_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vtriggeredAt\"!\n" +
+	"\ftriggered_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vtriggeredAt\":\n" +
 	"\x0fGetAlertRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\">\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\">\n" +
 	"\x10GetAlertResponse\x12*\n" +
 	"\x05alert\x18\x01 \x01(\v2\x14.alert_service.AlertR\x05alert\"Z\n" +
 	"\x11ListAlertsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x03 \x01(\x05R\x06offset\"(\n" +
+	"\x06offset\x18\x03 \x01(\x05R\x06offset\"A\n" +
 	"\x16MarkAlertAsReadRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"3\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"3\n" +
 	"\x17MarkAlertAsReadResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\"c\n" +
 	"\x12ListAlertsResponse\x12,\n" +
@@ -1104,9 +1146,10 @@ const file_alert_service_proto_rawDesc = "" +
 	"\auser_id\x18\x06 \x01(\x03R\x06userId\"R\n" +
 	"\x17CreateAlertRuleResponse\x127\n" +
 	"\n" +
-	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"%\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\">\n" +
 	"\x13GetAlertRuleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"O\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"O\n" +
 	"\x14GetAlertRuleResponse\x127\n" +
 	"\n" +
 	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"^\n" +
@@ -1118,7 +1161,7 @@ const file_alert_service_proto_rawDesc = "" +
 	"\valert_rules\x18\x01 \x03(\v2\x18.alert_service.AlertRuleR\n" +
 	"alertRules\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x03R\n" +
-	"totalCount\"\xdf\x01\n" +
+	"totalCount\"\xf8\x01\n" +
 	"\x16UpdateAlertRuleRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
@@ -1127,12 +1170,14 @@ const file_alert_service_proto_rawDesc = "" +
 	"\tthreshold\x18\x05 \x01(\x01R\tthreshold\x12 \n" +
 	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1d\n" +
 	"\n" +
-	"is_enabled\x18\a \x01(\bR\tisEnabled\"R\n" +
+	"is_enabled\x18\a \x01(\bR\tisEnabled\x12\x17\n" +
+	"\auser_id\x18\b \x01(\x03R\x06userId\"R\n" +
 	"\x17UpdateAlertRuleResponse\x127\n" +
 	"\n" +
-	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"(\n" +
+	"alert_rule\x18\x01 \x01(\v2\x18.alert_service.AlertRuleR\talertRule\"A\n" +
 	"\x16DeleteAlertRuleRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"\x19\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\x19\n" +
 	"\x17DeleteAlertRuleResponse2\xfe\x05\n" +
 	"\fAlertService\x12M\n" +
 	"\bGetAlert\x12\x1e.alert_service.GetAlertRequest\x1a\x1f.alert_service.GetAlertResponse\"\x00\x12S\n" +

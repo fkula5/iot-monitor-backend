@@ -27,8 +27,58 @@ func NewGrpcHandler(s *grpc.Server, sensorsService services.ISensorService, sens
 	pb.RegisterSensorServiceServer(s, handler)
 }
 
+func requireUser(userID int64) error {
+	if userID <= 0 {
+		return status.Error(codes.InvalidArgument, "user_id must be a positive integer")
+	}
+	return nil
+}
+
+// ownedSensor returns the sensor if it belongs to userID. A userID of 0 skips
+// the ownership check and is reserved for internal service calls.
+func (h *SensorsGrpcHandler) ownedSensor(ctx context.Context, id, userID int64) (*ent.Sensor, error) {
+	sensor, err := h.sensorsService.GetSensor(ctx, int(id))
+	if err != nil || (userID != 0 && sensor.UserID != userID) {
+		return nil, status.Error(codes.NotFound, "sensor not found")
+	}
+	return sensor, nil
+}
+
+func (h *SensorsGrpcHandler) ownedGroup(ctx context.Context, id, userID int64) (*ent.SensorGroup, error) {
+	group, err := h.sensorsGroupService.Get(ctx, int(id))
+	if err != nil || group.UserID != userID {
+		return nil, status.Error(codes.NotFound, "sensor group not found")
+	}
+	return group, nil
+}
+
+// checkSensorsOwned ensures every sensor ID belongs to userID.
+func (h *SensorsGrpcHandler) checkSensorsOwned(ctx context.Context, userID int64, ids []int64) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	sensors, err := h.sensorsService.ListSensors(ctx, userID)
+	if err != nil {
+		logger.Error("Failed to list sensors", zap.Error(err))
+		return status.Error(codes.Internal, "failed to verify sensors")
+	}
+	owned := make(map[int64]bool, len(sensors))
+	for _, s := range sensors {
+		owned[int64(s.ID)] = true
+	}
+	for _, id := range ids {
+		if !owned[id] {
+			return status.Errorf(codes.NotFound, "sensor %d not found", id)
+		}
+	}
+	return nil
+}
+
 // CreateSensor implements api.SensorServiceServer.
 func (h *SensorsGrpcHandler) CreateSensor(ctx context.Context, req *pb.CreateSensorRequest) (*pb.CreateSensorResponse, error) {
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "Name is required")
 	}
@@ -93,13 +143,15 @@ func (h *SensorsGrpcHandler) DeleteSensor(ctx context.Context, req *pb.DeleteSen
 	if req.Id <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "sensor id must be a positive integer")
 	}
-
-	_, err := h.sensorsService.GetSensor(ctx, int(req.Id))
-	if err != nil {
-		return nil, status.Error(codes.NotFound, "sensor not found")
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
 	}
 
-	err = h.sensorsService.DeleteSensor(ctx, int(req.Id))
+	if _, err := h.ownedSensor(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+
+	err := h.sensorsService.DeleteSensor(ctx, int(req.Id))
 	if err != nil {
 		logger.Error("Failed to delete sensor", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to delete sensor")
@@ -110,7 +162,7 @@ func (h *SensorsGrpcHandler) DeleteSensor(ctx context.Context, req *pb.DeleteSen
 
 // GetSensor implements api.SensorServiceServer.
 func (h *SensorsGrpcHandler) GetSensor(ctx context.Context, req *pb.GetSensorRequest) (*pb.GetSensorResponse, error) {
-	sensor, err := h.sensorsService.GetSensor(ctx, int(req.Id))
+	sensor, err := h.ownedSensor(ctx, req.Id, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -227,9 +279,13 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 		return nil, status.Error(codes.InvalidArgument, "sensor id must be a positive integer")
 	}
 
-	existingSensor, err := h.sensorsService.GetSensor(ctx, int(req.Id))
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+
+	existingSensor, err := h.ownedSensor(ctx, req.Id, req.UserId)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "sensor not found")
+		return nil, err
 	}
 
 	existingSensor.Name = req.Name
@@ -257,9 +313,17 @@ func (h *SensorsGrpcHandler) UpdateSensor(ctx context.Context, req *pb.UpdateSen
 }
 
 func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSensorActiveRequest) (*pb.SetSensorActiveResponse, error) {
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if _, err := h.ownedSensor(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+
 	sensor, err := h.sensorsService.SetSensorActive(ctx, int(req.Id))
 	if err != nil {
-		return nil, err
+		logger.Error("Failed to activate sensor", zap.Error(err))
+		return nil, status.Error(codes.Internal, "failed to activate sensor")
 	}
 
 	return &pb.SetSensorActiveResponse{
@@ -270,6 +334,12 @@ func (h *SensorsGrpcHandler) SetSensorActive(ctx context.Context, req *pb.SetSen
 func (h *SensorsGrpcHandler) CreateSensorGroup(ctx context.Context, req *pb.CreateSensorGroupRequest) (*pb.CreateSensorGroupResponse, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "Group name is required")
+	}
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if err := h.checkSensorsOwned(ctx, req.UserId, req.SensorIds); err != nil {
+		return nil, err
 	}
 
 	group := &ent.SensorGroup{
@@ -292,9 +362,13 @@ func (h *SensorsGrpcHandler) CreateSensorGroup(ctx context.Context, req *pb.Crea
 }
 
 func (h *SensorsGrpcHandler) GetSensorGroup(ctx context.Context, req *pb.GetSensorGroupRequest) (*pb.GetSensorGroupResponse, error) {
-	group, err := h.sensorsGroupService.Get(ctx, int(req.Id))
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+
+	group, err := h.ownedGroup(ctx, req.Id, req.UserId)
 	if err != nil {
-		return nil, status.Error(codes.NotFound, "sensor group not found")
+		return nil, err
 	}
 
 	var protoSensors []*pb.Sensor
@@ -341,6 +415,15 @@ func (h *SensorsGrpcHandler) UpdateSensorGroup(ctx context.Context, req *pb.Upda
 	if req.Id <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
 	}
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if _, err := h.ownedGroup(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+	if err := h.checkSensorsOwned(ctx, req.UserId, req.SensorIds); err != nil {
+		return nil, err
+	}
 
 	groupUpdate := &ent.SensorGroup{
 		Name:        req.Name,
@@ -364,6 +447,12 @@ func (h *SensorsGrpcHandler) DeleteSensorGroup(ctx context.Context, req *pb.Dele
 	if req.Id <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "group id must be a positive integer")
 	}
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if _, err := h.ownedGroup(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
 
 	err := h.sensorsGroupService.DeleteGroup(ctx, int(req.Id))
 	if err != nil {
@@ -380,6 +469,16 @@ func (h *SensorsGrpcHandler) AddSensorsToGroup(ctx context.Context, req *pb.AddS
 	}
 	if len(req.SensorIds) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "sensor ids list cannot be empty")
+	}
+
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if _, err := h.ownedGroup(ctx, req.GroupId, req.UserId); err != nil {
+		return nil, err
+	}
+	if err := h.checkSensorsOwned(ctx, req.UserId, req.SensorIds); err != nil {
+		return nil, err
 	}
 
 	group, err := h.sensorsGroupService.AddSensorsToGroup(ctx, int(req.GroupId), req.SensorIds)
@@ -399,6 +498,13 @@ func (h *SensorsGrpcHandler) RemoveSensorsFromGroup(ctx context.Context, req *pb
 	}
 	if len(req.SensorIds) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "sensor ids list cannot be empty")
+	}
+
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+	if _, err := h.ownedGroup(ctx, req.GroupId, req.UserId); err != nil {
+		return nil, err
 	}
 
 	group, err := h.sensorsGroupService.RemoveSensorsFromGroup(ctx, int(req.GroupId), req.SensorIds)
@@ -455,6 +561,7 @@ func convertSensorToProto(s *ent.Sensor) *pb.Sensor {
 		Active:      s.Active,
 		CreatedAt:   timestamppb.New(s.CreatedAt),
 		UpdatedAt:   timestamppb.New(s.UpdatedAt),
+		UserId:      s.UserID,
 	}
 
 	if !s.LastUpdated.IsZero() {
