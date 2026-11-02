@@ -20,10 +20,12 @@ type JWTService struct {
 	secretKey []byte
 }
 
+// NewJWTService panics when JWT_SECRET is not set, so a service never starts
+// signing or accepting tokens with a guessable key.
 func NewJWTService() *JWTService {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "iot-monitor-dev"
+		panic("JWT_SECRET environment variable is not set")
 	}
 	return &JWTService{
 		secretKey: []byte(secret),
