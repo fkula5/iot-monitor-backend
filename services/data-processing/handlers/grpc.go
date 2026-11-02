@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"encoding/json"
@@ -24,8 +25,9 @@ type DataGrpcHandler struct {
 	pb_data.UnimplementedDataServiceServer
 	store         storage.ITimeScaleStorage
 	sensorClient  pb_sensor.SensorServiceClient
-	subscribers   map[string]chan *pb_data.ReadingUpdate
+	subscribers   map[uint64]chan *pb_data.ReadingUpdate
 	subscribersMu sync.RWMutex
+	nextSubID     atomic.Uint64
 	channel       *amqp091.Channel
 	queue         amqp091.Queue
 }
@@ -43,7 +45,7 @@ func NewDataGrpcHandler(s *grpc.Server, store storage.ITimeScaleStorage, sensorC
 	handler := &DataGrpcHandler{
 		store:        store,
 		sensorClient: sensorClient,
-		subscribers:  make(map[string]chan *pb_data.ReadingUpdate),
+		subscribers:  make(map[uint64]chan *pb_data.ReadingUpdate),
 		channel:      channel,
 		queue:        queue,
 	}
@@ -130,7 +132,7 @@ func (h *DataGrpcHandler) StreamReadings(req *pb_data.StreamReadingsRequest, str
 	}
 
 	ch := make(chan *pb_data.ReadingUpdate, 100)
-	id := generateSubscriberID()
+	id := h.nextSubID.Add(1)
 
 	h.subscribersMu.Lock()
 	h.subscribers[id] = ch
@@ -251,8 +253,4 @@ func (h *DataGrpcHandler) broadcastUpdate(update *pb_data.ReadingUpdate) {
 		default:
 		}
 	}
-}
-
-func generateSubscriberID() string {
-	return time.Now().Format("20060102150405.000000")
 }

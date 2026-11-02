@@ -31,18 +31,39 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+const wsWriteTimeout = 10 * time.Second
+
 type WebSocketHandler struct {
 	dataClient   pb_data.DataServiceClient
 	sensorClient pb_sensor.SensorServiceClient
-	clients      map[*websocket.Conn]int64 // connection -> user ID
+	clients      map[*wsClient]struct{}
 	clientsMu    sync.RWMutex
+}
+
+// wsClient wraps a WebSocket connection. gorilla/websocket allows only one
+// concurrent writer, so all writes go through writeJSON. ctx is cancelled when
+// the connection closes, which stops the client's reading streams.
+type wsClient struct {
+	conn    *websocket.Conn
+	userID  int64
+	ctx     context.Context
+	writeMu sync.Mutex
+}
+
+func (c *wsClient) writeJSON(v interface{}) error {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+	if err := c.conn.SetWriteDeadline(time.Now().Add(wsWriteTimeout)); err != nil {
+		return err
+	}
+	return c.conn.WriteJSON(v)
 }
 
 func NewWebSocketHandler(dataClient pb_data.DataServiceClient, sensorClient pb_sensor.SensorServiceClient, alertMsgs <-chan amqp.Delivery) *WebSocketHandler {
 	h := &WebSocketHandler{
 		dataClient:   dataClient,
 		sensorClient: sensorClient,
-		clients:      make(map[*websocket.Conn]int64),
+		clients:      make(map[*wsClient]struct{}),
 	}
 
 	if alertMsgs != nil {
@@ -96,19 +117,23 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	ctx, cancel = context.WithCancel(context.Background())
+	client := &wsClient{conn: conn, userID: userID, ctx: ctx}
+
 	h.clientsMu.Lock()
-	h.clients[conn] = userID
+	h.clients[client] = struct{}{}
 	h.clientsMu.Unlock()
 
 	defer func() {
+		cancel()
 		h.clientsMu.Lock()
-		delete(h.clients, conn)
+		delete(h.clients, client)
 		h.clientsMu.Unlock()
 		conn.Close()
 	}()
 
 	if len(sensorIDs) > 0 {
-		go h.streamToClient(conn, sensorIDs)
+		go h.streamToClient(client, sensorIDs)
 	}
 
 	for {
@@ -119,7 +144,7 @@ func (h *WebSocketHandler) HandleReadings(w http.ResponseWriter, r *http.Request
 
 		if msg.Type == "subscribe" {
 			if ids := filterOwned(msg.SensorIDs, owned); len(ids) > 0 {
-				go h.streamToClient(conn, ids)
+				go h.streamToClient(client, ids)
 			}
 		}
 	}
@@ -172,11 +197,8 @@ func (h *WebSocketHandler) authorizeSensors(w http.ResponseWriter, r *http.Reque
 	return true
 }
 
-func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int64) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	stream, err := h.dataClient.StreamReadings(ctx, &pb_data.StreamReadingsRequest{
+func (h *WebSocketHandler) streamToClient(client *wsClient, sensorIDs []int64) {
+	stream, err := h.dataClient.StreamReadings(client.ctx, &pb_data.StreamReadingsRequest{
 		SensorIds: sensorIDs,
 	})
 	if err != nil {
@@ -198,15 +220,8 @@ func (h *WebSocketHandler) streamToClient(conn *websocket.Conn, sensorIDs []int6
 			Unit:       update.Unit,
 		}
 
-		h.clientsMu.RLock()
-		_, clientExists := h.clients[conn]
-		h.clientsMu.RUnlock()
-
-		if !clientExists {
-			return
-		}
-
-		if err := conn.WriteJSON(msg); err != nil {
+		if err := client.writeJSON(msg); err != nil {
+			client.conn.Close()
 			return
 		}
 	}
@@ -421,19 +436,20 @@ func (h *WebSocketHandler) broadcastAlerts(alertMsgs <-chan amqp.Delivery) {
 		}
 
 		h.clientsMu.RLock()
-		for client, userID := range h.clients {
-			if userID != owner.UserID {
-				continue
-			}
-			if err := client.WriteJSON(wsMsg); err != nil {
-				client.Close()
-				h.clientsMu.RUnlock()
-				h.clientsMu.Lock()
-				delete(h.clients, client)
-				h.clientsMu.Unlock()
-				h.clientsMu.RLock()
+		var recipients []*wsClient
+		for client := range h.clients {
+			if client.userID == owner.UserID {
+				recipients = append(recipients, client)
 			}
 		}
 		h.clientsMu.RUnlock()
+
+		// Closing the connection ends its read loop in HandleReadings, which
+		// removes the client from the map.
+		for _, client := range recipients {
+			if err := client.writeJSON(wsMsg); err != nil {
+				client.conn.Close()
+			}
+		}
 	}
 }
