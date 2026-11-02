@@ -206,7 +206,9 @@ func processMessage(client *ent.Client, ch IMessagePublisher, body []byte) {
 		ruleStateMap[rule.ID] = triggered
 		ruleStateMutex.Unlock()
 
-		if triggered {
+		// Alert only on transitions; readings that stay above the threshold
+		// would otherwise create a new alert every time.
+		if triggered && !wasTriggered {
 			logger.Info("Alert triggered",
 				zap.Int64("sensor_id", data.SensorID),
 				zap.String("rule_name", rule.Name),
