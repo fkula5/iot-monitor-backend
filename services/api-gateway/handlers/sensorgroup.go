@@ -79,13 +79,18 @@ func (h *SensorGroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid group ID")
 		return
 	}
 
-	res, err := h.client.GetSensorGroup(ctx, &pb.GetSensorGroupRequest{Id: id})
+	res, err := h.client.GetSensorGroup(ctx, &pb.GetSensorGroupRequest{Id: id, UserId: userID})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
@@ -146,7 +151,7 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 		SensorIds:   req.SensorIDs,
 	})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to create group")
+		grpcError(w, err, "Sensor not found", "Failed to create group")
 		return
 	}
 
@@ -170,6 +175,11 @@ func (h *SensorGroupHandler) CreateGroup(w http.ResponseWriter, r *http.Request)
 func (h *SensorGroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
+
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
 
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
@@ -195,6 +205,7 @@ func (h *SensorGroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request)
 		Color:       req.Color,
 		Icon:        req.Icon,
 		SensorIds:   req.SensorIDs,
+		UserId:      userID,
 	})
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -224,13 +235,18 @@ func (h *SensorGroupHandler) DeleteGroup(w http.ResponseWriter, r *http.Request)
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid group ID")
 		return
 	}
 
-	if _, err = h.client.DeleteSensorGroup(ctx, &pb.DeleteSensorGroupRequest{Id: id}); err != nil {
+	if _, err = h.client.DeleteSensorGroup(ctx, &pb.DeleteSensorGroupRequest{Id: id, UserId: userID}); err != nil {
 		st, ok := status.FromError(err)
 		if ok && st.Code() == codes.NotFound {
 			Error(w, http.StatusNotFound, "Group not found")
@@ -261,6 +277,11 @@ func (h *SensorGroupHandler) AddSensorsToGroup(w http.ResponseWriter, r *http.Re
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid group ID")
@@ -281,9 +302,10 @@ func (h *SensorGroupHandler) AddSensorsToGroup(w http.ResponseWriter, r *http.Re
 	res, err := h.client.AddSensorsToGroup(ctx, &pb.AddSensorsToGroupRequest{
 		GroupId:   id,
 		SensorIds: req.SensorIDs,
+		UserId:    userID,
 	})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to add sensors")
+		grpcError(w, err, "Group or sensor not found", "Failed to add sensors")
 		return
 	}
 
@@ -308,6 +330,11 @@ func (h *SensorGroupHandler) RemoveSensorsFromGroup(w http.ResponseWriter, r *ht
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid group ID")
@@ -328,9 +355,10 @@ func (h *SensorGroupHandler) RemoveSensorsFromGroup(w http.ResponseWriter, r *ht
 	res, err := h.client.RemoveSensorsFromGroup(ctx, &pb.RemoveSensorsFromGroupRequest{
 		GroupId:   id,
 		SensorIds: req.SensorIDs,
+		UserId:    userID,
 	})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to remove sensors")
+		grpcError(w, err, "Group not found", "Failed to remove sensors")
 		return
 	}
 

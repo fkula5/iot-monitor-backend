@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	pb "github.com/skni-kod/iot-monitor-backend/internal/proto/alert_service"
@@ -23,8 +25,37 @@ func NewAlertGrpcHandler(alertService *service.AlertService, alertRuleService *s
 	}
 }
 
+func requireUser(userID int64) error {
+	if userID <= 0 {
+		return status.Error(codes.InvalidArgument, "user_id must be a positive integer")
+	}
+	return nil
+}
+
+func (h *AlertGrpcHandler) ownedAlert(ctx context.Context, id, userID int64) (*ent.Alert, error) {
+	if err := requireUser(userID); err != nil {
+		return nil, err
+	}
+	a, err := h.alertService.GetAlert(ctx, int(id))
+	if err != nil || a.UserID != userID {
+		return nil, status.Error(codes.NotFound, "alert not found")
+	}
+	return a, nil
+}
+
+func (h *AlertGrpcHandler) ownedAlertRule(ctx context.Context, id, userID int64) (*ent.AlertRule, error) {
+	if err := requireUser(userID); err != nil {
+		return nil, err
+	}
+	rule, err := h.alertRuleService.GetAlertRule(ctx, id)
+	if err != nil || rule.UserID != userID {
+		return nil, status.Error(codes.NotFound, "alert rule not found")
+	}
+	return rule, nil
+}
+
 func (h *AlertGrpcHandler) GetAlert(ctx context.Context, req *pb.GetAlertRequest) (*pb.GetAlertResponse, error) {
-	a, err := h.alertService.GetAlert(ctx, int(req.Id))
+	a, err := h.ownedAlert(ctx, req.Id, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +78,10 @@ func (h *AlertGrpcHandler) ListAlerts(ctx context.Context, req *pb.ListAlertsReq
 }
 
 func (h *AlertGrpcHandler) MarkAlertAsRead(ctx context.Context, req *pb.MarkAlertAsReadRequest) (*pb.MarkAlertAsReadResponse, error) {
+	if _, err := h.ownedAlert(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+
 	success, err := h.alertService.MarkAsRead(ctx, int(req.Id))
 	if err != nil {
 		return nil, err
@@ -70,6 +105,10 @@ func (h *AlertGrpcHandler) ListAlertRules(ctx context.Context, req *pb.ListAlert
 }
 
 func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAlertRuleRequest) (*pb.CreateAlertRuleResponse, error) {
+	if err := requireUser(req.UserId); err != nil {
+		return nil, err
+	}
+
 	rule, err := h.alertRuleService.CreateAlertRule(ctx, &ent.AlertRule{
 		Name:          req.Name,
 		SensorID:      req.SensorId,
@@ -87,6 +126,10 @@ func (h *AlertGrpcHandler) CreateAlertRule(ctx context.Context, req *pb.CreateAl
 }
 
 func (h *AlertGrpcHandler) DeleteAlertRule(ctx context.Context, req *pb.DeleteAlertRuleRequest) (*pb.DeleteAlertRuleResponse, error) {
+	if _, err := h.ownedAlertRule(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+
 	err := h.alertRuleService.DeleteAlertRule(ctx, req.Id)
 	if err != nil {
 		return nil, err
@@ -95,7 +138,7 @@ func (h *AlertGrpcHandler) DeleteAlertRule(ctx context.Context, req *pb.DeleteAl
 }
 
 func (h *AlertGrpcHandler) GetAlertRule(ctx context.Context, req *pb.GetAlertRuleRequest) (*pb.GetAlertRuleResponse, error) {
-	rule, err := h.alertRuleService.GetAlertRule(ctx, req.Id)
+	rule, err := h.ownedAlertRule(ctx, req.Id, req.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +148,10 @@ func (h *AlertGrpcHandler) GetAlertRule(ctx context.Context, req *pb.GetAlertRul
 }
 
 func (h *AlertGrpcHandler) UpdateAlertRule(ctx context.Context, req *pb.UpdateAlertRuleRequest) (*pb.UpdateAlertRuleResponse, error) {
+	if _, err := h.ownedAlertRule(ctx, req.Id, req.UserId); err != nil {
+		return nil, err
+	}
+
 	rule, err := h.alertRuleService.UpdateAlertRule(ctx, &ent.AlertRule{
 		ID:            int(req.Id),
 		Name:          req.Name,

@@ -52,6 +52,7 @@ message Sensor{
     google.protobuf.Timestamp updated_at = 8;
     int64 sensor_type_id = 9;
     SensorType sensor_type = 10;
+    int64 user_id = 11;
 }
 
 message CreateSensorTypeRequest {
@@ -97,6 +98,8 @@ message CreateSensorResponse {
 
 message GetSensorRequest {
     int64 id = 1;
+    // Owner to scope the lookup to; 0 is reserved for internal service calls.
+    int64 user_id = 2;
 }
 
 message GetSensorResponse {
@@ -118,6 +121,7 @@ message UpdateSensorRequest {
     string description = 4;
     bool active = 5;
     int64 sensor_type_id = 6;
+    int64 user_id = 7;
 }
 
 message UpdateSensorResponse {
@@ -126,12 +130,14 @@ message UpdateSensorResponse {
 
 message DeleteSensorRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message DeleteSensorResponse {}
 
 message SetSensorActiveRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message SetSensorActiveResponse {
@@ -186,6 +192,7 @@ message CreateSensorGroupResponse {
 
 message GetSensorGroupRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message GetSensorGroupResponse {
@@ -213,6 +220,7 @@ message UpdateSensorGroupRequest {
     string color = 4;
     string icon = 5;
     repeated int64 sensor_ids = 6;
+    int64 user_id = 7;
 }
 
 message UpdateSensorGroupResponse {
@@ -221,6 +229,7 @@ message UpdateSensorGroupResponse {
 
 message DeleteSensorGroupRequest {
     int64 id = 1;
+    int64 user_id = 2;
 }
 
 message DeleteSensorGroupResponse {}
@@ -228,6 +237,7 @@ message DeleteSensorGroupResponse {}
 message AddSensorsToGroupRequest {
     int64 group_id = 1;
     repeated int64 sensor_ids = 2;
+    int64 user_id = 3;
 }
 
 message AddSensorsToGroupResponse {
@@ -237,6 +247,7 @@ message AddSensorsToGroupResponse {
 message RemoveSensorsFromGroupRequest {
     int64 group_id = 1;
     repeated int64 sensor_ids = 2;
+    int64 user_id = 3;
 }
 
 message RemoveSensorsFromGroupResponse {

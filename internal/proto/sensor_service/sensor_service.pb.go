@@ -142,6 +142,7 @@ type Sensor struct {
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	SensorTypeId  int64                  `protobuf:"varint,9,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
 	SensorType    *SensorType            `protobuf:"bytes,10,opt,name=sensor_type,json=sensorType,proto3" json:"sensor_type,omitempty"`
+	UserId        int64                  `protobuf:"varint,11,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -244,6 +245,13 @@ func (x *Sensor) GetSensorType() *SensorType {
 		return x.SensorType
 	}
 	return nil
+}
+
+func (x *Sensor) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type CreateSensorTypeRequest struct {
@@ -679,8 +687,10 @@ func (x *CreateSensorResponse) GetSensor() *Sensor {
 }
 
 type GetSensorRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Owner to scope the lookup to; 0 is reserved for internal service calls.
+	UserId        int64 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -718,6 +728,13 @@ func (*GetSensorRequest) Descriptor() ([]byte, []int) {
 func (x *GetSensorRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *GetSensorRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -862,6 +879,7 @@ type UpdateSensorRequest struct {
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	Active        bool                   `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
 	SensorTypeId  int64                  `protobuf:"varint,6,opt,name=sensor_type_id,json=sensorTypeId,proto3" json:"sensor_type_id,omitempty"`
+	UserId        int64                  `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -938,6 +956,13 @@ func (x *UpdateSensorRequest) GetSensorTypeId() int64 {
 	return 0
 }
 
+func (x *UpdateSensorRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type UpdateSensorResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sensor        *Sensor                `protobuf:"bytes,1,opt,name=sensor,proto3" json:"sensor,omitempty"`
@@ -985,6 +1010,7 @@ func (x *UpdateSensorResponse) GetSensor() *Sensor {
 type DeleteSensorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1022,6 +1048,13 @@ func (*DeleteSensorRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteSensorRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *DeleteSensorRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -1065,6 +1098,7 @@ func (*DeleteSensorResponse) Descriptor() ([]byte, []int) {
 type SetSensorActiveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1102,6 +1136,13 @@ func (*SetSensorActiveRequest) Descriptor() ([]byte, []int) {
 func (x *SetSensorActiveRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *SetSensorActiveRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -1613,6 +1654,7 @@ func (x *CreateSensorGroupResponse) GetGroup() *SensorGroup {
 type GetSensorGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1650,6 +1692,13 @@ func (*GetSensorGroupRequest) Descriptor() ([]byte, []int) {
 func (x *GetSensorGroupRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *GetSensorGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -1854,6 +1903,7 @@ type UpdateSensorGroupRequest struct {
 	Color         string                 `protobuf:"bytes,4,opt,name=color,proto3" json:"color,omitempty"`
 	Icon          string                 `protobuf:"bytes,5,opt,name=icon,proto3" json:"icon,omitempty"`
 	SensorIds     []int64                `protobuf:"varint,6,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	UserId        int64                  `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1930,6 +1980,13 @@ func (x *UpdateSensorGroupRequest) GetSensorIds() []int64 {
 	return nil
 }
 
+func (x *UpdateSensorGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
 type UpdateSensorGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Group         *SensorGroup           `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
@@ -1977,6 +2034,7 @@ func (x *UpdateSensorGroupResponse) GetGroup() *SensorGroup {
 type DeleteSensorGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2014,6 +2072,13 @@ func (*DeleteSensorGroupRequest) Descriptor() ([]byte, []int) {
 func (x *DeleteSensorGroupRequest) GetId() int64 {
 	if x != nil {
 		return x.Id
+	}
+	return 0
+}
+
+func (x *DeleteSensorGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
 	}
 	return 0
 }
@@ -2058,6 +2123,7 @@ type AddSensorsToGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	GroupId       int64                  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	SensorIds     []int64                `protobuf:"varint,2,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	UserId        int64                  `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2104,6 +2170,13 @@ func (x *AddSensorsToGroupRequest) GetSensorIds() []int64 {
 		return x.SensorIds
 	}
 	return nil
+}
+
+func (x *AddSensorsToGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type AddSensorsToGroupResponse struct {
@@ -2154,6 +2227,7 @@ type RemoveSensorsFromGroupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	GroupId       int64                  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	SensorIds     []int64                `protobuf:"varint,2,rep,packed,name=sensor_ids,json=sensorIds,proto3" json:"sensor_ids,omitempty"`
+	UserId        int64                  `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2200,6 +2274,13 @@ func (x *RemoveSensorsFromGroupRequest) GetSensorIds() []int64 {
 		return x.SensorIds
 	}
 	return nil
+}
+
+func (x *RemoveSensorsFromGroupRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type RemoveSensorsFromGroupResponse struct {
@@ -2262,7 +2343,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\tmin_value\x18\a \x01(\x02R\bminValue\x12\x1b\n" +
 	"\tmax_value\x18\b \x01(\x02R\bmaxValue\x129\n" +
 	"\n" +
-	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x9a\x03\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xb3\x03\n" +
 	"\x06Sensor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
@@ -2277,7 +2358,8 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x0esensor_type_id\x18\t \x01(\x03R\fsensorTypeId\x12;\n" +
 	"\vsensor_type\x18\n" +
 	" \x01(\v2\x1a.sensor_service.SensorTypeR\n" +
-	"sensorType\"\xd7\x01\n" +
+	"sensorType\x12\x17\n" +
+	"\auser_id\x18\v \x01(\x03R\x06userId\"\xd7\x01\n" +
 	"\x17CreateSensorTypeRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12\"\n" +
@@ -2305,29 +2387,33 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x0esensor_type_id\x18\x05 \x01(\x03R\fsensorTypeId\x12\x17\n" +
 	"\auser_id\x18\x06 \x01(\x03R\x06userId\"F\n" +
 	"\x14CreateSensorResponse\x12.\n" +
-	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\"\n" +
+	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\";\n" +
 	"\x10GetSensorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"C\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"C\n" +
 	"\x11GetSensorResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"-\n" +
 	"\x12ListSensorsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\"G\n" +
 	"\x13ListSensorsResponse\x120\n" +
-	"\asensors\x18\x01 \x03(\v2\x16.sensor_service.SensorR\asensors\"\xb5\x01\n" +
+	"\asensors\x18\x01 \x03(\v2\x16.sensor_service.SensorR\asensors\"\xce\x01\n" +
 	"\x13UpdateSensorRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\blocation\x18\x03 \x01(\tR\blocation\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06active\x18\x05 \x01(\bR\x06active\x12$\n" +
-	"\x0esensor_type_id\x18\x06 \x01(\x03R\fsensorTypeId\"F\n" +
+	"\x0esensor_type_id\x18\x06 \x01(\x03R\fsensorTypeId\x12\x17\n" +
+	"\auser_id\x18\a \x01(\x03R\x06userId\"F\n" +
 	"\x14UpdateSensorResponse\x12.\n" +
-	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"%\n" +
+	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\">\n" +
 	"\x13DeleteSensorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"\x16\n" +
-	"\x14DeleteSensorResponse\"(\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\x16\n" +
+	"\x14DeleteSensorResponse\"A\n" +
 	"\x16SetSensorActiveRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"I\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"I\n" +
 	"\x17SetSensorActiveResponse\x12.\n" +
 	"\x06sensor\x18\x01 \x01(\v2\x16.sensor_service.SensorR\x06sensor\"\xe7\x01\n" +
 	"\x17UpdateSensorTypeRequest\x12\x0e\n" +
@@ -2367,9 +2453,10 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\n" +
 	"sensor_ids\x18\x06 \x03(\x03R\tsensorIds\"N\n" +
 	"\x19CreateSensorGroupResponse\x121\n" +
-	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"'\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"@\n" +
 	"\x15GetSensorGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"}\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"}\n" +
 	"\x16GetSensorGroupResponse\x121\n" +
 	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\x120\n" +
 	"\asensors\x18\x02 \x03(\v2\x16.sensor_service.SensorR\asensors\"2\n" +
@@ -2379,7 +2466,7 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\x120\n" +
 	"\asensors\x18\x02 \x03(\v2\x16.sensor_service.SensorR\asensors\"Z\n" +
 	"\x18ListSensorGroupsResponse\x12>\n" +
-	"\x06groups\x18\x01 \x03(\v2&.sensor_service.SensorGroupWithSensorsR\x06groups\"\xa9\x01\n" +
+	"\x06groups\x18\x01 \x03(\v2&.sensor_service.SensorGroupWithSensorsR\x06groups\"\xc2\x01\n" +
 	"\x18UpdateSensorGroupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -2387,22 +2474,26 @@ const file_sensor_service_proto_rawDesc = "" +
 	"\x05color\x18\x04 \x01(\tR\x05color\x12\x12\n" +
 	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x1d\n" +
 	"\n" +
-	"sensor_ids\x18\x06 \x03(\x03R\tsensorIds\"N\n" +
+	"sensor_ids\x18\x06 \x03(\x03R\tsensorIds\x12\x17\n" +
+	"\auser_id\x18\a \x01(\x03R\x06userId\"N\n" +
 	"\x19UpdateSensorGroupResponse\x121\n" +
-	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"*\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"C\n" +
 	"\x18DeleteSensorGroupRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\"\x1b\n" +
-	"\x19DeleteSensorGroupResponse\"T\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\x1b\n" +
+	"\x19DeleteSensorGroupResponse\"m\n" +
 	"\x18AddSensorsToGroupRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x03R\agroupId\x12\x1d\n" +
 	"\n" +
-	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\"N\n" +
+	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x03R\x06userId\"N\n" +
 	"\x19AddSensorsToGroupResponse\x121\n" +
-	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"Y\n" +
+	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group\"r\n" +
 	"\x1dRemoveSensorsFromGroupRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x03R\agroupId\x12\x1d\n" +
 	"\n" +
-	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\"S\n" +
+	"sensor_ids\x18\x02 \x03(\x03R\tsensorIds\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x03R\x06userId\"S\n" +
 	"\x1eRemoveSensorsFromGroupResponse\x121\n" +
 	"\x05group\x18\x01 \x01(\v2\x1b.sensor_service.SensorGroupR\x05group2\xb2\x0e\n" +
 	"\rSensorService\x12g\n" +

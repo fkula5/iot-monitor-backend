@@ -95,15 +95,20 @@ func (h *AlertHandler) MarkAlertAsRead(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
+	userID, ok := currentUserID(w, r)
+	if !ok {
+		return
+	}
+
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		Error(w, http.StatusBadRequest, "Invalid alert ID")
 		return
 	}
 
-	res, err := h.client.MarkAlertAsRead(ctx, &pb.MarkAlertAsReadRequest{Id: int64(id)})
+	res, err := h.client.MarkAlertAsRead(ctx, &pb.MarkAlertAsReadRequest{Id: int64(id), UserId: userID})
 	if err != nil {
-		Error(w, http.StatusInternalServerError, "Failed to mark alert as read")
+		grpcError(w, err, "Alert not found", "Failed to mark alert as read")
 		return
 	}
 
