@@ -12,6 +12,7 @@ import (
 )
 
 func TestAuthenticate_QueryToken(t *testing.T) {
+	t.Setenv("JWT_SECRET", "test-secret")
 	assert.NoError(t, logger.Init(logger.Config{Level: "error", Environment: "test", OutputPaths: []string{"stdout"}}))
 
 	token, err := auth.NewJWTService().GenerateToken(1, "user", "user@example.com")

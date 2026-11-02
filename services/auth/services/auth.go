@@ -211,8 +211,13 @@ func (s *AuthService) Update(ctx context.Context, userID int, req *UpdateRequest
 
 func (s *AuthService) ForgotPassword(ctx context.Context, email string) error {
 	u, err := s.userStorage.GetByEmail(ctx, email)
+	if ent.IsNotFound(err) {
+		// Same result as for an existing account, so the endpoint does not
+		// reveal which emails are registered.
+		return nil
+	}
 	if err != nil {
-		return err // Or return nil to avoid email enumeration
+		return err
 	}
 
 	token := uuid.New().String()

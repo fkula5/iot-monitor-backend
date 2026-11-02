@@ -131,9 +131,9 @@ func (h *AuthGrpcHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPass
 	err := h.authService.ForgotPassword(ctx, req.Email)
 	if err != nil {
 		logger.Error("Failed to send forgot password email", zap.Error(err))
-		return &pb.ForgotPasswordResponse{Success: false, Message: err.Error()}, nil
+		return &pb.ForgotPasswordResponse{Success: false, Message: "Failed to process request"}, nil
 	}
-	return &pb.ForgotPasswordResponse{Success: true, Message: "Email sent"}, nil
+	return &pb.ForgotPasswordResponse{Success: true, Message: "If the account exists, a reset email has been sent"}, nil
 }
 
 func (h *AuthGrpcHandler) ResetPassword(ctx context.Context, req *pb.ResetPasswordRequest) (*pb.ResetPasswordResponse, error) {
