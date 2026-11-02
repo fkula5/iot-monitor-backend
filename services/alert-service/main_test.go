@@ -149,6 +149,20 @@ func TestProcessMessage(t *testing.T) {
 		mockPub.AssertExpectations(t)
 	})
 
+	t.Run("Does Not Repeat While Above Threshold", func(t *testing.T) {
+		// State carries over from the previous subtest: the rule is triggered.
+		mockPub := new(MockPublisher)
+
+		for _, v := range []float64{36.0, 40.0} {
+			body, _ := json.Marshal(SensorData{SensorID: 1, Value: v, Timestamp: time.Now()})
+			processMessage(client, mockPub, body)
+		}
+
+		count, _ := client.Alert.Query().Count(ctx)
+		assert.Equal(t, 1, count)
+		mockPub.AssertNotCalled(t, "PublishWithContext", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("Does Not Trigger Below Threshold", func(t *testing.T) {
 		ruleStateMap = make(map[int]bool)
 		mockPub := new(MockPublisher)
